@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 interface SplashScreenProps {
   onStartGame: (name: string) => void;
+  title?: string;
+  subtitle?: string;
+  logoUrl?: string;
 }
 
 // ==============================================================================
@@ -9,9 +12,9 @@ interface SplashScreenProps {
 // Se recomienda una imagen cuadrada (ej: 200x200 px) con fondo transparente.
 // Ejemplo: 'https://i.imgur.com/69J15vd.png'
 // ==============================================================================
-const INNOVATEC_LOGO_URL = 'https://i.imgur.com/0w2fvoO.png'; // <- PEGUE LA URL DE SU LOGO AQUÍ
+const DEFAULT_LOGO_URL = 'https://i.imgur.com/0w2fvoO.png'; // placeholder
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPASS', subtitle = 'Simulador de Decisión', logoUrl }) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
   const [playerName, setPlayerName] = useState('');
@@ -42,11 +45,11 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame }) => {
       <div className="text-center animate-fade-in w-full max-w-md">
         {/* Logo */}
         <div className="inline-block mb-8 animate-pulse-slow">
-            <img src={INNOVATEC_LOGO_URL} alt="Innovatec Logo" className="w-80 h-80 object-contain" />
+            <img src={logoUrl || DEFAULT_LOGO_URL} alt="Logo" className="w-80 h-80 object-contain" />
         </div>
         
-        <h1 className="text-4xl font-bold text-white mb-2">COMPASS</h1>
-        <p className="text-lg text-blue-300 mb-8">Simulador de Decisión: Gestión en Salud</p>
+        <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
+        <p className="text-lg text-blue-300 mb-8">{subtitle}</p>
         
         {/* Loading Bar or Name Input */}
         <div className="w-full h-24 flex items-center justify-center">

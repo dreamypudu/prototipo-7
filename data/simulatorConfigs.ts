@@ -48,5 +48,17 @@ export const SIMULATOR_CONFIGS: Record<SimulatorVersion, SimulatorConfig> = {
       { mechanic_id: 'experimental_map', label: 'Mapa Experimental', tab_id: 'experimental_map' }
     ],
     comparison_rules: []
+  },
+  LEY_KARIN: {
+    version_id: 'LEY_KARIN',
+    title: 'Compass: Ley Karin',
+    mechanics: [
+      { mechanic_id: 'office', label: 'Oficina Central', tab_id: 'interaction' }
+    ],
+    comparison_rules: [
+      'visit_priority_rule_v1',
+      'research_hours_rule_v1',
+      'scheduler_war_rule_v1'
+    ]
   }
 };

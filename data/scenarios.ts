@@ -34,13 +34,13 @@ export const scenarios: ScenarioFile = {
         {
           option_id: "B", text: "Imposible, Andrés. Tenemos lista de espera. Si quieren investigar, debe ser fuera del horario clínico o manteniendo el rendimiento.",
           tags: { "focus": "coverage", "risk": "blue_morale" },
-          consequences: { trustChange: -15, supportChange: -10, reputationChange: -5, dialogueResponse: "Entiendo... Priorizamos la fábrica de números sobre la ciencia. Paz Herrera estará muy decepcionada." }
+          consequences: { trustChange: -15, supportChange: -10, reputationChange: -20, dialogueResponse: "Entiendo... Priorizamos la fábrica de números sobre la ciencia. Paz Herrera estará muy decepcionada." }
         },
         {
           option_id: "C", text: "Busquemos un punto medio. Autorizo 5 horas para el estudio, pero deben comprometerse a una charla de capacitación para los otros sectores.",
           tags: { "focus": "balance", "risk": "medium" },
           consequences: { 
-            trustChange: 5, supportChange: 0, reputationChange: 5, 
+            trustChange: 5, supportChange: 0, reputationChange: 20, 
             dialogueResponse: "Mmm. Es poco tiempo, pero acepto el trato por el bien del equipo docente. Negociemos los detalles.",
             expected_actions: [
               {
@@ -79,7 +79,7 @@ export const scenarios: ScenarioFile = {
           option_id: "A", text: "Javier es funcionario del CESFAM, no propiedad del Sector Azul. Si hay necesidad en el Amarillo, debe ir.",
           tags: { "style": "institutional" },
           consequences: { 
-            trustChange: -10, supportChange: -10, dialogueResponse: "Formalmente cierto, prácticamente un error. Desmotivará a mi mejor elemento.",
+            trustChange: -10, supportChange: -10, reputationChange: 11, dialogueResponse: "Formalmente cierto, prácticamente un error. Desmotivará a mi mejor elemento.",
             expected_actions: [
               {
                 mechanic_id: "scheduler",
@@ -88,8 +88,8 @@ export const scenarios: ScenarioFile = {
                 constraints: { staff_id: "javier-castro", target_sector_id: "AMARILLO" },
                 rule_id: "cross_sector_help_rule_v1",
                 effects: {
-                  TRUE: { stakeholder: { trust: 2, support: 1 } },
-                  FALSE: { stakeholder: { trust: -2, support: -1 } }
+                  TRUE: { stakeholder: { trust: 10, support: 10 } },
+                  FALSE: { stakeholder: { trust: -10, support: -10 } }
                 }
               }
             ]

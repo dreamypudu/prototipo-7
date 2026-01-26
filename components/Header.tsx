@@ -1,4 +1,4 @@
-
+﻿
 import React from 'react';
 import { EffectMagnitude, GameState, GlobalEffectsUI, TimeSlotType } from '../types';
 import { getGameDate } from '../constants';
@@ -12,12 +12,14 @@ interface HeaderProps {
   onOpenSidebar: () => void;
   periodDuration?: number;
   globalEffectsHighlight?: GlobalEffectsUI | null;
+  title?: string;
+  subtitle?: string;
 }
 
 const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration }) => {
     const progress = ((periodDuration - countdown) / periodDuration) * 100;
     const { week, dayName } = getGameDate(day);
-    const slotLabel = slot === 'ma\u00f1ana' ? 'Ma\u00f1ana' : slot === 'tarde' ? 'Tarde' : 'Noche';
+    const slotLabel = slot === 'mañana' ? 'Mañana' : slot === 'tarde' ? 'Tarde' : 'Noche';
 
     return (
         <div className="time-card flex-grow">
@@ -25,7 +27,12 @@ const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType;
             <div className="flex-grow">
                 <div className="flex justify-between items-baseline">
                     <div className="eyebrow">Semana {week} · {dayName}</div>
-                    <div className="text-lg font-bold text-white leading-tight">{slotLabel}</div>
+                    <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
+                      {slotLabel}
+                      <span className="text-xs text-gray-300 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
+                        {Math.max(0, countdown)}s
+                      </span>
+                    </div>
                 </div>
                 <div className="time-bar mt-2">
                     <div className={`time-bar__fill ${isPaused ? 'opacity-60' : ''}`} style={{ width: `${progress}%`, transition: isPaused ? 'none' : 'width 1s linear' }}/>
@@ -50,44 +57,128 @@ const getMagnitudeSize = (magnitude: EffectMagnitude): string => {
     return 'w-5 h-5';
 };
 
+const getMagnitudeColor = (magnitude?: EffectMagnitude) => {
+    if (magnitude === 'S') return { dot: 'bg-emerald-300', glow: 'rgba(52,211,153,0.45)' };
+    if (magnitude === 'M') return { dot: 'bg-amber-300', glow: 'rgba(251,191,36,0.5)' };
+    if (magnitude === 'L') return { dot: 'bg-rose-300', glow: 'rgba(244,114,182,0.55)' };
+    return { dot: '', glow: 'rgba(95,224,213,0.45)' };
+};
+
+const getMagnitudeFill = (magnitude?: EffectMagnitude) => {
+    if (magnitude === 'S') return '#34d399'; // emerald-400
+    if (magnitude === 'M') return '#fbbf24'; // amber-400
+    if (magnitude === 'L') return '#fb7185'; // rose-400
+    return '#5fe0d5'; // default teal accent
+};
+
+const magnitudeCardStyles = (magnitude?: EffectMagnitude) => {
+    if (magnitude === 'S') return 'bg-emerald-900/30 border-emerald-400/60 shadow-[0_0_26px_rgba(52,211,153,0.35)]';
+    if (magnitude === 'M') return 'bg-amber-900/30 border-amber-400/60 shadow-[0_0_26px_rgba(251,191,36,0.35)]';
+    if (magnitude === 'L') return 'bg-rose-900/30 border-rose-400/60 shadow-[0_0_26px_rgba(244,114,182,0.35)]';
+    return '';
+};
+
+// Ajusta aquí los diámetros de los anillos para M y L (el punto central representa S).
+const RING_LEVELS: EffectMagnitude[] = ['M', 'L'];
+const RING_SIZES = [28, 40];
+
 const GlobalStat: React.FC<{
     label: string;
     value: number;
     highlight?: EffectMagnitude;
     accentClass: string;
-}> = ({ label, value, highlight, accentClass }) => {
+    barMax?: number;
+    suffix?: string;
+}> = ({ label, value, highlight, accentClass, barMax, suffix }) => {
+    const magnitudeStyle = getMagnitudeColor(highlight);
+    const cardTone = magnitudeCardStyles(highlight);
+    const pct = barMax !== undefined ? Math.max(0, Math.min(100, (value / barMax) * 100)) : null;
     return (
-        <div className={`stat-card relative overflow-visible ${highlight ? 'shadow-[0_0_26px_rgba(95,224,213,0.55)] border-teal-300/70' : ''}`}>
-            <div className={`stat-dot ${accentClass}`} />
+        <div className={`stat-card relative overflow-hidden ${cardTone}`}>
+            <div className="relative w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">
+              {/* Relleno según magnitud M/L */}
+              {highlight && ['M', 'L'].includes(highlight) && (
+                <span
+                  className="absolute rounded-full -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 z-0"
+                  style={{
+                    width: `${highlight === 'L' ? RING_SIZES[1] : RING_SIZES[0]}px`,
+                    height: `${highlight === 'L' ? RING_SIZES[1] : RING_SIZES[0]}px`,
+                    backgroundColor: getMagnitudeFill(highlight),
+                    opacity: 0.95
+                  }}
+                />
+              )}
+              <div
+                className={`stat-dot relative z-20 ${highlight ? magnitudeStyle.dot : accentClass}`}
+              />
+              {/* Rings always visible; around the dot */}
+              {RING_LEVELS.map((level, idx) => {
+                const size = RING_SIZES[idx];
+                const active =
+                  (highlight === 'M' && level === 'M') ||
+                  (highlight === 'L');
+                const ringColor = active ? getMagnitudeFill(highlight) : 'rgba(255,255,255,0.45)';
+                const anim =
+                  (highlight === 'M' && level === 'M') ||
+                  (highlight === 'L' && level === 'L')
+                    ? 'animate-[ping_1.6s_ease-out_infinite]'
+                    : '';
+                return (
+                  <span
+                    key={level}
+                    className={`absolute rounded-full border z-10 ${anim}`}
+                    style={{
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      borderColor: ringColor
+                    }}
+                    aria-hidden="true"
+                  />
+                );
+              })}
+            </div>
             <div className="flex flex-col">
                 <span className="text-xs text-gray-400 uppercase tracking-wider">{label}</span>
-                <span className="text-sm font-bold text-white">{value.toLocaleString()}</span>
+                {barMax !== undefined ? (
+                  <div className="mt-1">
+                    <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/10">
+                      <div
+                        className={`h-full ${highlight ? magnitudeStyle.dot : accentClass} rounded-full transition-all`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="text-[11px] text-gray-300 mt-1">{Math.round(pct ?? 0)}%</div>
+                  </div>
+                ) : (
+                  <span className="text-sm font-bold text-white">
+                    {value.toLocaleString()}
+                    {suffix ? suffix : ''}
+                  </span>
+                )}
             </div>
-            {highlight && (
-                <span
-                  className={`ml-2 rounded-full bg-teal-300/95 ${getMagnitudeSize(highlight)} animate-pulse`}
-                  style={{ boxShadow: '0 0 0 8px rgba(45, 212, 191, 0.20), 0 0 32px rgba(45, 212, 191, 0.55)' }}
-                />
-            )}
-            {highlight && (
-              <span className="absolute inset-[-6px] rounded-xl border border-teal-300/35 animate-[ping_1.6s_ease-out_infinite]" aria-hidden="true"></span>
-            )}
         </div>
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, periodDuration = 90, globalEffectsHighlight }) => {
+const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, periodDuration = 90, globalEffectsHighlight, title, subtitle, logoUrl }) => {
   const budgetHighlight = globalEffectsHighlight?.budget;
   const reputationHighlight = globalEffectsHighlight?.reputation;
+  const displayTitle = title || 'Compass';
+  const displaySubtitle = subtitle || 'Simulador de decisiones';
   return (
     <header className="panel p-4">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center shadow-sm">
-                <span className="text-base">🎯</span>
+            <div className="w-10 h-10 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center shadow-sm overflow-hidden">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-base">🎯</span>
+                )}
             </div>
             <div>
-                <h1 className="text-lg font-semibold text-white/80 tracking-tight">Compass: Gestión en Salud</h1>
+                <h1 className="text-lg font-semibold text-white/80 tracking-tight">{displayTitle}</h1>
+                <p className="text-xs text-gray-300 leading-tight">{displaySubtitle}</p>
             </div>
             <button 
                 onClick={onOpenSidebar} 
@@ -100,7 +191,7 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
         <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
             <div className="flex flex-wrap items-center gap-3">
                 <GlobalStat label="Presupuesto" value={gameState.budget} highlight={budgetHighlight} accentClass="bg-emerald-300" />
-                <GlobalStat label="Reputación" value={gameState.reputation} highlight={reputationHighlight} accentClass="bg-amber-300" />
+                <GlobalStat label="Reputación" value={gameState.reputation} highlight={reputationHighlight} accentClass="bg-amber-300" barMax={100} />
                 <GlobalStat label="Ciclo" value={gameState.day} accentClass="bg-sky-300" />
             </div>
             <div className="min-w-[260px] w-full lg:w-auto">

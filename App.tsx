@@ -1,8 +1,9 @@
 ﻿
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ConversationMode, GameState, GlobalEffectsUI, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry } from './types';
+import { ConversationMode, GameState, GlobalEffectsUI, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from './types';
 import { INITIAL_GAME_STATE, TIME_SLOTS, DIRECTOR_OBJECTIVES, SECRETARY_ROLE } from './constants';
-import { scenarios as scenarioData } from './data/scenarios';
+import { scenarios as defaultScenarios } from './data/scenarios';
+import { scenarios as leyKarinScenarios } from './data/scenarios_leykarin';
 import { EMAIL_TEMPLATES } from './data/emails';
 import { SIMULATOR_CONFIGS } from './data/simulatorConfigs';
 import { startLogging, finalizeLogging } from './services/Timelogger';
@@ -20,6 +21,8 @@ import EndGameScreen from './components/EndGameScreen';
 import WarningPopup from './components/WarningPopup';
 import SplashScreen from './components/SplashScreen';
 import Sidebar from './components/Sidebar';
+import HelpButton from './components/ui/HelpButton';
+import HelpPanel from './components/ui/HelpPanel';
 import VersionSelector from './components/VersionSelector';
 import InnovatecGame from './games/InnovatecGame';
 import type { DailyEffectSummary } from './types';
@@ -31,6 +34,31 @@ const PERIOD_DURATION = 90;
 const API_BASE_URL =
   (import.meta as any)?.env?.VITE_API_URL ||
   'https://prototipo-5-41cj.onrender.com';
+
+const getScenarioSource = (version: SimulatorVersion | null) =>
+  version === 'LEY_KARIN' ? leyKarinScenarios : defaultScenarios;
+
+const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
+  INNOVATEC: 'https://i.imgur.com/0w2fvoO.png',
+  CESFAM: 'https://i.imgur.com/0w2fvoO.png',
+  LEY_KARIN: 'https://i.imgur.com/0w2fvoO.png',
+  SERCOTEC: 'https://i.imgur.com/0w2fvoO.png',
+  MUNICIPAL: 'https://i.imgur.com/0w2fvoO.png'
+};
+
+const pickTemplateStakeholders = (count = 3) => {
+  // Reuse primeros stakeholders como plantilla ligera
+  const base = INITIAL_GAME_STATE.stakeholders || [];
+  if (base.length <= count) return base;
+  const shuffled = [...base].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count).map((s, idx) => ({
+    ...s,
+    id: `lk-npc-${idx + 1}`,
+    shortId: `lk${idx + 1}`,
+    role: s.role || 'Colaborador',
+    name: s.name || `NPC ${idx + 1}`
+  }));
+};
 
 type ResolvedMechanicConfig = MechanicConfig & {
   label: string;
@@ -63,13 +91,13 @@ const summarizeDeltas = (
   };
 };
 
-const createInitialGameState = (): GameState => {
+const createInitialGameState = (scenarioSource: ScenarioFile): GameState => {
   const initialSchedule: Record<string, {day: number, slot: TimeSlotType}> = {
       'EVENT_STORM': { day: 1, slot: 'tarde' },
       'AZUL_MEETING_BLOCKED': { day: 1, slot: 'tarde' },
   };
 
-  scenarioData.sequences.forEach(seq => {
+  scenarioSource.sequences.forEach(seq => {
       if (seq.triggerMap && (seq.isInevitable || seq.isContingent)) {
           initialSchedule[seq.sequence_id] = seq.triggerMap;
       }
@@ -111,8 +139,8 @@ export default function App(): React.ReactElement {
   const [config, setConfig] = useState<SimulatorConfig | null>(null);
   // Added missing selectedVersion state to fix line 439 error
   const [selectedVersion, setSelectedVersion] = useState<SimulatorVersion | null>(null);
-  
-  const [gameState, setGameState] = useState<GameState>(createInitialGameState);
+  const [scenarioData, setScenarioData] = useState<ScenarioFile>(defaultScenarios);
+  const [gameState, setGameState] = useState<GameState>(() => createInitialGameState(defaultScenarios));
   
   const [characterInFocus, setCharacterInFocus] = useState<Stakeholder | null>(null);
   const [currentDialogue, setCurrentDialogue] = useState<string>("");
@@ -133,6 +161,7 @@ export default function App(): React.ReactElement {
   const [questionsBaseDialogue, setQuestionsBaseDialogue] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const enabledMechanics = resolveMechanics(config);
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
@@ -314,7 +343,7 @@ export default function App(): React.ReactElement {
     if (shouldPause) {
       setIsTimerPaused(true);
     }
-  }, [setPersonalizedDialogue, buildPreSequenceActions, gameState.completedSequences]);
+  }, [setPersonalizedDialogue, buildPreSequenceActions, gameState.completedSequences, scenarioData]);
 
   const getSequenceOrder = (sequenceId: string) => {
     const match = sequenceId.match(/_(\d+)$/);
@@ -403,7 +432,7 @@ export default function App(): React.ReactElement {
       const label = sequenceToStart.isInevitable ? "Atender Situacion Inevitable" : "Atender Evento Contingente";
       startSequence(sequenceToStart, stakeholder, { pauseTimer: true, actionLabel: label, actionCost: "Obligatorio" });
     }
-  }, [gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence]);
+  }, [gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData]);
 
   const advanceTime = useCallback((currentState: GameState): GameState => {
     let nextSlotIndex = TIME_SLOTS.indexOf(currentState.timeSlot) + 1;
@@ -947,7 +976,8 @@ export default function App(): React.ReactElement {
     setConversationMode('idle');
     setQuestionsOrigin(null);
     setQuestionsBaseDialogue('');
-    setGameState(createInitialGameState());
+    setScenarioData(defaultScenarios);
+    setGameState(createInitialGameState(defaultScenarios));
     sessionStartRef.current = null;
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
@@ -973,8 +1003,15 @@ export default function App(): React.ReactElement {
   const handleSelectVersion = (version: SimulatorVersion) => {
     const nextConfig = SIMULATOR_CONFIGS[version];
     const nextMechanics = resolveMechanics(nextConfig);
+    const source = getScenarioSource(version);
     setSelectedVersion(version);
     setConfig(nextConfig);
+    setScenarioData(source);
+    const baseState = createInitialGameState(source);
+    if (version === 'LEY_KARIN') {
+      baseState.stakeholders = pickTemplateStakeholders(3);
+    }
+    setGameState(baseState);
     if (nextMechanics.length > 0) {
       setActiveTab(nextMechanics[0].tab_id);
     }
@@ -1055,7 +1092,14 @@ export default function App(): React.ReactElement {
 
   if (selectedVersion === 'INNOVATEC') return <InnovatecGame onExitToHome={handleReturnHome} />;
   if (appStep === 'version_selection') return <VersionSelector onSelect={handleSelectVersion} />;
-  if (appStep === 'splash') return <SplashScreen onStartGame={handleStartGame} />;
+  if (appStep === 'splash') return (
+    <SplashScreen
+      onStartGame={handleStartGame}
+      title="COMPASS"
+      subtitle={config?.title ? `Simulador de Decisión: ${config.title}` : 'Simulador de Decisión'}
+      logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
+    />
+  );
 
   return (
     <MechanicProvider value={mechanicContextValue}>
@@ -1079,8 +1123,22 @@ export default function App(): React.ReactElement {
           onAdvanceTime={handleManualAdvance}
           onOpenSidebar={() => setIsSidebarOpen(true)}
           globalEffectsHighlight={hoveredGlobalEffects}
+          title={config?.title ?? 'Compass'}
+          subtitle={config?.title ? 'Simulador de decisiones' : undefined}
+          logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
         />
       </div>
+      <HelpButton onClick={() => setIsHelpOpen(true)} />
+      <HelpPanel
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+        title="Ayuda rápida"
+        sections={[
+          { heading: "Objetivo", content: "Toma decisiones, observa su impacto y sigue el flujo de reuniones y tareas." },
+          { heading: "Atajos", items: ["Espacio: Pausar/continuar tiempo", "H: Abrir/Cerrar ayuda (pendiente de wiring)"] },
+          { heading: "Sugerencia", content: "Pasa el cursor sobre las acciones para ver impacto en presupuesto/reputación." }
+        ]}
+      />
       
       {/* Dynamic Tabs based on Registry */}
       <div className="mt-3">

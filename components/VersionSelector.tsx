@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SimulatorVersion } from '../types';
 
@@ -7,54 +6,61 @@ interface VersionSelectorProps {
 }
 
 interface VersionOption {
-    id: SimulatorVersion;
-    title: string;
-    description: string;
-    icon: string;
-    active: boolean;
+  id: SimulatorVersion;
+  title: string;
+  description: string;
+  icon: string;
+  active: boolean;
 }
 
 const VERSIONS: VersionOption[] = [
-    {
-        id: 'CESFAM',
-        title: 'Gestión en Salud (CESFAM)',
-        description: 'Enfrenta el desafío de alinear a tres sectores en un centro de salud primaria de alta complejidad.',
-        icon: '🏥',
-        active: true
-    },
-    {
-        id: 'SERCOTEC',
-        title: 'Gestión PyME (SERCOTEC)',
-        description: 'Asesora a emprendedores y gestiona fondos concursables para el desarrollo regional.',
-        icon: '🏢',
-        active: false
-    },
-    {
-        id: 'MUNICIPAL',
-        title: 'Gestión Municipal',
-        description: 'Equilibra las necesidades de la comunidad, el presupuesto público y los tiempos políticos.',
-        icon: '🏛️',
-        active: false
-    },
-    {
-        id: 'INNOVATEC',
-        title: 'Innovatec (Proyecto Quantum Leap)',
-        description: 'Lidera un proyecto de IA corporativa y gestiona decisiones éticas, presupuestarias y de talento.',
-        icon: '🧠',
-        active: true
-    }
+  {
+    id: 'LEY_KARIN',
+    title: 'Compass: Ley Karin',
+    description: 'Gestión preventiva y resolución de conflictos laborales bajo la normativa de la Ley Karin.',
+    icon: '⚖️',
+    active: true
+  },
+  {
+    id: 'CESFAM',
+    title: 'Gestión en Salud (CESFAM)',
+    description: 'Alinea a tres sectores en un centro de salud primaria de alta complejidad.',
+    icon: '🏥',
+    active: true
+  },
+  {
+    id: 'INNOVATEC',
+    title: 'Innovatec (Proyecto Quantum Leap)',
+    description: 'Lidera un proyecto de IA corporativa con decisiones éticas, presupuestarias y de talento.',
+    icon: '🧠',
+    active: true
+  },
+  {
+    id: 'SERCOTEC',
+    title: 'Gestión PyME (SERCOTEC)',
+    description: 'Asesora a emprendedores y gestiona fondos concursables para el desarrollo regional.',
+    icon: '🏪',
+    active: false
+  },
+  {
+    id: 'MUNICIPAL',
+    title: 'Gestión Municipal',
+    description: 'Equilibra comunidad, presupuesto público y tiempos políticos.',
+    icon: '🏛️',
+    active: false
+  }
 ];
 
 const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
   return (
     <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="max-w-4xl w-full">
+      <div className="max-w-5xl w-full">
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Módulo de Simulación COMPASS</h1>
           <p className="text-xl text-blue-300">Seleccione el contexto de la simulación para comenzar</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in-up">
           {VERSIONS.map((version) => (
             <button
               key={version.id}

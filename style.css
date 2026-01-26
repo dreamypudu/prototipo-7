@@ -123,12 +123,12 @@ a, button, input, textarea, select {
 }
 
 .stat-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 0 6px rgba(95, 224, 213, 0.12);
-}
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: none; /* el brillo lo manejan los anillos externos */
+  }
 
 .time-card {
   display: flex;

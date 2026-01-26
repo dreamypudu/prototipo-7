@@ -1,6 +1,6 @@
 
 export type TimeSlotType = 'mañana' | 'tarde' | 'noche';
-export type SimulatorVersion = 'CESFAM' | 'SERCOTEC' | 'MUNICIPAL' | 'INNOVATEC';
+export type SimulatorVersion = 'CESFAM' | 'SERCOTEC' | 'MUNICIPAL' | 'INNOVATEC' | 'LEY_KARIN';
 export type GameStatus = 'playing' | 'lost' | 'won';
 export type GlobalAttributeId = 'budget' | 'reputation';
 export type EffectMagnitude = 'S' | 'M' | 'L';
