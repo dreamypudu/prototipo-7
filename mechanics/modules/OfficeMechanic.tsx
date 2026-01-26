@@ -63,26 +63,7 @@ const OfficeMechanic: React.FC = () => {
 
   return (
     <div className="relative h-[calc(100vh-220px)] min-h-[520px]">
-      <div className="fixed top-24 left-0 z-40 flex items-start group">
-        <div className="w-9 h-12 ml-[-2px] flex items-center justify-center bg-white/10 border border-gray-700 rounded-r-lg text-teal-200 shadow-lg cursor-pointer">
-          <span className="text-lg">🗒️</span>
-        </div>
-        <div className="fixed top-16 left-0 h-[70vh] w-80 max-w-[90vw] bg-gray-900/95 border border-gray-700 rounded-r-lg shadow-2xl p-4 pointer-events-none opacity-0 transform -translate-x-[88%] transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 group-hover:pointer-events-auto overflow-hidden">
-          <h3 className="text-xl font-bold mb-2 text-yellow-300">Bitácora</h3>
-          <ul className="space-y-2 text-sm overflow-y-auto pr-2 max-h-[calc(70vh-120px)]">
-            {gameState.eventsLog.slice().reverse().map((event, index) => (
-              <li key={index} className="bg-gray-700/50 p-2 rounded-md font-mono">
-                <span className="text-yellow-400">{'>'}</span> {event}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3 text-[10px] text-gray-400">
-            Pasa el mouse por el borde izquierdo para abrir la bitácora.
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-4 h-full ml-6">
+      <div className="flex flex-col lg:flex-row gap-4 h-full ml-2">
         <div className="flex-grow flex flex-col h-full">
           <div className="w-full min-h-[520px] max-h-[75vh] bg-gray-800/50 rounded-xl border border-gray-700 overflow-visible">
             {renderCentralPanel()}

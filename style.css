@@ -79,6 +79,7 @@ a, button, input, textarea, select {
   gap: 14px;
 }
 
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--border-strong);

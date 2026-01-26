@@ -162,6 +162,8 @@ export default function App(): React.ReactElement {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showLogPanel, setShowLogPanel] = useState(false);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const enabledMechanics = resolveMechanics(config);
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
@@ -1140,24 +1142,68 @@ export default function App(): React.ReactElement {
         ]}
       />
       
-      {/* Dynamic Tabs based on Registry */}
-      <div className="mt-3">
-        <nav className="tab-strip overflow-x-auto" aria-label="Tabs">
-          {enabledMechanics.map((m) => (
-            <button
-              key={m.mechanic_id}
-              onClick={() => setActiveTab(m.tab_id)}
-              className={`tab-button ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </nav>
+      <div className="mt-4 flex gap-3">
+        {/* Lateral nav con colapsado */}
+        <div className={`flex flex-col items-start ${isNavCollapsed ? 'w-12' : 'w-44 flex-shrink-0'}`}>
+          <button
+            onClick={() => setIsNavCollapsed(prev => !prev)}
+            className="mb-2 p-2 rounded-full bg-white/10 border border-white/15 hover:border-teal-300/60 text-gray-200 hover:text-white transition-colors shadow-sm"
+            title={isNavCollapsed ? 'Mostrar navegación' : 'Ocultar navegación'}
+          >
+            <span className="text-lg">☰</span>
+          </button>
+          {!isNavCollapsed && (
+            <aside className="w-full">
+              <nav className="flex flex-col gap-2" aria-label="Tabs">
+                {enabledMechanics.map((m) => (
+                  <button
+                    key={m.mechanic_id}
+                    onClick={() => setActiveTab(m.tab_id)}
+                    className={`tab-button w-full text-left ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowLogPanel(prev => !prev)}
+                  className={`w-full text-left px-4 py-2 rounded-lg border transition-all font-semibold ${showLogPanel ? 'bg-amber-400 text-gray-900 border-amber-500' : 'bg-amber-300/90 text-gray-900 border-amber-500 hover:bg-amber-400'}`}
+                >
+                  Bitácora
+                </button>
+              </nav>
+            </aside>
+          )}
+        </div>
+
+        <main className="flex-grow">
+          {renderMechanicTab()}
+        </main>
       </div>
 
-      <main className="flex-grow mt-4">
-        {renderMechanicTab()}
-      </main>
+      {/* Bitácora panel */}
+      {showLogPanel && (
+        <div className="fixed top-28 left-60 z-40 w-80 max-h-[70vh] bg-gray-900/95 border border-amber-400/70 rounded-2xl shadow-2xl p-4 overflow-y-auto">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-xl font-bold text-amber-300">Bitácora</h3>
+            <button
+              className="text-amber-200 hover:text-white"
+              onClick={() => setShowLogPanel(false)}
+            >
+              ×
+            </button>
+          </div>
+          <ul className="space-y-2 text-sm pr-1">
+            {gameState.eventsLog.slice().reverse().map((event, idx) => (
+              <li key={idx} className="bg-gray-800/70 p-2 rounded-md border border-gray-700/70">
+                {event}
+              </li>
+            ))}
+            {gameState.eventsLog.length === 0 && (
+              <li className="text-gray-400">Sin eventos aún.</li>
+            )}
+          </ul>
+        </div>
+      )}
       {dailySummary && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 max-w-2xl panel p-6 text-white border border-white/10">
           <div className="flex justify-between items-start gap-4">

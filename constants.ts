@@ -271,7 +271,7 @@ export const INITIAL_GAME_STATE: GameState = {
       role: "Enfermera Sector Azul",
       power: 40, interest: 70, trust: 60, support: 60, minSupport: 30, maxSupport: 80, mood: 'neutral',
       personality: "La Ejecutora Leal. Brillante técnicamente, eficiente, pero ve a los pacientes 'difíciles' como una molestia. Lealtad total a Guzmán.",
-      portraitUrl: "https://i.imgur.com/JLlAfIm.png",
+      portraitUrl: "/avatars/paz-herrera.png",
       agenda: [
         "Maximizar la eficiencia clínica.",
         "Evitar tareas 'menores' (visitas domiciliarias básicas).",
@@ -291,7 +291,7 @@ export const INITIAL_GAME_STATE: GameState = {
       role: "TENS Sector Azul",
       power: 10, interest: 50, trust: 50, support: 50, minSupport: 10, maxSupport: 70, mood: 'anxious',
       personality: "El Eslabón Silencioso. Tímido y muy trabajador. Absorbe toda la carga que Guzmán y Herrera rechazan. Riesgo alto de colapso silencioso.",
-      portraitUrl: "https://i.imgur.com/egOSYNj.png",
+      portraitUrl: "/avatars/javier-castro.png",
       agenda: [
         "Sobrevivir a la carga laboral sin conflictos.",
         "Evitar errores administrativos.",
@@ -337,7 +337,7 @@ export const INITIAL_GAME_STATE: GameState = {
       role: "Médico Sector Rojo",
       power: 30, interest: 40, trust: 60, support: 60, minSupport: 20, maxSupport: 70, mood: 'neutral',
       personality: "El Pasivo Complaciente. Competente pero sin carácter. Evita conflictos dando licencias o demorándose en las consultas. Protegido por Soto.",
-      portraitUrl: "https://i.imgur.com/haTtDtC.png",
+      portraitUrl: "/avatars/eduardo-naranjo.png",
       agenda: [
         "Evitar conflictos con pacientes y jefatura.",
         "Mantener su rutina sin sobresaltos.",
@@ -357,7 +357,7 @@ export const INITIAL_GAME_STATE: GameState = {
       role: "TENS Sector Rojo",
       power: 50, interest: 90, trust: 40, support: 40, minSupport: 0, maxSupport: 80, mood: 'angry',
       personality: "La Activista. Fuerte sentido de justicia. Vocal y conflictiva. Detonante de conflictos de clima laboral y Ley Karin.",
-      portraitUrl: "https://i.imgur.com/egOSYNj.png",
+      portraitUrl: "/avatars/claudia-morales.png",
       agenda: [
         "Denunciar cualquier injusticia o maltrato.",
         "Movilizar al gremio si es necesario.",
@@ -381,7 +381,7 @@ export const INITIAL_GAME_STATE: GameState = {
         role: "Jefe Sector Amarillo",
         power: 70, interest: 90, trust: 60, support: 60, minSupport: 30, maxSupport: 90, mood: 'neutral',
         personality: "El Líder Callejero. Pragmático, anti-burocracia, orientado a la acción social. Se salta las reglas para ayudar al vecino. Respaldo de la comunidad.",
-        portraitUrl: "https://i.imgur.com/egOSYNj.png",
+        portraitUrl: "/avatars/daniel-rios.png",
         agenda: [
           "Soluciones rápidas para los pacientes (saltarse protocolos).",
           "Conseguir recursos para terreno.",
@@ -403,7 +403,7 @@ export const INITIAL_GAME_STATE: GameState = {
         role: "Enfermera Sector Amarillo",
         power: 30, interest: 80, trust: 70, support: 70, minSupport: 40, maxSupport: 90, mood: 'sad',
         personality: "El Corazón Emocional. Empática hasta el dolor. Sufre con las fallas del sistema. Barómetro ético de la gestión.",
-        portraitUrl: "https://i.imgur.com/JLlAfIm.png",
+        portraitUrl: "/avatars/francisca-solis.png",
         agenda: [
           "Humanizar la atención.",
           "Ayudar a los casos sociales complejos.",
@@ -423,7 +423,7 @@ export const INITIAL_GAME_STATE: GameState = {
         role: "Médico Sector Amarillo",
         power: 40, interest: 60, trust: 50, support: 50, minSupport: 10, maxSupport: 80, mood: 'frustrated',
         personality: "El Inconformista Impaciente. Joven, moderno, quiere cambios rápidos. Se frustra con la falta de tecnología. Riesgo de renuncia.",
-        portraitUrl: "https://i.imgur.com/haTtDtC.png",
+        portraitUrl: "/avatars/ricardo-meza.png",
         agenda: [
           "Modernizar la gestión (menos papel, más apps).",
           "Obtener herramientas tecnológicas (ecógrafos, tablets).",

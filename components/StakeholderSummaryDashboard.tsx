@@ -29,8 +29,18 @@ const OverviewList: React.FC<{ stakeholders: Stakeholder[], onSelect: (stakehold
                 >
                     <div>
                         <div className="flex items-center justify-between gap-3 mb-3">
-                            <div className="flex items-center gap-3">
-                                <img src={sh.portraitUrl} alt={sh.name} className="w-14 h-14 rounded-full border-2 border-gray-600 object-cover" />
+                            <div className="flex items-center gap-4">
+                                <div className="w-40 h-40 rounded-full border-2 border-gray-600 bg-gray-800/60 overflow-hidden flex items-start justify-center shadow-lg">
+                                    <img
+                                        src={sh.portraitUrl}
+                                        alt={sh.name}
+                                        className="w-full h-full object-cover"
+                                        style={{
+                                          objectPosition: '50% 0%',
+                                          transform: `translateY(${sh.portraitOffsetY ?? '90%'}) scale(${sh.portraitScale ?? 2.8})`
+                                        }}
+                                    />
+                                </div>
                                 <div>
                                     <p className="font-semibold text-white">{sh.name}</p>
                                     <p className="text-sm text-gray-400">{sh.role}</p>

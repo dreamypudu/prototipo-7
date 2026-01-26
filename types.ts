@@ -109,6 +109,8 @@ export interface Stakeholder {
   mood: string;
   personality: string;
   portraitUrl: string;
+  portraitOffsetY?: string; // e.g. "15%"
+  portraitScale?: number;   // e.g. 1.3
   agenda: string[];
   commitments: Commitment[];
   informationTiers: InformationTier[];
