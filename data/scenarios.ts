@@ -204,7 +204,7 @@ export const scenarios: ScenarioFile = {
     {
     node_id: "INTRO_S1_SALUDO",
     stakeholderRole: "Asistente Administrativa",
-    dialogue: "¡Bienvenido, Director! Soy Sofía Castro, su administrativa. Antes de que corra el reloj, lo guiaré por lo esencial.",
+    dialogue: "Antes de que corra el reloj, lo guiaré por lo esencial.",
     options: [{ option_id: "NEXT", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Le cuento el contexto de esta semana." } }]
 },
 {
