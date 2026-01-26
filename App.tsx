@@ -164,6 +164,17 @@ export default function App(): React.ReactElement {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showLogPanel, setShowLogPanel] = useState(false);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+  const [logPos, setLogPos] = useState<{ x: number; y: number }>({ x: 240, y: 110 });
+  const [isLogDragging, setIsLogDragging] = useState(false);
+  const [logDragOffset, setLogDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const upSoundRef = useRef<HTMLAudioElement | null>(null);
+  const downSoundRef = useRef<HTMLAudioElement | null>(null);
+  const prevStats = useRef<{ budget: number; reputation: number }>({
+    budget: INITIAL_GAME_STATE.budget,
+    reputation: INITIAL_GAME_STATE.reputation
+  });
+  const audioUnlocked = useRef(false);
   const enabledMechanics = resolveMechanics(config);
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
@@ -180,6 +191,76 @@ export default function App(): React.ReactElement {
     }, 1000);
     return () => clearInterval(interval);
   }, [appStep, syncLogs]);
+
+  // init sounds
+  useEffect(() => {
+    upSoundRef.current = new Audio('/sounds/indicator-up.mp3');
+    downSoundRef.current = new Audio('/sounds/indicator-down.mp3');
+    if (upSoundRef.current) upSoundRef.current.volume = 0.85;
+    if (downSoundRef.current) downSoundRef.current.volume = 0.85;
+  }, []);
+
+  // Unlock audio on first user interaction (autoplay policies)
+  useEffect(() => {
+    const unlock = () => {
+      if (audioUnlocked.current) return;
+      const playSilent = async (el: HTMLAudioElement | null) => {
+        if (!el) return;
+        try {
+          el.muted = true;
+          el.currentTime = 0;
+          await el.play();
+          el.pause();
+          el.currentTime = 0;
+          el.muted = false;
+          audioUnlocked.current = true;
+        } catch (e) {
+          // ignore; will retry on next interaction
+        }
+      };
+      playSilent(upSoundRef.current);
+      playSilent(downSoundRef.current);
+    };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    return () => window.removeEventListener('pointerdown', unlock);
+  }, []);
+
+  // play sounds on indicator change
+  useEffect(() => {
+    const prev = prevStats.current;
+    if (gameState.budget !== prev.budget) {
+      const diff = gameState.budget - prev.budget;
+      const snd = diff > 0 ? upSoundRef.current : downSoundRef.current;
+      if (snd && audioEnabled && audioUnlocked.current) {
+        snd.currentTime = 0;
+        snd.play().catch(() => {});
+      }
+    }
+    if (gameState.reputation !== prev.reputation) {
+      const diff = gameState.reputation - prev.reputation;
+      const snd = diff > 0 ? upSoundRef.current : downSoundRef.current;
+      if (snd && audioEnabled && audioUnlocked.current) {
+        snd.currentTime = 0;
+        snd.play().catch(() => {});
+      }
+    }
+    prevStats.current = { budget: gameState.budget, reputation: gameState.reputation };
+  }, [gameState.budget, gameState.reputation]);
+
+  // Drag handlers for Bitácora panel
+  useEffect(() => {
+    if (!isLogDragging) return;
+    const handleMove = (e: MouseEvent) => {
+      setLogPos({ x: e.clientX - logDragOffset.x, y: e.clientY - logDragOffset.y });
+    };
+    const handleUp = () => setIsLogDragging(false);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [isLogDragging, logDragOffset]);
 
   useEffect(() => {
     if (activeTab !== 'data_export') return;
@@ -1130,6 +1211,19 @@ export default function App(): React.ReactElement {
           logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
         />
       </div>
+      <div className="fixed bottom-20 right-6 z-40">
+        <button
+          onClick={() => setAudioEnabled((v) => !v)}
+          className={`px-3 py-2 rounded-full border text-sm font-semibold transition ${
+            audioEnabled
+              ? 'bg-emerald-600/80 text-white border-emerald-400 hover:bg-emerald-500'
+              : 'bg-gray-800/80 text-gray-200 border-gray-600 hover:bg-gray-700'
+          }`}
+          title={audioEnabled ? 'Desactivar audio' : 'Activar audio'}
+        >
+          {audioEnabled ? 'Audio ON' : 'Audio OFF'}
+        </button>
+      </div>
       <HelpButton onClick={() => setIsHelpOpen(true)} />
       <HelpPanel
         isOpen={isHelpOpen}
@@ -1182,8 +1276,17 @@ export default function App(): React.ReactElement {
 
       {/* Bitácora panel */}
       {showLogPanel && (
-        <div className="fixed top-28 left-60 z-40 w-80 max-h-[70vh] bg-gray-900/95 border border-amber-400/70 rounded-2xl shadow-2xl p-4 overflow-y-auto">
-          <div className="flex justify-between items-center mb-3">
+        <div
+          className="fixed z-40 w-80 max-h-[70vh] bg-gray-900/95 border border-amber-400/70 rounded-2xl shadow-2xl p-4 overflow-y-auto select-none"
+          style={{ top: logPos.y, left: logPos.x, cursor: isLogDragging ? 'grabbing' : 'default' }}
+        >
+          <div
+            className="flex justify-between items-center mb-3"
+            onMouseDown={(e) => {
+              setIsLogDragging(true);
+              setLogDragOffset({ x: e.clientX - logPos.x, y: e.clientY - logPos.y });
+            }}
+          >
             <h3 className="text-xl font-bold text-amber-300">Bitácora</h3>
             <button
               className="text-amber-200 hover:text-white"

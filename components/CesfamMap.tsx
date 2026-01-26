@@ -50,6 +50,17 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
         });
     };
 
+    const getPortraitProps = (staffId: string, fallbackUrl: string) => {
+        const stakeholder = gameState.stakeholders.find(s => s.id === staffId);
+        return {
+            src: stakeholder?.portraitUrl ?? fallbackUrl,
+            style: {
+                objectPosition: '50% 0%',
+                transform: `translateY(${stakeholder?.portraitOffsetY ?? '85%'}) scale(${stakeholder?.portraitScale ?? 2.9})`
+            }
+        };
+    };
+
     return (
         <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 h-full flex flex-col animate-fade-in">
              <div className="flex justify-between items-start mb-6">
@@ -147,8 +158,23 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
                                         className="group relative"
                                         title={`Ir a ver a: ${staff.name}`}
                                     >
-                                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden border-2 border-white/80 shadow-md transform transition group-hover:scale-110 group-hover:border-yellow-400 bg-gray-800">
-                                            <img src={staff.portraitUrl} alt={staff.name} className="w-full h-full object-cover" />
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden border-2 border-white/80 shadow-md transform transition group-hover:scale-110 group-hover:border-yellow-400 bg-gray-800">
+                                              {(() => {
+                                                  const p = getPortraitProps(staff.id, staff.portraitUrl);
+                                                  return (
+                                                      <img
+                                                          src={p.src}
+                                                          alt={staff.name}
+                                                          className="w-full h-full object-cover"
+                                                          style={p.style}
+                                                      />
+                                                  );
+                                              })()}
+                                          </div>
+                                          <span className="text-xs text-white font-semibold bg-black/60 px-2 py-1 rounded border border-white/10">
+                                            {staff.name}
+                                          </span>
                                         </div>
                                         {staff.burnout > 70 && (
                                             <span className="absolute -top-1 -right-1 flex h-3 w-3">
