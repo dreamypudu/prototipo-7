@@ -218,7 +218,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onCa
                 <div className="absolute z-10" style={imageStyle}>
                     {/* 1. DOOR - EXIT TO MAP */}
                     <div 
-                        className="absolute top-[20%] right-[5%] w-[15%] h-[60%] cursor-pointer group z-10 border-2 border-white/20 hover:border-blue-400 rounded-lg"
+                        className="absolute top-[20%] right-[5%] w-[17%] h-[60%] cursor-pointer group z-10 border-2 border-white/20 hover:border-blue-400 rounded-lg"
                         onClick={() => onNavigate('map')}
                         title="Salir al Mapa"
                     >
@@ -232,7 +232,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onCa
                     </div>
 
                     {/* 2. WINDOW - TIME DISPLAY */}
-                    <div className="absolute top-[15%] left-[10%] w-[20%] h-[35%] pointer-events-none z-0 flex items-end justify-center pb-4 border-2 border-transparent hover:border-white/10">
+                    <div className="absolute top-[0%] left-[0%] w-[20%] h-[10%] pointer-events-none z-0 flex items-end justify-center pb-4 border-2 border-transparent hover:border-white/10">
                          <div className="bg-black/60 px-3 py-1 rounded text-white text-sm font-mono backdrop-blur-sm border border-gray-600">
                             {gameState.timeSlot === 'mañana' ? '☀️ Mañana' : '🌇 Tarde'} - Día {gameState.day}
                          </div>
@@ -240,7 +240,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onCa
 
                     {/* 3. PC MONITOR - HUB */}
                     <div 
-                        className="absolute bottom-[20%] left-[35%] w-[30%] h-[30%] cursor-pointer group z-10 border-2 border-white/20 hover:border-cyan-400 rounded-lg"
+                        className="absolute bottom-[27%] left-[35%] w-[30%] h-[30%] cursor-pointer group z-10 border-2 border-white/20 hover:border-cyan-400 rounded-lg"
                         onClick={() => setActiveView('pc_menu')}
                         title="Usar Computador"
                     >

@@ -58,24 +58,16 @@ const getMagnitudeSize = (magnitude: EffectMagnitude): string => {
 };
 
 const getMagnitudeColor = (magnitude?: EffectMagnitude) => {
-    if (magnitude === 'S') return { dot: 'bg-emerald-300', glow: 'rgba(52,211,153,0.45)' };
-    if (magnitude === 'M') return { dot: 'bg-amber-300', glow: 'rgba(251,191,36,0.5)' };
-    if (magnitude === 'L') return { dot: 'bg-rose-300', glow: 'rgba(244,114,182,0.55)' };
-    return { dot: '', glow: 'rgba(95,224,213,0.45)' };
+    // Un solo color (blanco) para todas las magnitudes, evitando sesgos
+    return { dot: 'bg-white', glow: 'rgba(255,255,255,0.55)' };
 };
 
 const getMagnitudeFill = (magnitude?: EffectMagnitude) => {
-    if (magnitude === 'S') return '#34d399'; // emerald-400
-    if (magnitude === 'M') return '#fbbf24'; // amber-400
-    if (magnitude === 'L') return '#fb7185'; // rose-400
-    return '#5fe0d5'; // default teal accent
+    return '#ffffff';
 };
 
 const magnitudeCardStyles = (magnitude?: EffectMagnitude) => {
-    if (magnitude === 'S') return 'bg-emerald-900/30 border-emerald-400/60 shadow-[0_0_26px_rgba(52,211,153,0.35)]';
-    if (magnitude === 'M') return 'bg-amber-900/30 border-amber-400/60 shadow-[0_0_26px_rgba(251,191,36,0.35)]';
-    if (magnitude === 'L') return 'bg-rose-900/30 border-rose-400/60 shadow-[0_0_26px_rgba(244,114,182,0.35)]';
-    return '';
+    return 'bg-white/10 border-white/60 shadow-[0_0_26px_rgba(255,255,255,0.35)]';
 };
 
 // Ajusta aquí los diámetros de los anillos para M y L (el punto central representa S).

@@ -1238,29 +1238,29 @@ export default function App(): React.ReactElement {
       
       <div className="mt-4 flex gap-3">
         {/* Lateral nav con colapsado */}
-        <div className={`flex flex-col items-start ${isNavCollapsed ? 'w-12' : 'w-44 flex-shrink-0'}`}>
+        <div className={`flex flex-col items-start transition-all duration-400 ease-out ${isNavCollapsed ? 'w-12' : 'w-44 flex-shrink-0'}`}>
           <button
             onClick={() => setIsNavCollapsed(prev => !prev)}
-            className="mb-2 p-2 rounded-full bg-white/10 border border-white/15 hover:border-teal-300/60 text-gray-200 hover:text-white transition-colors shadow-sm"
+            className="mb-2 p-2 rounded-full bg-white/10 border border-white/15 hover:border-teal-300/60 text-gray-200 hover:text-white transition-all duration-300 shadow-sm hover:scale-105"
             title={isNavCollapsed ? 'Mostrar navegación' : 'Ocultar navegación'}
           >
             <span className="text-lg">☰</span>
           </button>
           {!isNavCollapsed && (
-            <aside className="w-full">
+            <aside className="w-full transition-opacity duration-300 ease-out animate-slide-fade">
               <nav className="flex flex-col gap-2" aria-label="Tabs">
                 {enabledMechanics.map((m) => (
                   <button
                     key={m.mechanic_id}
                     onClick={() => setActiveTab(m.tab_id)}
-                    className={`tab-button w-full text-left ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
+                    className={`tab-button w-full text-left transition-transform duration-200 ease-out hover:translate-x-1 ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
                   >
                     {m.label}
                   </button>
                 ))}
                 <button
                   onClick={() => setShowLogPanel(prev => !prev)}
-                  className={`w-full text-left px-4 py-2 rounded-lg border transition-all font-semibold ${showLogPanel ? 'bg-amber-400 text-gray-900 border-amber-500' : 'bg-amber-300/90 text-gray-900 border-amber-500 hover:bg-amber-400'}`}
+                  className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 ease-out font-semibold hover:translate-x-1 ${showLogPanel ? 'bg-amber-400 text-gray-900 border-amber-500' : 'bg-amber-300/90 text-gray-900 border-amber-500 hover:bg-amber-400'}`}
                 >
                   Bitácora
                 </button>
@@ -1338,6 +1338,13 @@ export default function App(): React.ReactElement {
           </div>
         </div>
       )}
+      <style>{`
+        @keyframes slide-fade {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-fade { animation: slide-fade 0.25s ease-out; }
+      `}</style>
      </div>
     </div>
     </MechanicProvider>
