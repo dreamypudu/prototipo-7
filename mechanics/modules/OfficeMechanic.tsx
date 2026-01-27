@@ -44,6 +44,7 @@ const OfficeMechanic: React.FC = () => {
           key={characterInFocus.name}
           stakeholder={characterInFocus}
           participants={sceneParticipants}
+          allStakeholders={gameState.stakeholders}
           dialogue={currentDialogue}
           timeSlot={gameState.timeSlot}
           backgroundKey={backgroundKey as any}

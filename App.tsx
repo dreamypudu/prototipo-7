@@ -19,12 +19,12 @@ import { clampReputation, resolveGlobalEffects } from './services/globalEffects'
 import Header from './components/Header';
 import EndGameScreen from './components/EndGameScreen';
 import WarningPopup from './components/WarningPopup';
-import SplashScreen from './components/SplashScreen';
 import Sidebar from './components/Sidebar';
 import HelpButton from './components/ui/HelpButton';
 import HelpPanel from './components/ui/HelpPanel';
 import VersionSelector from './components/VersionSelector';
 import InnovatecGame from './games/InnovatecGame';
+import SplashScreen from './components/SplashScreen';
 import type { DailyEffectSummary } from './types';
 
 type ActiveTab = string;

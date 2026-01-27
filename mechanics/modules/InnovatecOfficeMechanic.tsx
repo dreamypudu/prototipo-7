@@ -63,6 +63,7 @@ const InnovatecOfficeMechanic: React.FC = () => {
           <DialogueArea
             key={characterInFocus.name}
             stakeholder={characterInFocus}
+            allStakeholders={gameState.stakeholders}
             dialogue={currentDialogue}
             timeSlot={gameState.timeSlot}
           />
