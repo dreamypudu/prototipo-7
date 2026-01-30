@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { SimulatorVersion } from '../types';
 
 interface VersionSelectorProps {
@@ -71,16 +71,24 @@ const fontByVersion: Record<SimulatorVersion, string> = {
     <div
       className="fixed inset-0 flex flex-col items-center justify-center z-50 p-6 overflow-y-auto"
       style={{
+        paddingTop: 'max(150px, calc(env(safe-area-inset-top, 0px) + 70px))',
         backgroundImage:
           "linear-gradient(135deg, rgba(8,17,35,0.9), rgba(8,17,35,0.78)), url('/avatars/cesfam-portada.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
     >
-      <div className="max-w-6xl w-full">
-        <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">Módulo de Simulación COMPASS</h1>
-          <p className="text-xl text-blue-100/90">Selecciona el contexto de la simulación para comenzar</p>
+      <div className="max-w-6xl w-full relative">
+        <img
+          src="/avatars/logo-compass.svg"
+          alt="Logo Compass"
+          className="absolute top-0 left-0 m-2 object-contain drop-shadow-lg opacity-95"
+            style={{ width: '170px', height: '65px', margin: '12px 8px 0 8px' }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.png'; }}
+        />
+        <div className="text-center mb-12 animate-fade-in pt-5">
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 drop-shadow-md">Módulo de Simulación COMPASS</h1>
+          <p className="text-xl text-blue-100/90 drop-shadow-sm">Selecciona el contexto de la simulación para comenzar</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in-up">

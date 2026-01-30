@@ -39,11 +39,11 @@ const getScenarioSource = (version: SimulatorVersion | null) =>
   version === 'LEY_KARIN' ? leyKarinScenarios : defaultScenarios;
 
 const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
-  INNOVATEC: 'https://i.imgur.com/0w2fvoO.png',
-  CESFAM: 'https://i.imgur.com/0w2fvoO.png',
-  LEY_KARIN: 'https://i.imgur.com/0w2fvoO.png',
-  SERCOTEC: 'https://i.imgur.com/0w2fvoO.png',
-  MUNICIPAL: 'https://i.imgur.com/0w2fvoO.png'
+  INNOVATEC: '/avatars/icono-compass.svg',
+  CESFAM: '/avatars/icono-compass.svg',
+  LEY_KARIN: '/avatars/icono-compass.svg',
+  SERCOTEC: '/avatars/icono-compass.svg',
+  MUNICIPAL: '/avatars/icono-compass.svg'
 };
 
 const pickTemplateStakeholders = (count = 3) => {
@@ -1186,7 +1186,10 @@ export default function App(): React.ReactElement {
 
   return (
     <MechanicProvider value={mechanicContextValue}>
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      style={{ paddingTop: 'max(12px, env(safe-area-inset-top, 0px))' }}
+    >
      <div className="layout-grid">
        <Sidebar
          isOpen={isSidebarOpen}
@@ -1197,7 +1200,10 @@ export default function App(): React.ReactElement {
        />
       {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
       {gameStatus !== 'playing' && <EndGameScreen status={gameStatus} message={endGameMessage} />}
-      <div className="sticky top-4 z-40">
+      <div
+        className="sticky z-40"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+      >
         <Header
           gameState={gameState}
           countdown={countdown}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 
 interface SplashScreenProps {
   onStartGame: (name: string) => void;
@@ -12,7 +12,7 @@ interface SplashScreenProps {
 // Se recomienda una imagen cuadrada (ej: 200x200 px) con fondo transparente.
 // Ejemplo: 'https://i.imgur.com/69J15vd.png'
 // ==============================================================================
-const DEFAULT_LOGO_URL = 'https://i.imgur.com/0w2fvoO.png'; // placeholder
+const DEFAULT_LOGO_URL = '/avatars/icono-compass.svg'; // placeholder
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPASS', subtitle = 'Simulador de Decisión', logoUrl }) => {
   const [playerName, setPlayerName] = useState('');
@@ -28,7 +28,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
       <div className="text-center animate-fade-in w-full max-w-md">
         {/* Logo */}
         <div className="inline-block mb-8 animate-pulse-slow">
-            <img src={logoUrl || DEFAULT_LOGO_URL} alt="Logo" className="w-80 h-80 object-contain" />
+            <img src={logoUrl || DEFAULT_LOGO_URL} alt="Logo" className="w-160 h-100 object-contain" 
+            style={{ width: '5000px', height: '300px', margin: '8px' }}/>
         </div>
         
         <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
