@@ -296,6 +296,7 @@ export interface PlayerAction {
   cost: string;
   action: string;
   description?: string;
+  cardEmoji?: string;
   timeCost?: string;
   focusType?: string;
   riskLevel?: string;
@@ -309,6 +310,8 @@ export interface PlayerAction {
 export interface ScenarioOption {
   option_id: string;
   text: string;
+  cardTitle?: string;
+  cardEmoji?: string;
   tags: { [key: string]: string };
   consequences: Consequences;
 }

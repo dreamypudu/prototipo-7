@@ -1,6 +1,7 @@
 import React from 'react';
 import { GlobalEffectsUI, PlayerAction } from '../types';
 import { logEvent } from '../services/Timelogger';
+import DecisionCardDeck from './DecisionCardDeck';
 
 interface ActionBarProps {
   actions: PlayerAction[];
@@ -78,18 +79,18 @@ const ActionCard: React.FC<{
 
 const getSimpleButtonClasses = (action: PlayerAction, disabled: boolean) => {
   const base =
-    'col-span-1 md:col-span-2 font-semibold py-3 px-4 rounded-lg text-center transition-all duration-200 ease-in-out transform flex flex-col items-center justify-center shadow-md hover:shadow-xl disabled:shadow-none';
+    'col-span-1 md:col-span-2 font-semibold py-3 px-4 rounded-2xl border text-center transition-all duration-200 ease-in-out transform flex flex-col items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.25)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.35)] disabled:shadow-none';
   const state = 'disabled:cursor-not-allowed disabled:scale-100';
   if (action.uiVariant === 'muted') {
-    return `${base} ${state} bg-transparent border border-gray-700 text-gray-400 hover:bg-white/5 hover:text-gray-200 hover:scale-100`;
+    return `${base} ${state} bg-slate-900/65 border-slate-700 text-slate-300 hover:bg-slate-800/80 hover:text-white hover:scale-[1.01]`;
   }
   if (action.uiVariant === 'danger') {
-    return `${base} ${state} bg-red-600/20 border border-red-500/50 text-red-200 hover:bg-red-500/30 hover:scale-100`;
+    return `${base} ${state} bg-red-900/30 border-red-500/50 text-red-100 hover:bg-red-800/40 hover:scale-[1.01]`;
   }
   if (action.uiVariant === 'success') {
-    return `${base} ${state} bg-gradient-to-r from-emerald-500 to-teal-400 text-white hover:scale-105 active:scale-100 disabled:bg-gray-600`;
+    return `${base} ${state} bg-gradient-to-r from-emerald-600 to-teal-500 border-emerald-300/30 text-white hover:scale-[1.02] active:scale-100 disabled:bg-gray-600`;
   }
-  return `${base} ${state} bg-gradient-to-r from-sky-600 to-teal-400 text-white hover:scale-105 active:scale-100 disabled:bg-gray-600`;
+  return `${base} ${state} bg-gradient-to-r from-sky-700 to-cyan-500 border-cyan-300/30 text-white hover:scale-[1.02] active:scale-100 disabled:bg-gray-600`;
 };
 
 const SimpleButton: React.FC<{
@@ -122,21 +123,47 @@ const SimpleButton: React.FC<{
         {action.isLocked && <span className="text-sm" aria-hidden="true">🔒</span>}
         <span>{action.label}</span>
       </div>
-      <div className="text-xs font-normal text-blue-200/80">{action.cost}</div>
     </button>
   );
 };
 
 const ActionBar: React.FC<ActionBarProps> = ({ actions, onAction, disabled, onHoverEffects }) => {
+  const controlActions = new Set([
+    'ask_questions',
+    'start_meeting_sequence',
+    'conclude_meeting',
+    'close_questions',
+    'return_to_questions',
+    'end_meeting_sequence',
+    'continue_meeting_sequence'
+  ]);
+
+  const isDecisionCost = (value?: string) => (value || '').toLowerCase().includes('decis');
+  const isSingleNextStep = (action: PlayerAction) =>
+    actions.length === 1 &&
+    (action.action === 'NEXT' || (action.label || '').trim().toLowerCase() === 'siguiente');
+
+  const isNarrativeCard = (action: PlayerAction) =>
+    isDecisionCost(action.cost) && !controlActions.has(action.action) && !isSingleNextStep(action);
+
+  const narrativeOptions = actions.filter(isNarrativeCard);
+  const regularActions = actions.filter((a) => !isNarrativeCard(a));
+
   return (
     <div>
-      <div className="text-center mb-3">
-        <div className="eyebrow">Panel de decisión</div>
-        <h3 className="text-lg font-semibold text-white">Acciones disponibles</h3>
-      </div>
+      {narrativeOptions.length > 0 && (
+        <div className="mb-2">
+          <DecisionCardDeck
+            options={narrativeOptions}
+            disabled={disabled}
+            onOptionSelected={onAction}
+            onHoverEffects={onHoverEffects}
+          />
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {actions.map((action, index) =>
-          action.description ? (
+        {regularActions.map((action, index) =>
+          action.description && !isSingleNextStep(action) ? (
             <ActionCard
               key={`${action.action}-${index}`}
               action={action}

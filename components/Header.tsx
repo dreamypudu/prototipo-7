@@ -14,6 +14,7 @@ interface HeaderProps {
   globalEffectsHighlight?: GlobalEffectsUI | null;
   title?: string;
   subtitle?: string;
+  logoUrl?: string;
 }
 
 const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration }) => {

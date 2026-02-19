@@ -46,6 +46,14 @@ const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
   MUNICIPAL: '/avatars/icono-compass.svg'
 };
 
+const SUBTITLE_BY_VERSION: Record<SimulatorVersion, string> = {
+  CESFAM: 'Gestión en Salud',
+  INNOVATEC: 'Innovatec (Proyecto Quantum Leap)',
+  LEY_KARIN: 'Ley Karin',
+  SERCOTEC: 'Gestión PyME (SERCOTEC)',
+  MUNICIPAL: 'Gestión Municipal'
+};
+
 const pickTemplateStakeholders = (count = 3) => {
   // Reuse primeros stakeholders como plantilla ligera
   const base = INITIAL_GAME_STATE.stakeholders || [];
@@ -58,6 +66,11 @@ const pickTemplateStakeholders = (count = 3) => {
     role: s.role || 'Colaborador',
     name: s.name || `NPC ${idx + 1}`
   }));
+};
+
+const getVersionSubtitle = (version: SimulatorVersion | null, fallback?: string) => {
+  if (version && SUBTITLE_BY_VERSION[version]) return SUBTITLE_BY_VERSION[version];
+  return fallback || 'Simulador de decisiones';
 };
 
 type ResolvedMechanicConfig = MechanicConfig & {
@@ -642,7 +655,14 @@ export default function App(): React.ReactElement {
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
-        return { label: opt.text, action: opt.option_id, cost: "Decisión", globalEffectsUI: effects.ui };
+        return {
+          label: opt.cardTitle || opt.text,
+          description: opt.text,
+          cardEmoji: opt.cardEmoji,
+          action: opt.option_id,
+          cost: 'Decisión',
+          globalEffectsUI: effects.ui
+        };
       })
     );
     startLogging(scenario.node_id);
@@ -1179,7 +1199,7 @@ export default function App(): React.ReactElement {
     <SplashScreen
       onStartGame={handleStartGame}
       title="COMPASS"
-      subtitle={config?.title ? `Simulador de Decisión: ${config.title}` : 'Simulador de Decisión'}
+      subtitle={getVersionSubtitle(selectedVersion, config?.title)}
       logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
     />
   );
@@ -1212,8 +1232,8 @@ export default function App(): React.ReactElement {
           onAdvanceTime={handleManualAdvance}
           onOpenSidebar={() => setIsSidebarOpen(true)}
           globalEffectsHighlight={hoveredGlobalEffects}
-          title={config?.title ?? 'Compass'}
-          subtitle={config?.title ? 'Simulador de decisiones' : undefined}
+          title="COMPASS"
+          subtitle={getVersionSubtitle(selectedVersion, config?.title)}
           logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
         />
       </div>

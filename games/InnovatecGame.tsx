@@ -462,7 +462,14 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
-        return { label: opt.text, action: opt.option_id, cost: "Decisión", globalEffectsUI: effects.ui };
+        return {
+          label: opt.cardTitle || opt.text,
+          description: opt.text,
+          cardEmoji: opt.cardEmoji,
+          action: opt.option_id,
+          cost: 'Decisión',
+          globalEffectsUI: effects.ui
+        };
       })
     );
     startLogging(scenario.node_id);
@@ -1151,7 +1158,14 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   };
 
   if (!isGameStarted) {
-    return <SplashScreen onStartGame={handleStartGame} />;
+    return (
+      <SplashScreen
+        onStartGame={handleStartGame}
+        title="COMPASS"
+        subtitle="Innovatec (Proyecto Quantum Leap)"
+        logoUrl="/avatars/icono-compass.svg"
+      />
+    );
   }
 
   return (
@@ -1175,6 +1189,9 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
           onOpenSidebar={() => setIsSidebarOpen(true)}
           periodDuration={PERIOD_DURATION}
           globalEffectsHighlight={hoveredGlobalEffects}
+          title="COMPASS"
+          subtitle="Innovatec (Proyecto Quantum Leap)"
+          logoUrl="/avatars/icono-compass.svg"
         />
 
         <div className="border-b border-gray-700 mt-4 overflow-x-auto">

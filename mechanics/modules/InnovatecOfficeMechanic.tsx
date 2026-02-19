@@ -113,7 +113,7 @@ const InnovatecOfficeMechanic: React.FC = () => {
           <div className="w-full min-h-[520px] max-h-[75vh] bg-gray-800/50 rounded-xl border border-b-0 border-gray-700 overflow-visible">
             {renderCentralPanel()}
           </div>
-          <div className="mt-3 bg-gray-800/50 p-4 rounded-xl border border-gray-700 relative flex-shrink-0 max-h-[32vh] overflow-auto">
+          <div className="mt-3 bg-gray-800/50 p-4 rounded-xl border border-gray-700 relative flex-shrink-0 max-h-[32vh] overflow-visible">
             {isLoading && (
               <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center rounded-xl z-10">
                 <Spinner />
