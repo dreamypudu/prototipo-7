@@ -1,11 +1,8 @@
 ﻿
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConversationMode, GameState, GlobalEffectsUI, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from './types';
-import { INITIAL_GAME_STATE, TIME_SLOTS, DIRECTOR_OBJECTIVES, SECRETARY_ROLE } from './constants';
-import { scenarios as defaultScenarios } from './data/scenarios';
-import { scenarios as leyKarinScenarios } from './data/scenarios_leykarin';
-import { EMAIL_TEMPLATES } from './data/emails';
 import { SIMULATOR_CONFIGS } from './data/simulatorConfigs';
+import { getVersionContentPack, type VersionContentPack } from './data/versions';
 import { startLogging, finalizeLogging } from './services/Timelogger';
 import { mechanicEngine } from './services/MechanicEngine';
 import { MECHANIC_REGISTRY } from './mechanics/registry';
@@ -15,6 +12,10 @@ import { compareExpectedVsActual } from './services/ComparisonEngine';
 import { buildSessionExport } from './services/sessionExport';
 import { useMechanicLogSync } from './hooks/useMechanicLogSync';
 import { clampReputation, resolveGlobalEffects } from './services/globalEffects';
+import {
+  resolveStakeholderByRef,
+  sequenceBelongsToStakeholder,
+} from './services/stakeholderResolver';
 
 import Header from './components/Header';
 import EndGameScreen from './components/EndGameScreen';
@@ -22,10 +23,12 @@ import WarningPopup from './components/WarningPopup';
 import Sidebar from './components/Sidebar';
 import HelpButton from './components/ui/HelpButton';
 import HelpPanel from './components/ui/HelpPanel';
+import ObjectivesWidget from './components/ui/ObjectivesWidget';
 import VersionSelector from './components/VersionSelector';
 import InnovatecGame from './games/InnovatecGame';
 import SplashScreen from './components/SplashScreen';
 import type { DailyEffectSummary } from './types';
+import { useObjectivesTracker } from './hooks/useObjectivesTracker';
 
 type ActiveTab = string;
 type AppStep = 'version_selection' | 'splash' | 'game';
@@ -35,8 +38,9 @@ const API_BASE_URL =
   (import.meta as any)?.env?.VITE_API_URL ||
   'https://prototipo-5-41cj.onrender.com';
 
-const getScenarioSource = (version: SimulatorVersion | null) =>
-  version === 'LEY_KARIN' ? leyKarinScenarios : defaultScenarios;
+const DEFAULT_VERSION: SimulatorVersion = 'CESFAM';
+const DEFAULT_CONTENT_PACK = getVersionContentPack(DEFAULT_VERSION);
+const DEFAULT_INITIAL_STATE = DEFAULT_CONTENT_PACK.defaults.buildInitialGameState();
 
 const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
   INNOVATEC: '/avatars/icono-compass.svg',
@@ -52,20 +56,6 @@ const SUBTITLE_BY_VERSION: Record<SimulatorVersion, string> = {
   LEY_KARIN: 'Ley Karin',
   SERCOTEC: 'Gestión PyME (SERCOTEC)',
   MUNICIPAL: 'Gestión Municipal'
-};
-
-const pickTemplateStakeholders = (count = 3) => {
-  // Reuse primeros stakeholders como plantilla ligera
-  const base = INITIAL_GAME_STATE.stakeholders || [];
-  if (base.length <= count) return base;
-  const shuffled = [...base].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count).map((s, idx) => ({
-    ...s,
-    id: `lk-npc-${idx + 1}`,
-    shortId: `lk${idx + 1}`,
-    role: s.role || 'Colaborador',
-    name: s.name || `NPC ${idx + 1}`
-  }));
 };
 
 const getVersionSubtitle = (version: SimulatorVersion | null, fallback?: string) => {
@@ -104,7 +94,9 @@ const summarizeDeltas = (
   };
 };
 
-const createInitialGameState = (scenarioSource: ScenarioFile): GameState => {
+const createInitialGameState = (contentPack: VersionContentPack): GameState => {
+  const baseState = contentPack.defaults.buildInitialGameState();
+  const scenarioSource = contentPack.scenarios;
   const initialSchedule: Record<string, {day: number, slot: TimeSlotType}> = {
       'EVENT_STORM': { day: 1, slot: 'tarde' },
       'AZUL_MEETING_BLOCKED': { day: 1, slot: 'tarde' },
@@ -117,7 +109,7 @@ const createInitialGameState = (scenarioSource: ScenarioFile): GameState => {
   });
 
   return {
-      ...INITIAL_GAME_STATE,
+      ...baseState,
       scenarioSchedule: initialSchedule,
       mechanicEvents: [],
       canonicalActions: [],
@@ -150,10 +142,10 @@ export default function App(): React.ReactElement {
   const sessionEndRef = useRef<number | null>(null);
   const [appStep, setAppStep] = useState<AppStep>('version_selection');
   const [config, setConfig] = useState<SimulatorConfig | null>(null);
-  // Added missing selectedVersion state to fix line 439 error
   const [selectedVersion, setSelectedVersion] = useState<SimulatorVersion | null>(null);
-  const [scenarioData, setScenarioData] = useState<ScenarioFile>(defaultScenarios);
-  const [gameState, setGameState] = useState<GameState>(() => createInitialGameState(defaultScenarios));
+  const [contentPack, setContentPack] = useState<VersionContentPack>(DEFAULT_CONTENT_PACK);
+  const [scenarioData, setScenarioData] = useState<ScenarioFile>(DEFAULT_CONTENT_PACK.scenarios);
+  const [gameState, setGameState] = useState<GameState>(() => createInitialGameState(DEFAULT_CONTENT_PACK));
   
   const [characterInFocus, setCharacterInFocus] = useState<Stakeholder | null>(null);
   const [currentDialogue, setCurrentDialogue] = useState<string>("");
@@ -170,6 +162,7 @@ export default function App(): React.ReactElement {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hoveredGlobalEffects, setHoveredGlobalEffects] = useState<GlobalEffectsUI | null>(null);
   const [conversationMode, setConversationMode] = useState<ConversationMode>('idle');
+  const [isObjectivesOpen, setIsObjectivesOpen] = useState(false);
   const [questionsOrigin, setQuestionsOrigin] = useState<ConversationMode | null>(null);
   const [questionsBaseDialogue, setQuestionsBaseDialogue] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -184,10 +177,23 @@ export default function App(): React.ReactElement {
   const upSoundRef = useRef<HTMLAudioElement | null>(null);
   const downSoundRef = useRef<HTMLAudioElement | null>(null);
   const prevStats = useRef<{ budget: number; reputation: number }>({
-    budget: INITIAL_GAME_STATE.budget,
-    reputation: INITIAL_GAME_STATE.reputation
+    budget: DEFAULT_INITIAL_STATE.budget,
+    reputation: DEFAULT_INITIAL_STATE.reputation
   });
   const audioUnlocked = useRef(false);
+  const timeSlots = contentPack.defaults.timeSlots;
+  const directorObjectives = contentPack.defaults.directorObjectives;
+  const secretaryRole = contentPack.defaults.secretaryRole;
+  const emailTemplates = contentPack.emails;
+  const objectivesTracker = useObjectivesTracker(contentPack.globalObjectives, contentPack.npcObjectives);
+  const {
+    globalVisible: globalObjectivesVisible,
+    npcVisible: npcObjectivesVisible,
+    unseenCount: objectivesUnseenCount,
+    hasUnseenUpdates: hasUnseenObjectiveUpdates,
+    registerSequenceCompleted,
+    markAllSeen: markObjectiveUpdatesSeen,
+  } = objectivesTracker;
   const enabledMechanics = resolveMechanics(config);
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
@@ -211,7 +217,7 @@ export default function App(): React.ReactElement {
     downSoundRef.current = new Audio('/sounds/indicator-down.mp3');
     if (upSoundRef.current) upSoundRef.current.volume = 0.85;
     if (downSoundRef.current) downSoundRef.current.volume = 0.85;
-  }, []);
+  }, [timeSlots]);
 
   // Unlock audio on first user interaction (autoplay policies)
   useEffect(() => {
@@ -292,6 +298,22 @@ export default function App(): React.ReactElement {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), durationMs);
   }, []);
+
+  const handleToggleObjectives = useCallback(() => {
+    setIsObjectivesOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        markObjectiveUpdatesSeen();
+      }
+      return next;
+    });
+  }, [markObjectiveUpdatesSeen]);
+
+  useEffect(() => {
+    if (isObjectivesOpen && hasUnseenObjectiveUpdates) {
+      markObjectiveUpdatesSeen();
+    }
+  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markObjectiveUpdatesSeen]);
 
   const hasQuestionsFor = (stakeholder: Stakeholder | null): boolean => {
     if (!stakeholder) return false;
@@ -395,9 +417,9 @@ export default function App(): React.ReactElement {
     return { label: 'Comenzar Reunion', cost: 'Tiempo' };
   };
 
-  const hasCompletedSequenceForRole = (role: string, completedSequences: string[]) => {
+  const hasCompletedSequenceForStakeholder = (stakeholder: Stakeholder, completedSequences: string[]) => {
     return scenarioData.sequences.some(
-      seq => seq.stakeholderRole === role && completedSequences.includes(seq.sequence_id)
+      seq => sequenceBelongsToStakeholder(seq, stakeholder) && completedSequences.includes(seq.sequence_id)
     );
   };
 
@@ -410,8 +432,10 @@ export default function App(): React.ReactElement {
     }
 
     if (typeof rules.trustBelow === 'number' || typeof rules.supportBelow === 'number') {
-      const roleToCheck = rules.stakeholderRole ?? sequence.stakeholderRole;
-      const stakeholder = state.stakeholders.find(s => s.role === roleToCheck);
+      const stakeholder = resolveStakeholderByRef(state.stakeholders, {
+        stakeholderId: rules.stakeholderId ?? sequence.stakeholderId,
+        stakeholderRole: rules.stakeholderRole ?? sequence.stakeholderRole,
+      });
       if (!stakeholder) return false;
 
       if (typeof rules.trustBelow === 'number' && stakeholder.trust >= rules.trustBelow) {
@@ -433,7 +457,7 @@ export default function App(): React.ReactElement {
     setCurrentMeeting({ sequence, nodeIndex: 0 });
     setPersonalizedDialogue(sequence.initialDialogue);
     setConversationMode('pre_sequence');
-    const allowQuestions = hasCompletedSequenceForRole(stakeholder.role, gameState.completedSequences);
+    const allowQuestions = hasCompletedSequenceForStakeholder(stakeholder, gameState.completedSequences);
     setPlayerActions(buildPreSequenceActions(stakeholder, actionLabel, actionCost, allowQuestions));
     const shouldPause = options?.pauseTimer ?? Boolean(sequence.isInevitable || sequence.isContingent);
     if (shouldPause) {
@@ -471,16 +495,16 @@ export default function App(): React.ReactElement {
     let stateChanges: Partial<GameState> = {};
     let updatedStakeholders = [...stakeholders];
 
-    if (projectProgress >= DIRECTOR_OBJECTIVES.minProgress) {
+    if (projectProgress >= directorObjectives.minProgress) {
       setEndGameMessage(`¡Gestión Exitosa! Has logrado alinear a los tres sectores. El CESFAM opera con un equilibrio razonable entre calidad, normativa y comunidad.`);
       setGameStatus('won');
       return;
     }
 
-    const requiredStakeholders = stakeholders.filter(s => DIRECTOR_OBJECTIVES.requiredStakeholdersRoles.includes(s.role));
+    const requiredStakeholders = stakeholders.filter(s => directorObjectives.requiredStakeholdersRoles.includes(s.role));
     let stakeholdersWereUpdated = false;
     requiredStakeholders.forEach(s => {
-      if (s.trust < DIRECTOR_OBJECTIVES.minTrustWithRequired && s.status !== 'critical') {
+      if (s.trust < directorObjectives.minTrustWithRequired && s.status !== 'critical') {
         const warningMsg = `Crisis de Gobernabilidad: ${s.name} (${s.role}) está boicoteando activamente su gestión.`;
         if (!criticalWarnings.includes(warningMsg)) {
           newWarnings.push(warningMsg);
@@ -493,7 +517,7 @@ export default function App(): React.ReactElement {
       stateChanges.stakeholders = updatedStakeholders;
     }
 
-    if (day > DIRECTOR_OBJECTIVES.maxDeadline && !criticalWarnings.includes(`Gestión Fallida: Plazo Excedido.`)) {
+    if (day > directorObjectives.maxDeadline && !criticalWarnings.includes(`Gestión Fallida: Plazo Excedido.`)) {
       newWarnings.push(`Gestión Fallida: Plazo Excedido.`);
     }
 
@@ -502,7 +526,7 @@ export default function App(): React.ReactElement {
       setWarningPopupMessage(newWarnings[0]);
       setIsTimerPaused(true);
     }
-  }, [gameState, gameStatus, appStep]);
+  }, [gameState, gameStatus, appStep, directorObjectives]);
 
   useEffect(() => {
     if (appStep !== 'game' || gameStatus !== 'playing' || currentMeeting) return;
@@ -523,27 +547,32 @@ export default function App(): React.ReactElement {
     const sequenceToStart = inevitableSeq ?? contingentSeq;
     if (!sequenceToStart) return;
 
-    const stakeholder = gameState.stakeholders.find(s => s.role === sequenceToStart.stakeholderRole);
+    const stakeholder = resolveStakeholderByRef(gameState.stakeholders, {
+      stakeholderId: sequenceToStart.stakeholderId,
+      stakeholderRole: sequenceToStart.stakeholderRole,
+    });
     if (stakeholder) {
       const label = sequenceToStart.isInevitable ? "Atender Situacion Inevitable" : "Atender Evento Contingente";
       startSequence(sequenceToStart, stakeholder, { pauseTimer: true, actionLabel: label, actionCost: "Obligatorio" });
+    } else {
+      console.error(`[Content] Sequence ${sequenceToStart.sequence_id} references unknown stakeholderId="${sequenceToStart.stakeholderId}"`);
     }
   }, [gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData]);
 
   const advanceTime = useCallback((currentState: GameState): GameState => {
-    let nextSlotIndex = TIME_SLOTS.indexOf(currentState.timeSlot) + 1;
+    let nextSlotIndex = timeSlots.indexOf(currentState.timeSlot) + 1;
     let nextDay = currentState.day;
     let newEvents: string[] = [];
     let historyUpdate = {};
     let completedDay: number | null = null;
 
-    if (nextSlotIndex >= TIME_SLOTS.length) {
+    if (nextSlotIndex >= timeSlots.length) {
       nextSlotIndex = 0;
       nextDay++;
       historyUpdate = { [currentState.day]: currentState.stakeholders };
       completedDay = currentState.day;
     }
-    const nextSlot = TIME_SLOTS[nextSlotIndex];
+    const nextSlot = timeSlots[nextSlotIndex];
 
     let newState = { ...currentState, day: nextDay, timeSlot: nextSlot, history: { ...currentState.history, ...historyUpdate } };
 
@@ -648,8 +677,17 @@ export default function App(): React.ReactElement {
   );
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
-    const activeStakeholder = gameState.stakeholders.find(s => s.role === scenario.stakeholderRole);
-    if (activeStakeholder) setCharacterInFocus(activeStakeholder);
+    const activeStakeholder = resolveStakeholderByRef(gameState.stakeholders, {
+      stakeholderId: scenario.stakeholderId,
+      stakeholderRole: scenario.stakeholderRole,
+    });
+    if (!activeStakeholder) {
+      console.error(`[Content] Scenario ${scenario.node_id} references unknown stakeholderId="${scenario.stakeholderId}"`);
+      setPersonalizedDialogue('Contenido invalido: no se pudo resolver el NPC de este escenario.');
+      setPlayerActions([{ label: 'Concluir Reunion', cost: 'Finalizar', action: 'conclude_meeting' }]);
+      return;
+    }
+    setCharacterInFocus(activeStakeholder);
 
     setPersonalizedDialogue(scenario.dialogue);
     setPlayerActions(
@@ -676,13 +714,14 @@ export default function App(): React.ReactElement {
       stateAfterMeetingEnd.completedSequences = [...stateAfterMeetingEnd.completedSequences, justCompletedSequenceId];
     }
 
-    if (characterInFocus && characterInFocus.role !== SECRETARY_ROLE) {
+    if (characterInFocus && characterInFocus.role !== secretaryRole) {
       stateAfterMeetingEnd.stakeholders = stateAfterMeetingEnd.stakeholders.map(sh =>
         sh.name === characterInFocus.name ? { ...sh, lastMetDay: gameState.day } : sh
       );
     }
     const skipTimeAdvance = Boolean(options?.skipTimeAdvance);
     const newState = skipTimeAdvance ? stateAfterMeetingEnd : advanceTime(stateAfterMeetingEnd);
+    registerSequenceCompleted(justCompletedSequenceId, newState);
     setGameState(newState);
     if (!skipTimeAdvance) {
       const completedDay = (newState as any).__completedDay as number | null;
@@ -699,7 +738,7 @@ export default function App(): React.ReactElement {
     }
     setCharacterInFocus(null);
     syncLogs();
-  }, [gameState, characterInFocus, advanceTime, syncLogs]);
+  }, [gameState, characterInFocus, advanceTime, secretaryRole, registerSequenceCompleted, syncLogs]);
 
   useEffect(() => {
     if (isTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
@@ -719,13 +758,13 @@ export default function App(): React.ReactElement {
     if (appStep !== 'game') return;
     setIsTimerPaused(false);
     setGameState(prev => {
-      const welcomeEmails = EMAIL_TEMPLATES.filter(t => t.trigger.stakeholder_id === 'system-startup');
+      const welcomeEmails = emailTemplates.filter(t => t.trigger.stakeholder_id === 'system-startup');
       const newEmails = welcomeEmails
         .filter(t => !prev.inbox.some(e => e.email_id === t.email_id))
         .map(t => ({ email_id: t.email_id, dayReceived: 1, isRead: false }));
       return newEmails.length > 0 ? { ...prev, inbox: [...prev.inbox, ...newEmails] } : prev;
     });
-  }, [appStep]);
+  }, [appStep, emailTemplates]);
 
   const handleUpdateSchedule = (newSchedule: ScheduleAssignment[]) => {
     setGameState(prev => ({ ...prev, weeklySchedule: newSchedule }));
@@ -805,7 +844,7 @@ export default function App(): React.ReactElement {
           setActiveTab('interaction');
           const proactiveSequence = scenarioData.sequences
               .filter(seq =>
-                  seq.stakeholderRole === stakeholder.role &&
+                  sequenceBelongsToStakeholder(seq, stakeholder) &&
                   !seq.isInevitable &&
                   !seq.isContingent
               )
@@ -880,7 +919,7 @@ export default function App(): React.ReactElement {
         setQuestionsBaseDialogue('');
         if (origin === 'pre_sequence' && currentMeeting?.sequence) {
             const meta = getSequenceActionMeta(currentMeeting.sequence);
-            const allowQuestions = hasCompletedSequenceForRole(characterInFocus.role, gameState.completedSequences);
+            const allowQuestions = hasCompletedSequenceForStakeholder(characterInFocus, gameState.completedSequences);
             setPlayerActions(buildPreSequenceActions(characterInFocus, meta.label, meta.cost, allowQuestions));
         } else if (origin === 'post_sequence') {
             setPlayerActions(buildPostSequenceActions(characterInFocus));
@@ -1076,11 +1115,17 @@ export default function App(): React.ReactElement {
     setCountdown(PERIOD_DURATION);
     setActiveTab('interaction');
     setHoveredGlobalEffects(null);
+    setIsObjectivesOpen(false);
     setConversationMode('idle');
     setQuestionsOrigin(null);
     setQuestionsBaseDialogue('');
-    setScenarioData(defaultScenarios);
-    setGameState(createInitialGameState(defaultScenarios));
+    setContentPack(DEFAULT_CONTENT_PACK);
+    setScenarioData(DEFAULT_CONTENT_PACK.scenarios);
+    setGameState(createInitialGameState(DEFAULT_CONTENT_PACK));
+    prevStats.current = {
+      budget: DEFAULT_INITIAL_STATE.budget,
+      reputation: DEFAULT_INITIAL_STATE.reputation,
+    };
     sessionStartRef.current = null;
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
@@ -1106,15 +1151,18 @@ export default function App(): React.ReactElement {
   const handleSelectVersion = (version: SimulatorVersion) => {
     const nextConfig = SIMULATOR_CONFIGS[version];
     const nextMechanics = resolveMechanics(nextConfig);
-    const source = getScenarioSource(version);
+    const nextPack = getVersionContentPack(version);
     setSelectedVersion(version);
     setConfig(nextConfig);
-    setScenarioData(source);
-    const baseState = createInitialGameState(source);
-    if (version === 'LEY_KARIN') {
-      baseState.stakeholders = pickTemplateStakeholders(3);
-    }
+    setContentPack(nextPack);
+    setIsObjectivesOpen(false);
+    setScenarioData(nextPack.scenarios);
+    const baseState = createInitialGameState(nextPack);
     setGameState(baseState);
+    prevStats.current = {
+      budget: baseState.budget,
+      reputation: baseState.reputation,
+    };
     if (nextMechanics.length > 0) {
       setActiveTab(nextMechanics[0].tab_id);
     }
@@ -1237,7 +1285,7 @@ export default function App(): React.ReactElement {
           logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
         />
       </div>
-      <div className="fixed bottom-20 right-6 z-40">
+      <div className="fixed bottom-36 right-6 z-40">
         <button
           onClick={() => setAudioEnabled((v) => !v)}
           className={`px-3 py-2 rounded-full border text-sm font-semibold transition ${
@@ -1250,6 +1298,15 @@ export default function App(): React.ReactElement {
           {audioEnabled ? 'Audio ON' : 'Audio OFF'}
         </button>
       </div>
+      <ObjectivesWidget
+        isOpen={isObjectivesOpen}
+        onToggle={handleToggleObjectives}
+        hasUnseenUpdates={hasUnseenObjectiveUpdates}
+        unseenCount={objectivesUnseenCount}
+        globalObjectives={globalObjectivesVisible}
+        npcObjectives={npcObjectivesVisible}
+        stakeholders={gameState.stakeholders}
+      />
       <HelpButton onClick={() => setIsHelpOpen(true)} />
       <HelpPanel
         isOpen={isHelpOpen}

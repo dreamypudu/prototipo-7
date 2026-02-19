@@ -1,8 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConversationMode, GameState, GlobalEffectsUI, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, MeetingSequence, ScenarioNode, DecisionLogEntry, InboxEmail, MechanicConfig, SimulatorConfig, GameStatus, QuestionLogEntry } from '../types';
-import { INITIAL_GAME_STATE, TIME_SLOTS, DIRECTOR_OBJECTIVES, SECRETARY_ROLE } from '../data/innovatec/constants';
-import { scenarios as scenarioData } from '../data/innovatec/scenarios';
-import { EMAIL_TEMPLATES } from '../data/innovatec/emails';
+import { getVersionContentPack } from '../data/versions';
 import { startLogging, finalizeLogging } from '../services/Timelogger';
 import { mechanicEngine } from '../services/MechanicEngine';
 import { compareExpectedVsActual } from '../services/ComparisonEngine';
@@ -14,12 +12,19 @@ import { MechanicProvider } from '../mechanics/MechanicContext';
 import { MechanicDispatchAction, OfficeState } from '../mechanics/types';
 import { useMechanicLogSync } from '../hooks/useMechanicLogSync';
 import { SIMULATOR_CONFIGS } from '../data/simulatorConfigs';
+import {
+  nodeBelongsToStakeholder,
+  resolveStakeholderByRef,
+  sequenceBelongsToStakeholder,
+} from '../services/stakeholderResolver';
 
 import Header from '../components/Header';
 import EndGameScreen from '../components/EndGameScreen';
 import WarningPopup from '../components/WarningPopup';
 import SplashScreen from '../components/SplashScreen';
 import Sidebar from '../components/Sidebar';
+import ObjectivesWidget from '../components/ui/ObjectivesWidget';
+import { useObjectivesTracker } from '../hooks/useObjectivesTracker';
 
 type ActiveTab = string;
 type SchedulingState = 'none' | 'selecting_slot' | 'selecting_stakeholder' | 'confirming_schedule';
@@ -31,6 +36,13 @@ const PERIOD_DURATION = 30; // 30 seconds per time slot
 const API_BASE_URL =
   (import.meta as any)?.env?.VITE_API_URL ||
   'https://prototipo-5-41cj.onrender.com';
+const INNOVATEC_CONTENT = getVersionContentPack('INNOVATEC');
+const scenarioData = INNOVATEC_CONTENT.scenarios;
+const EMAIL_TEMPLATES = INNOVATEC_CONTENT.emails;
+const TIME_SLOTS = INNOVATEC_CONTENT.defaults.timeSlots;
+const DIRECTOR_OBJECTIVES = INNOVATEC_CONTENT.defaults.directorObjectives;
+const SECRETARY_ROLE = INNOVATEC_CONTENT.defaults.secretaryRole;
+const buildInitialState = INNOVATEC_CONTENT.defaults.buildInitialGameState;
 
 const summarizeDeltas = (
   day: number,
@@ -87,7 +99,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   const sessionEndRef = useRef<number | null>(null);
   const config = SIMULATOR_CONFIGS.INNOVATEC;
   const [isGameStarted, setIsGameStarted] = useState(false);
-  const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
+  const [gameState, setGameState] = useState<GameState>(() => buildInitialState());
   const [secretary, setSecretary] = useState<Stakeholder | null>(null);
   const [characterInFocus, setCharacterInFocus] = useState<Stakeholder | null>(null);
   const [currentDialogue, setCurrentDialogue] = useState<string>("");
@@ -109,11 +121,24 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   const [warningPopupMessage, setWarningPopupMessage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hoveredGlobalEffects, setHoveredGlobalEffects] = useState<GlobalEffectsUI | null>(null);
+  const [isObjectivesOpen, setIsObjectivesOpen] = useState(false);
   const [conversationMode, setConversationMode] = useState<ConversationMode>('idle');
   const [questionsOrigin, setQuestionsOrigin] = useState<ConversationMode | null>(null);
   const [questionsBaseDialogue, setQuestionsBaseDialogue] = useState<string>('');
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const objectivesTracker = useObjectivesTracker(
+    INNOVATEC_CONTENT.globalObjectives,
+    INNOVATEC_CONTENT.npcObjectives
+  );
+  const {
+    globalVisible: globalObjectivesVisible,
+    npcVisible: npcObjectivesVisible,
+    unseenCount: objectivesUnseenCount,
+    hasUnseenUpdates: hasUnseenObjectiveUpdates,
+    registerSequenceCompleted,
+    markAllSeen: markObjectiveUpdatesSeen,
+  } = objectivesTracker;
   const enabledMechanics = resolveMechanics(config);
   const syncLogs = useMechanicLogSync(setGameState);
   const stageTabs = [
@@ -147,6 +172,22 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), durationMs);
   }, []);
+
+  const handleToggleObjectives = useCallback(() => {
+    setIsObjectivesOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        markObjectiveUpdatesSeen();
+      }
+      return next;
+    });
+  }, [markObjectiveUpdatesSeen]);
+
+  useEffect(() => {
+    if (isObjectivesOpen && hasUnseenObjectiveUpdates) {
+      markObjectiveUpdatesSeen();
+    }
+  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markObjectiveUpdatesSeen]);
 
   const hasQuestionsFor = (stakeholder: Stakeholder | null): boolean => {
     if (!stakeholder) return false;
@@ -188,9 +229,9 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     return true;
   };
 
-  const hasCompletedSequenceForRole = (role: string, completedSequences: string[]) => {
+  const hasCompletedSequenceForStakeholder = (stakeholder: Stakeholder, completedSequences: string[]) => {
     return scenarioData.sequences.some(
-      seq => seq.stakeholderRole === role && completedSequences.includes(seq.sequence_id)
+      seq => sequenceBelongsToStakeholder(seq, stakeholder) && completedSequences.includes(seq.sequence_id)
     );
   };
 
@@ -481,7 +522,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     setCurrentMeeting({ sequence, nodeIndex: 0 });
     setPersonalizedDialogue(sequence.initialDialogue);
     setConversationMode('pre_sequence');
-    const allowQuestions = hasCompletedSequenceForRole(stakeholder.role, gameState.completedSequences);
+    const allowQuestions = hasCompletedSequenceForStakeholder(stakeholder, gameState.completedSequences);
     setPlayerActions(buildPreSequenceActions(stakeholder, allowQuestions));
   }, [setPersonalizedDialogue, buildPreSequenceActions, gameState.completedSequences]);
 
@@ -529,6 +570,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
         );
     }
     const newState = advanceTime(stateAfterMeetingEnd);
+    registerSequenceCompleted(justCompletedSequenceId, newState);
     setGameState(newState);
     syncLogs();
     const completedDay = (newState as any).__completedDay as number | null;
@@ -557,13 +599,13 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
             setCharacterInFocus(targetStakeholder);
 
             const sequence = scenarioData.sequences.find(seq => 
-                seq.stakeholderRole === targetStakeholder.role &&
+                sequenceBelongsToStakeholder(seq, targetStakeholder) &&
                 !newState.completedSequences.includes(seq.sequence_id)
             );
             if (sequence) {
                 startSequence(sequence, targetStakeholder);
             } else {
-                const scenario = scenarioData.scenarios.find(s => s.stakeholderRole === targetStakeholder.role && !newState.completedScenarios.includes(s.node_id));
+                const scenario = scenarioData.scenarios.find(s => nodeBelongsToStakeholder(s, targetStakeholder) && !newState.completedScenarios.includes(s.node_id));
                 if (scenario) {
                      presentScenario(scenario);
                 } else if (hasQuestionsFor(targetStakeholder)) {
@@ -586,7 +628,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
         }
         returnToSecretary(secretaryMessage);
     }
-  }, [gameState, characterInFocus, secretary, advanceTime, setPersonalizedDialogue, presentScenario, startSequence, hasQuestionsFor, buildQuestionListActions, syncLogs]);
+  }, [gameState, characterInFocus, secretary, advanceTime, registerSequenceCompleted, setPersonalizedDialogue, presentScenario, startSequence, hasQuestionsFor, buildQuestionListActions, syncLogs]);
   
    useEffect(() => {
     if (isTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || !isGameStarted) {
@@ -610,7 +652,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   useEffect(() => {
     if (!isGameStarted) return;
 
-    const secretaryChar = gameState.stakeholders.find(s => s.role === SECRETARY_ROLE);
+    const secretaryChar = resolveStakeholderByRef(gameState.stakeholders, { stakeholderRole: SECRETARY_ROLE });
     if (secretaryChar) {
       setSecretary(secretaryChar);
       setCharacterInFocus(secretaryChar);
@@ -716,7 +758,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
         }
         setQuestionsBaseDialogue('');
         if (origin === 'pre_sequence') {
-            const allowQuestions = hasCompletedSequenceForRole(characterInFocus.role, gameState.completedSequences);
+            const allowQuestions = hasCompletedSequenceForStakeholder(characterInFocus, gameState.completedSequences);
             setPlayerActions(buildPreSequenceActions(characterInFocus, allowQuestions));
         } else if (origin === 'post_sequence') {
             setPlayerActions(buildPostSequenceActions(characterInFocus));
@@ -908,7 +950,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
 
     const currentScenarioId = currentMeeting 
         ? currentMeeting.sequence.nodes[currentMeeting.nodeIndex]
-        : scenarioData.scenarios.find(s => s.stakeholderRole === characterInFocus.role && !gameState.completedScenarios.includes(s.node_id))?.node_id;
+        : scenarioData.scenarios.find(s => nodeBelongsToStakeholder(s, characterInFocus) && !gameState.completedScenarios.includes(s.node_id))?.node_id;
 
     const scenario = scenarioData.scenarios.find(s => s.node_id === currentScenarioId);
 
@@ -1053,9 +1095,10 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     setPlayerActions([]);
     setIsLoading(false);
     setIsTimerPaused(true);
+    setIsObjectivesOpen(false);
     setCountdown(PERIOD_DURATION);
     setActiveTab('interaction');
-    setGameState(INITIAL_GAME_STATE);
+    setGameState(buildInitialState());
     setHoveredGlobalEffects(null);
     setSecretary(null);
     setSchedulingState('none');
@@ -1074,7 +1117,8 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     sessionStartRef.current = Date.now();
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
-    setGameState({ ...INITIAL_GAME_STATE, playerName: name });
+    const baseState = buildInitialState();
+    setGameState({ ...baseState, playerName: name });
     setConversationMode('idle');
     setQuestionsOrigin(null);
     setQuestionsBaseDialogue('');
@@ -1242,6 +1286,15 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
             </div>
           </div>
         )}
+        <ObjectivesWidget
+          isOpen={isObjectivesOpen}
+          onToggle={handleToggleObjectives}
+          hasUnseenUpdates={hasUnseenObjectiveUpdates}
+          unseenCount={objectivesUnseenCount}
+          globalObjectives={globalObjectivesVisible}
+          npcObjectives={npcObjectivesVisible}
+          stakeholders={gameState.stakeholders}
+        />
       </div>
     </MechanicProvider>
   );

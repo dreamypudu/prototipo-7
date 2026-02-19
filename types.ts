@@ -318,6 +318,7 @@ export interface ScenarioOption {
 
 export interface ScenarioNode {
   node_id: string;
+  stakeholderId: string;
   stakeholderRole: string;
   dialogue: string;
   options: ScenarioOption[];
@@ -325,6 +326,7 @@ export interface ScenarioNode {
 
 export interface MeetingSequence {
     sequence_id: string;
+    stakeholderId: string;
     stakeholderRole: string;
     initialDialogue: string;
     nodes: string[];
@@ -343,6 +345,7 @@ export interface ContingentRules {
   budgetBelow?: number;
   trustBelow?: number;
   supportBelow?: number;
+  stakeholderId?: string;
   stakeholderRole?: string;
 }
 
@@ -350,6 +353,79 @@ export interface ScenarioFile {
     simulation_id: string;
     scenarios: ScenarioNode[];
     sequences: MeetingSequence[];
+}
+
+export type ComparisonOperator = '>=' | '<=' | '>' | '<' | '==';
+
+export interface GlobalMetricCondition {
+  kind: 'global_metric';
+  metric: 'budget' | 'reputation' | 'projectProgress' | 'day';
+  op: ComparisonOperator;
+  value: number;
+}
+
+export interface StakeholderMetricCondition {
+  kind: 'stakeholder_metric';
+  stakeholderId: string;
+  metric: 'trust' | 'support';
+  op: ComparisonOperator;
+  value: number;
+}
+
+export interface CompletedSequenceCondition {
+  kind: 'completed_sequence';
+  sequenceId: string;
+}
+
+export interface CompletedScenarioCondition {
+  kind: 'completed_scenario';
+  scenarioId: string;
+}
+
+export interface ExpectedActionCondition {
+  kind: 'expected_action';
+  actionType?: string;
+  targetRefIncludes?: string;
+  minCount?: number;
+}
+
+export type NarrativeCondition =
+  | GlobalMetricCondition
+  | StakeholderMetricCondition
+  | CompletedSequenceCondition
+  | CompletedScenarioCondition
+  | ExpectedActionCondition;
+
+export interface ConditionGroup {
+  all?: NarrativeCondition[];
+  any?: NarrativeCondition[];
+}
+
+export interface GlobalObjectiveDefinition {
+  objective_id: string;
+  title: string;
+  description: string;
+  revealedBySequenceIds: string[];
+  success: ConditionGroup;
+  failure?: ConditionGroup;
+  weight?: number;
+}
+
+export interface NpcObjectiveDefinition {
+  objective_id: string;
+  stakeholderId: string;
+  title: string;
+  description: string;
+  revealedBySequenceIds: string[];
+  success: ConditionGroup;
+  failure?: ConditionGroup;
+  weight?: number;
+}
+
+export interface ObjectiveSnapshot {
+  objective_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  progressLabel: string;
 }
 
 export interface DirectorObjectives {
