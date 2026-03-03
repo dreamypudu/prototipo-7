@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SimulatorVersion } from '../types';
 
 interface VersionSelectorProps {
@@ -52,6 +52,19 @@ const VERSIONS: VersionOption[] = [
 ];
 
 const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
+  const [logoRefreshKey, setLogoRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setLogoRefreshKey((prev) => prev + 1);
+    }, 5000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  const animatedLogoSrc = useMemo(
+    () => `/avatars/logo-animado-compass.svg?loop=${logoRefreshKey}`,
+    [logoRefreshKey]
+  );
   const accentByVersion: Record<SimulatorVersion, string> = {
     LEY_KARIN: '#c19a3f',
     CESFAM: '#1b4e89',
@@ -80,15 +93,15 @@ const fontByVersion: Record<SimulatorVersion, string> = {
     >
       <div className="max-w-6xl w-full relative">
         <img
-          src="/avatars/logo-compass.svg"
+          src={animatedLogoSrc}
           alt="Logo Compass"
           className="absolute top-0 left-0 m-2 object-contain drop-shadow-lg opacity-95"
             style={{ width: '170px', height: '65px', margin: '12px 8px 0 8px' }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.png'; }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
         />
         <div className="text-center mb-12 animate-fade-in pt-5">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 drop-shadow-md">Módulo de Simulación COMPASS</h1>
-          <p className="text-xl text-blue-100/90 drop-shadow-sm">Selecciona el contexto de la simulación para comenzar</p>
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 drop-shadow-md">Simulaciones</h1>
+          <p className="text-xl text-blue-100/90 drop-shadow-sm">Selecciona la versión de COMPASS para comenzar</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in-up">
