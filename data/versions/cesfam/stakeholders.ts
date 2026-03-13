@@ -10,7 +10,7 @@ export const CESFAM_STAKEHOLDERS: Stakeholder[] = [
       role: "Asistente Administrativa",
       power: 20, interest: 100, trust: 80, support: 100, minSupport: 50, maxSupport: 100, mood: 'neutral',
       personality: "Profesional, discreta y experta en la burocracia. Es el nexo entre la Dirección y la realidad operativa de los sectores.",
-      portraitUrl: 'https://i.imgur.com/6ZCdB5G.png',
+      portraitUrl: "/avatars/sofia-castro.png",
       agenda: ["Mantener el orden administrativo.", "Evitar conflictos legales.", "Asegurar que el Director tenga la información correcta."],
       commitments: [],
       informationTiers: [],
@@ -28,7 +28,7 @@ export const CESFAM_STAKEHOLDERS: Stakeholder[] = [
       role: "Jefe Sector Azul",
       power: 90, interest: 80, trust: 50, support: 50, minSupport: 20, maxSupport: 90, mood: 'neutral',
       personality: "El Académico Político. Carismático y conectado, pero elitista. Valora el prestigio y la investigación sobre la productividad asistencial.",
-      portraitUrl: "https://i.imgur.com/haTtDtC.png",
+      portraitUrl: "/avatars/andres-guzman.png",
       agenda: [
         "Obtener horas protegidas para investigación.",
         "Asegurar el mejor equipamiento (Box 5) para su sector.",
@@ -95,7 +95,7 @@ export const CESFAM_STAKEHOLDERS: Stakeholder[] = [
       role: "Jefa Sector Rojo",
       power: 80, interest: 95, trust: 50, support: 50, minSupport: 10, maxSupport: 80, mood: 'neutral',
       personality: "La Guardiana del Reglamento. Maternal con su equipo, inflexible con la dirección. Su prioridad son los derechos laborales y los protocolos.",
-      portraitUrl: "https://i.imgur.com/JLlAfIm.png",
+      portraitUrl: "/avatars/marcela-soto.png",
       agenda: [
         "Bloquear horas extra no reglamentadas.",
         "Cumplimiento estricto de protocolos (cero riesgo legal).",
