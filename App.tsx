@@ -97,10 +97,7 @@ const summarizeDeltas = (
 const createInitialGameState = (contentPack: VersionContentPack): GameState => {
   const baseState = contentPack.defaults.buildInitialGameState();
   const scenarioSource = contentPack.scenarios;
-  const initialSchedule: Record<string, {day: number, slot: TimeSlotType}> = {
-      'EVENT_STORM': { day: 1, slot: 'tarde' },
-      'AZUL_MEETING_BLOCKED': { day: 1, slot: 'tarde' },
-  };
+  const initialSchedule: Record<string, {day: number, slot: TimeSlotType}> = {};
 
   scenarioSource.sequences.forEach(seq => {
       if (seq.triggerMap && (seq.isInevitable || seq.isContingent)) {
@@ -423,6 +420,10 @@ export default function App(): React.ReactElement {
     );
   };
 
+  const isInteractionBlockingTimeout = Boolean(
+    characterInFocus && characterInFocus.role !== secretaryRole
+  );
+
   const shouldTriggerContingentSequence = (sequence: MeetingSequence, state: GameState) => {
     if (!sequence.isContingent || !sequence.contingentRules) return false;
     const rules = sequence.contingentRules;
@@ -708,7 +709,10 @@ export default function App(): React.ReactElement {
     mechanicEngine.emitEvent('dialogue', 'scenario_presented', { node_id: scenario.node_id });
   }, [setPersonalizedDialogue, gameState.stakeholders]);
 
-  const advanceTimeAndUpdateFocus = useCallback((justCompletedSequenceId?: string, options?: { skipTimeAdvance?: boolean }) => {
+  const advanceTimeAndUpdateFocus = useCallback((
+    justCompletedSequenceId?: string,
+    options?: { skipTimeAdvance?: boolean; forceResumeTimer?: boolean }
+  ) => {
     let stateAfterMeetingEnd = { ...gameState };
     if (justCompletedSequenceId && !stateAfterMeetingEnd.completedSequences.includes(justCompletedSequenceId)) {
       stateAfterMeetingEnd.completedSequences = [...stateAfterMeetingEnd.completedSequences, justCompletedSequenceId];
@@ -731,6 +735,7 @@ export default function App(): React.ReactElement {
         syncDayWithBackend(completedDay, snapshot);
       }
       setCountdown(PERIOD_DURATION);
+      setIsTimerPaused(false);
     } else {
       // Reactivar el timer y evitar que quede congelado si el contador estaba en 0
       setIsTimerPaused(false);
@@ -745,6 +750,10 @@ export default function App(): React.ReactElement {
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
+          if (isInteractionBlockingTimeout) {
+            setIsTimerPaused(true);
+            return 0;
+          }
           advanceTimeAndUpdateFocus();
           return PERIOD_DURATION;
         }
@@ -752,7 +761,7 @@ export default function App(): React.ReactElement {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [isTimerPaused, activeTab, advanceTimeAndUpdateFocus, gameStatus, appStep]);
+  }, [isTimerPaused, activeTab, advanceTimeAndUpdateFocus, gameStatus, appStep, isInteractionBlockingTimeout]);
 
   useEffect(() => {
     if (appStep !== 'game') return;
@@ -1009,12 +1018,16 @@ export default function App(): React.ReactElement {
     
     if (action.action === 'conclude_meeting') {
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
-        const skipTimeAdvance = currentMeeting?.sequence?.consumesTime === false;
+        const shouldForceAdvanceBlock = countdown <= 0;
+        const skipTimeAdvance = !shouldForceAdvanceBlock && currentMeeting?.sequence?.consumesTime === false;
         setCurrentMeeting(null);
         setConversationMode('idle');
         setQuestionsOrigin(null);
         setQuestionsBaseDialogue('');
-        advanceTimeAndUpdateFocus(justCompletedSequenceId, { skipTimeAdvance });
+        advanceTimeAndUpdateFocus(justCompletedSequenceId, {
+          skipTimeAdvance,
+          forceResumeTimer: shouldForceAdvanceBlock
+        });
         setIsLoading(false);
         return;
     }

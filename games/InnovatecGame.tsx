@@ -526,8 +526,14 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     setPlayerActions(buildPreSequenceActions(stakeholder, allowQuestions));
   }, [setPersonalizedDialogue, buildPreSequenceActions, gameState.completedSequences]);
 
+  const isInteractionBlockingTimeout = Boolean(
+    characterInFocus && characterInFocus.role !== SECRETARY_ROLE
+  );
 
-  const advanceTimeAndUpdateFocus = useCallback((justCompletedSequenceId?: string) => {
+  const advanceTimeAndUpdateFocus = useCallback((
+    justCompletedSequenceId?: string,
+    options?: { forceResumeTimer?: boolean }
+  ) => {
     let currentState = { ...gameState };
 
     // Update completed sequences list
@@ -579,6 +585,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
         delete (snapshot as any).__completedDay;
         syncDayWithBackend(completedDay, snapshot);
     }
+    setIsTimerPaused(false);
     
     // Check for next meeting
     const upcomingMeeting = newState.calendar.find(m => m.day === newState.day && m.slot === newState.timeSlot);
@@ -638,6 +645,10 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     const timer = setInterval(() => {
         setCountdown(prev => {
             if (prev <= 1) {
+                if (isInteractionBlockingTimeout) {
+                    setIsTimerPaused(true);
+                    return 0;
+                }
                 advanceTimeAndUpdateFocus();
                 return PERIOD_DURATION;
             }
@@ -646,7 +657,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isTimerPaused, activeTab, advanceTimeAndUpdateFocus, gameStatus, isGameStarted]);
+  }, [isTimerPaused, activeTab, advanceTimeAndUpdateFocus, gameStatus, isGameStarted, isInteractionBlockingTimeout]);
 
 
   useEffect(() => {
@@ -939,11 +950,14 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     
     if (action.action === 'conclude_meeting') {
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
+        const shouldForceAdvanceBlock = countdown <= 0;
         setCurrentMeeting(null);
         setConversationMode('idle');
         setQuestionsOrigin(null);
         setQuestionsBaseDialogue('');
-        advanceTimeAndUpdateFocus(justCompletedSequenceId);
+        advanceTimeAndUpdateFocus(justCompletedSequenceId, {
+            forceResumeTimer: shouldForceAdvanceBlock
+        });
         setIsLoading(false);
         return;
     }

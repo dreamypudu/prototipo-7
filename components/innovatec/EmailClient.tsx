@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { InboxEmail } from '../../types';
-import { EMAIL_TEMPLATES } from '../../data/innovatec/emails';
+import { EMAIL_TEMPLATES } from '../../data/versions/innovatec/emails';
 import { useMechanicContext } from '../../mechanics/MechanicContext';
 
 interface EmailClientProps {

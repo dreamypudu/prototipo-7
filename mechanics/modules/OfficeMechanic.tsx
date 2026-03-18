@@ -27,17 +27,22 @@ const OfficeMechanic: React.FC = () => {
 
   let sceneParticipants: Stakeholder[] | undefined;
   if (currentMeeting?.sequence.sequence_id === 'SCHEDULE_WAR_SEQ') {
-    const guzman = gameState.stakeholders.find((s) => s.role === 'Jefe Sector Azul');
-    const soto = gameState.stakeholders.find((s) => s.role === 'Jefa Sector Rojo');
-    const rios = gameState.stakeholders.find((s) => s.role === 'Jefe Sector Amarillo');
-    if (guzman && soto && rios) {
-      sceneParticipants = [guzman, soto, rios];
+    const currentNodeId = currentMeeting.sequence.nodes[currentMeeting.nodeIndex];
+    if (currentNodeId !== 'SCHEDULE_WAR_SOFIA_CHOICE') {
+      const guzman = gameState.stakeholders.find((s) => s.role === 'Jefe Sector Azul');
+      const soto = gameState.stakeholders.find((s) => s.role === 'Jefa Sector Rojo');
+      const rios = gameState.stakeholders.find((s) => s.role === 'Jefe Sector Amarillo');
+      if (guzman && soto && rios) {
+        sceneParticipants = [guzman, soto, rios];
+      }
     }
   }
 
   const renderCentralPanel = () => {
     if (characterInFocus) {
-      const isIntroHospital = gameState.day <= 1 && gameState.completedSequences.length < 2;
+      const isIntroHospital =
+        !gameState.completedSequences.includes('OFFICE_INTRO_SEQ') ||
+        !gameState.completedSequences.includes('SCHEDULE_WAR_SEQ');
       const backgroundKey = isIntroHospital ? 'hospital' : 'box';
       return (
         <DialogueArea

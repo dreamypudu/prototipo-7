@@ -42,8 +42,13 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
   const key = backgroundKey || timeSlot;
   const bgImage = backgroundImages[key] || backgroundImages['mañana'];
 
-  // Use passed participants, or fallback to just the current stakeholder if not provided
-  const activeParticipants = participants && participants.length > 0 ? participants : [stakeholder];
+  // If a scene provides participants, keep them, but always ensure the active speaker is visible.
+  const activeParticipants =
+    participants && participants.length > 0
+      ? participants.some((participant) => participant.id === stakeholder.id)
+        ? participants
+        : [...participants, stakeholder]
+      : [stakeholder];
   const roster = allStakeholders ?? activeParticipants;
 
   const renderWithTooltips = (text: string) => {

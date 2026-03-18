@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { scenarios } from '../../data/innovatec/scenarios';
+import { scenarios } from '../../data/versions/innovatec/scenarios';
 import { ScenarioNode, MeetingSequence, ScenarioOption, GameState, DecisionLogEntry } from '../../types';
 
 // Helper to get scenario type icon

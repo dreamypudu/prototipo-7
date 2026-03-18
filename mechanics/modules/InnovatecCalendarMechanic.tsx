@@ -1,6 +1,6 @@
 import React from 'react';
 import CalendarView from '../../components/CalendarView';
-import { TIME_SLOTS } from '../../data/innovatec/constants';
+import { TIME_SLOTS } from '../../data/versions/innovatec/defaults';
 import { useMechanicContext } from '../MechanicContext';
 
 const InnovatecCalendarMechanic: React.FC = () => {

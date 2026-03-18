@@ -5,7 +5,7 @@ import DialogueArea from '../../components/DialogueArea';
 import ScheduleView from '../../components/ScheduleView';
 import Spinner from '../../components/ui/Spinner';
 import StakeholderList from '../../components/StakeholderList';
-import { SECRETARY_ROLE, TIME_SLOTS } from '../../data/innovatec/constants';
+import { SECRETARY_ROLE, TIME_SLOTS } from '../../data/versions/innovatec/defaults';
 
 const InnovatecOfficeMechanic: React.FC = () => {
   const { gameState, office } = useMechanicContext();

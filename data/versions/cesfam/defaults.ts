@@ -215,7 +215,7 @@ export const INITIAL_GAME_STATE: GameState = {
   playerName: '',
   projectTitle: "Gestión Directiva CESFAM: Los Tres Sectores",
   budget: 1000000,
-  day: 1,
+  day: 3,
   timeSlot: 'mañana',
   projectDeadline: 28,
   reputation: 60,

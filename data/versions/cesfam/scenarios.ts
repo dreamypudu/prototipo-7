@@ -199,118 +199,40 @@ export const scenarios: ScenarioFile = {
 
     // --- NEW INEVITABLE EVENTS SCENARIOS ---
     {
-    node_id: "INTRO_S1_SALUDO",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Antes de que corra el reloj, lo guiaré por lo esencial.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Le cuento el contexto de esta semana." } }]
-},
-{
-    node_id: "INTRO_S1_CONTEXTO",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Contexto: los tres jefes de sector quieren verlo hoy. La semana es corta y la reputación del CESFAM depende de cómo combine calidad, normativa y comunidad.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Sobre los horarios..." } }]
-},
-{
-    node_id: "INTRO_S1_HORARIOS",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Horarios y boxes: tenemos pocos box, bloques ajustados y contratos que cumplir. Dejarlo todo rígido genera conflictos; moverlo sin cuidado, también. Revise la Agenda para resolver choques.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Le muestro el mapa." } }]
-},
-{
-    node_id: "INTRO_S1_MAPA",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Mapa: aquí elige a quién visitar y en qué box. Cada visita consume un bloque. Priorice según lo que quiera lograr hoy.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "También correos..." } }]
-},
-{
-    node_id: "INTRO_S1_CORREOS",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Bandeja de entrada: hay correos urgentes. Algunos requieren respuesta y pueden afectar la confianza si los deja pasar.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Y los documentos..." } }]
-},
-{
-    node_id: "INTRO_S1_DOCUMENTOS",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Documentos: revise los antecedentes para entender a cada equipo y tomar mejores decisiones.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Todo está en la pantalla del PC." } }]
-},
-{
-    node_id: "INTRO_S1_PC",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Todo lo opera desde la pantalla del PC: mapa, agenda, correos y documentos. Lo que diga y haga impacta en reputación y en confianza.",
-    options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "¿A quién verá primero?" } }]
-},
-{
-    node_id: "INTRO_S1_ELECCION",
-    stakeholderRole: "Asistente Administrativa",
-
-    stakeholderId: "sofia-castro",
-      dialogue: "Buena suerte. ¿A quién visitará primero? El reloj sigue pausado; arrancará al terminar esta decisión (lunes AM).",
-    options: [
-        {
-            option_id: "A", cardTitle: "Reunirme con el Dr", cardEmoji: "🗂️", text: "Reunirme con el Dr. Guzmán (Azul) para asegurar la calidad técnica primero.", tags: { "focus": "technical" },
-            consequences: { 
-              trustChange: 5, dialogueResponse: "Entendido. El Dr. Guzmán valora la deferencia. Le avisaré que usted lo visitará.",
-              expected_actions: [
-                {
-                  mechanic_id: "map",
-                  action_type: "visit_stakeholder",
-                  target_ref: "stakeholder:andres-guzman",
-                  constraints: { day: "Monday", grace_days: 2 },
-                  rule_id: "visit_priority_rule_v1",
-                  effects: { TRUE: { stakeholder: { trust: 2, support: 1 } }, FALSE: { stakeholder: { trust: -2, support: -1 } } }
-                }
-              ]
-            }
-        },
-        {
-            option_id: "B", cardTitle: "La Comunidad Es lo Primero", cardEmoji: "🗂️", text: "La comunidad es lo primero. Quiero ver qué necesita el Sector Amarillo.", tags: { "focus": "social" },
-            consequences: { 
-              trustChange: 5, dialogueResponse: "Bien. El Sr. Ríos estará encantado, aunque le advierto que es... intenso.",
-              expected_actions: [
-                {
-                  mechanic_id: "map",
-                  action_type: "visit_stakeholder",
-                  target_ref: "stakeholder:daniel-rios",
-                  constraints: { day: "Monday", grace_days: 2 },
-                  rule_id: "visit_priority_rule_v1",
-                  effects: { TRUE: { stakeholder: { trust: 2, support: 1 } }, FALSE: { stakeholder: { trust: -2, support: -1 } } }
-                }
-              ]
-            }
-        },
-        {
-            option_id: "C", cardTitle: "Necesito Entender las Normas...", cardEmoji: "🗂️", text: "Necesito entender las normas internas. Hablaré con la Enf. Soto (Rojo).", tags: { "focus": "normative" },
-            consequences: { 
-              trustChange: 5, dialogueResponse: "Prudente decisión. La Enf. Soto aprecia el orden. Le avisaré.",
-              expected_actions: [
-                {
-                  mechanic_id: "map",
-                  action_type: "visit_stakeholder",
-                  target_ref: "stakeholder:marcela-soto",
-                  constraints: { day: "Monday", grace_days: 2 },
-                  rule_id: "visit_priority_rule_v1",
-                  effects: { TRUE: { stakeholder: { trust: 2, support: 1 } }, FALSE: { stakeholder: { trust: -2, support: -1 } } }
-                }
-              ]
-            }
-        }
-    ]
-},
+      node_id: "INTRO_S1_SALUDO",
+      stakeholderRole: "Asistente Administrativa",
+      stakeholderId: "sofia-castro",
+      dialogue: "Este es su primer día de trabajo, ¡Qué emoción!.  Primero, necesito ponerlo al día antes de que tome el control del CESFAM.",
+      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Primero, el panorama general." } }]
+    },
+    {
+      node_id: "INTRO_S1_EQUIPOS",
+      stakeholderRole: "Asistente Administrativa",
+      stakeholderId: "sofia-castro",
+      dialogue: "Hoy el CESFAM está organizado en tres sectores: Azul, Rojo y Amarillo. Cada uno tiene su jefe de sector y su propio equipo clínico. Ya prepararon propuestas de planificación para terminar esta semana sin desordenar la próxima.",
+      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "El problema es que planificar aquí nunca es simple." } }]
+    },
+    {
+      node_id: "INTRO_S1_PLANIFICACION",
+      stakeholderRole: "Asistente Administrativa",
+      stakeholderId: "sofia-castro",
+      dialogue: "Para este viernes debe quedar lista la planificación que usaremos el lunes. El problema es siempre el mismo: faltan box para cubrir las consultas, hay horas administrativas y clínicas que respetar por contrato, además de capacitación y salidas a terreno que se van turnando con el uso de los box.",
+      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Los jefes ya adelantaron parte del trabajo." } }]
+    },
+    {
+      node_id: "INTRO_S1_REVISION",
+      stakeholderRole: "Asistente Administrativa",
+      stakeholderId: "sofia-castro",
+      dialogue: "Lo que usted debe hacer ahora es revisar las planificaciones que trajeron los jefes de sector y detectar topes, sobrecargas o incumplimientos de horas. Si algo queda mal armado hoy, el lunes lo pagaremos con atraso, reclamos o conflicto interno. Por eso, debe hablar con cada persona dentro del equipo para resolver esto.",
+      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "En cuanto a las mecánicas, el flujo sigue igual." } }]
+    },
+    {
+      node_id: "INTRO_S1_MECANICAS",
+      stakeholderRole: "Asistente Administrativa",
+      stakeholderId: "sofia-castro",
+      dialogue: "Puede acceder al mapa cliqueando en la puerta de la derecha. Los correos y la planificación dentro del pc. También si se pierde, puede usar los tabs de la izquierda. Las visitas consumen bloques, la agenda permite revisar topes y los correos o documentos le dan contexto antes de decidir. Si le parece, haré pasar a los tres jefes para que expongan sus propuestas.",
+      options: [{ option_id: "NEXT", cardTitle: "Continuar", cardEmoji: "➡️", text: "Continuar", tags: {}, consequences: { dialogueResponse: "Haré pasar a las jefaturas ahora mismo." } }]
+    },
     // 2. CRISIS FARMACIA
     {
         node_id: "CRISIS_FARM_S1",
@@ -387,22 +309,71 @@ export const scenarios: ScenarioFile = {
         stakeholderRole: "Jefa Sector Rojo",
 
         stakeholderId: "marcela-soto",
-      dialogue: "Y sin auditoría nos cierran el CESFAM. Es legalidad. Director, usted decide.",
+      dialogue: "Y sin auditoría nos cierran el CESFAM. Es legalidad. Esa es mi propuesta, Director.",
+        options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "" } }]
+    },
+    {
+        node_id: "SCHEDULE_WAR_SOFIA_CHOICE",
+        stakeholderRole: "Asistente Administrativa",
+
+        stakeholderId: "sofia-castro",
+      dialogue: "Ya escuchó a los tres jefes. ¿Con cuál quiere reunirse primero para profundizar y ajustar su planificación?",
         options: [
             {
-                option_id: "A", cardTitle: "Entiendo Sus Puntos", cardEmoji: "🗂️", text: "Entiendo sus puntos. Pasemos al sistema para resolver los conflictos manualmente.", tags: { "action": "open_conflicted_schedule" },
+                option_id: "A", cardTitle: "Ir con Guzmán primero", cardEmoji: "🗂️", text: "Quiero empezar con el Dr. Guzmán. Necesito entender primero la presión técnica y académica del Sector Azul.", tags: { "focus": "technical" },
                 consequences: { 
-                  dialogueResponse: "Bien. Veremos cómo distribuye la miseria.",
+                  trustChange: 5,
+                  dialogueResponse: "Entendido. Avisaré al Dr. Guzmán que será el primero en su agenda.",
                   expected_actions: [
                     {
-                      mechanic_id: "scheduler",
-                      action_type: "execute_week",
-                      target_ref: "global",
-                      constraints: { total_resolved: 3 },
-                      rule_id: "scheduler_war_rule_v1",
+                      mechanic_id: "map",
+                      action_type: "visit_stakeholder",
+                      target_ref: "stakeholder:andres-guzman",
+                      constraints: { day: "Wednesday", grace_days: 2 },
+                      rule_id: "visit_priority_rule_v1",
                       effects: {
-                        TRUE: { global: { reputation: 3 } },
-                        FALSE: { global: { reputation: -4 } }
+                        TRUE: { stakeholder: { trust: 2, support: 1 } },
+                        FALSE: { stakeholder: { trust: -2, support: -1 } }
+                      }
+                    }
+                  ]
+                }
+            },
+            {
+                option_id: "B", cardTitle: "Ir con Ríos primero", cardEmoji: "🗂️", text: "Quiero empezar con Daniel Ríos. Necesito ver primero la presión asistencial y territorial del Sector Amarillo.", tags: { "focus": "social" },
+                consequences: {
+                  trustChange: 5,
+                  dialogueResponse: "Bien. El Sr. Ríos se alegrará de saber que lo verá primero.",
+                  expected_actions: [
+                    {
+                      mechanic_id: "map",
+                      action_type: "visit_stakeholder",
+                      target_ref: "stakeholder:daniel-rios",
+                      constraints: { day: "Wednesday", grace_days: 2 },
+                      rule_id: "visit_priority_rule_v1",
+                      effects: {
+                        TRUE: { stakeholder: { trust: 2, support: 1 } },
+                        FALSE: { stakeholder: { trust: -2, support: -1 } }
+                      }
+                    }
+                  ]
+                }
+            },
+            {
+                option_id: "C", cardTitle: "Ir con Soto primero", cardEmoji: "🗂️", text: "Quiero empezar con la Enf. Soto. Necesito ordenar primero el frente normativo y operativo del Sector Rojo.", tags: { "focus": "normative" },
+                consequences: {
+                  trustChange: 5,
+                  dialogueResponse: "Prudente decisión. Le avisaré a la Enf. Soto que será la primera en pasar.",
+                  expected_actions: [
+                    {
+                      mechanic_id: "map",
+                      action_type: "visit_stakeholder",
+                      target_ref: "stakeholder:marcela-soto",
+                      constraints: { day: "Wednesday", grace_days: 2 },
+                      rule_id: "visit_priority_rule_v1",
+                      effects: {
+                        TRUE: { stakeholder: { trust: 2, support: 1 } },
+                        FALSE: { stakeholder: { trust: -2, support: -1 } }
                       }
                     }
                   ]
@@ -415,28 +386,28 @@ export const scenarios: ScenarioFile = {
     // --- INEVITABLE EVENTS ---
 
     {
-        sequence_id: "SCHEDULE_WAR_SEQ",
-        stakeholderRole: "Jefe Sector Azul",
-
-        stakeholderId: "andres-guzman",
-    initialDialogue: "(Los tres jefes entran a su oficina. El ambiente es tenso).",
-        nodes: ["SCHEDULE_WAR_INTRO", "SCHEDULE_WAR_SOTO", "SCHEDULE_WAR_RIOS", "SCHEDULE_WAR_GUZMAN_RETORT", "SCHEDULE_WAR_SOTO_FINAL"],
-        finalDialogue: "Procederemos a cargar las propuestas en el sistema. Verá alertas rojas donde hay conflictos.",
-        consumesTime: false,
-        triggerMap: { day: 1, slot: 'mañana' }, 
-        isInevitable: true
-    },
-
-    {
         sequence_id: "OFFICE_INTRO_SEQ",
         stakeholderRole: "Asistente Administrativa",
 
         stakeholderId: "sofia-castro",
-    initialDialogue: "Director {playerName}. Soy Sofía Castro, su administrativa de confianza. Lamento no haber podido presentarme antes, la mañana ha sido caótica.",
-        nodes: ["INTRO_S1_SALUDO","INTRO_S1_CONTEXTO","INTRO_S1_HORARIOS","INTRO_S1_MAPA","INTRO_S1_CORREOS","INTRO_S1_DOCUMENTOS","INTRO_S1_PC","INTRO_S1_ELECCION"],
-        finalDialogue: "Excelente. Le dejo instalarse. Recuerde revisar el mapa para visitar a los equipos.",
+    initialDialogue: "Director {playerName}. Soy Sofía Castro, su asistente administrativa. Antes de que el reloj empiece a correr, necesito dejarlo orientado.",
+        nodes: ["INTRO_S1_SALUDO","INTRO_S1_EQUIPOS","INTRO_S1_PLANIFICACION","INTRO_S1_REVISION","INTRO_S1_MECANICAS"],
+        finalDialogue: "Perfecto. Ahora que tiene el contexto, haré pasar a los jefes de sector.",
         consumesTime: false,
-        triggerMap: { day: 1, slot: 'mañana' }, 
+        triggerMap: { day: 3, slot: 'mañana' }, 
+        isInevitable: true
+    },
+
+    {
+        sequence_id: "SCHEDULE_WAR_SEQ",
+        stakeholderRole: "Jefe Sector Azul",
+
+        stakeholderId: "andres-guzman",
+    initialDialogue: "(Los tres jefes entran a su oficina con sus planificaciones semanales. El ambiente es cortés, pero claramente tenso).",
+        nodes: ["SCHEDULE_WAR_INTRO", "SCHEDULE_WAR_SOTO", "SCHEDULE_WAR_RIOS", "SCHEDULE_WAR_GUZMAN_RETORT", "SCHEDULE_WAR_SOTO_FINAL", "SCHEDULE_WAR_SOFIA_CHOICE"],
+        finalDialogue: "Muy bien. Ya quedó marcada su prioridad inicial. El reloj seguirá corriendo en cuanto retome el control.",
+        consumesTime: false,
+        triggerMap: { day: 3, slot: 'mañana' }, 
         isInevitable: true
     },
 
@@ -448,7 +419,7 @@ export const scenarios: ScenarioFile = {
     initialDialogue: "Director, disculpe la interrupción abrupta, pero tenemos una situación crítica en Farmacia.",
         nodes: ["CRISIS_FARM_S1"],
         finalDialogue: "Procederé con su instrucción inmediatamente.",
-        triggerMap: { day: 4, slot: 'tarde' }, 
+        triggerMap: { day: 6, slot: 'tarde' }, 
         isInevitable: true
     },
     {
@@ -459,7 +430,7 @@ export const scenarios: ScenarioFile = {
     initialDialogue: "Director, no mire ahora, pero acaba de entrar una comitiva del Ministerio. Es una auditoría sorpresa.",
         nodes: ["INSPECCION_MIN_S1"],
         finalDialogue: "Bien, actuaré rápido para salvar la evaluación del CESFAM.",
-        triggerMap: { day: 3, slot: 'tarde' }, 
+        triggerMap: { day: 5, slot: 'tarde' }, 
         isInevitable: true
     },
 
