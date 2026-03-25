@@ -37,6 +37,7 @@ export const compareExpectedVsActual = (
 
   expectedActions.forEach((expected) => {
     if (compared.has(expected.expected_action_id)) return;
+    if (expected.action_type === 'execute_week') return;
 
     const matches = canonicalActions.filter(
       (action) =>

@@ -34,8 +34,10 @@ const DAY_INDEX_BY_LABEL: Record<string, number> = {
   friday: 4,
 };
 
-const SLOT_ORDER: Record<TimeSlotType, number> = {
+const SLOT_ORDER: Record<string, number> = {
   mañana: 0,
+  'ma?ana': 0,
+  'ma??ana': 0,
   tarde: 1,
   noche: 2,
 };
@@ -103,6 +105,28 @@ export const evaluateConditionGroup = (state: GameState, group?: ConditionGroup)
         }).length;
         return count >= minCount;
       }
+      case 'promise_outcome': {
+        const minCount = condition.minCount ?? 1;
+        const matchingExpectedIds = new Set(
+          state.expectedActions
+            .filter((expected) => {
+              if (condition.sourceNodeId && expected.source?.node_id !== condition.sourceNodeId) return false;
+              if (condition.sourceOptionId && expected.source?.option_id !== condition.sourceOptionId) return false;
+              if (condition.ruleId && expected.rule_id !== condition.ruleId) return false;
+              if (condition.actionType && expected.action_type !== condition.actionType) return false;
+              if (condition.targetRefIncludes && !String(expected.target_ref).includes(condition.targetRefIncludes)) return false;
+              if (condition.stakeholderId && expected.stakeholder_id !== condition.stakeholderId) return false;
+              return true;
+            })
+            .map((expected) => expected.expected_action_id)
+        );
+        if (matchingExpectedIds.size === 0) return false;
+        const allowedOutcomes = new Set(condition.outcomeIn ?? ['DONE_OK', 'NOT_DONE', 'DEVIATION']);
+        const count = state.comparisons.filter((comparison) =>
+          matchingExpectedIds.has(comparison.expected_action_id) && allowedOutcomes.has(comparison.outcome)
+        ).length;
+        return count >= minCount;
+      }
       default:
         return false;
     }
@@ -151,9 +175,19 @@ const normalizeTimeWindowBlock = (value: unknown): 'AM' | 'PM' | null => {
 };
 
 const normalizeSlotBlock = (value: unknown): 'AM' | 'PM' | null => {
-  if (value === 'mañana') return 'AM';
-  if (value === 'tarde') return 'PM';
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'mañana' || normalized === 'ma?ana' || normalized === 'ma??ana') return 'AM';
+    if (normalized === 'tarde') return 'PM';
+  }
   return normalizeTimeWindowBlock(value);
+};
+
+const sameDayLabel = (left: unknown, right: unknown) => {
+  const leftIndex = normalizeDayIndex(left);
+  const rightIndex = normalizeDayIndex(right);
+  if (leftIndex !== null && rightIndex !== null) return leftIndex === rightIndex;
+  return String(left ?? '') === String(right ?? '');
 };
 
 const pickBestMatch = (expected: ExpectedAction, matches: CanonicalAction[]): CanonicalAction | null => {
@@ -175,7 +209,7 @@ const resolveWeekdayTargetDay = (expected: ExpectedAction): number | null => {
   if (createdDayIndex === null) return null;
   const currentWeekStart = expected.created_day - createdDayIndex;
   const sameWeekTargetDay = currentWeekStart + expectedDayIndex;
-  return sameWeekTargetDay < expected.created_day ? expected.created_day : sameWeekTargetDay;
+  return sameWeekTargetDay < expected.created_day ? sameWeekTargetDay + 5 : sameWeekTargetDay;
 };
 
 const resolveDueDay = (expected: ExpectedAction): number | null => {
@@ -198,7 +232,7 @@ const isExpiredBySchedule = (
   const slotConstraint = normalizeSlotBlock(expected.constraints?.slot ?? expected.constraints?.time_window);
   if (!slotConstraint) return false;
   const dueSlot: TimeSlotType = slotConstraint === 'AM' ? 'mañana' : 'tarde';
-  return SLOT_ORDER[currentTimeSlot] > SLOT_ORDER[dueSlot];
+  return (SLOT_ORDER[currentTimeSlot] ?? 0) > (SLOT_ORDER[dueSlot] ?? 0);
 };
 
 const getWeekSchedule = (action: CanonicalAction): Array<Record<string, any>> => {
@@ -219,7 +253,7 @@ const matchesScheduleConstraints = (
   staffRoster: StaffMember[],
   roomDefinitions: RoomDefinition[]
 ) => {
-  if (constraints.day_name && assignment.day !== constraints.day_name) return false;
+  if (constraints.day_name && !sameDayLabel(assignment.day, constraints.day_name)) return false;
   if (constraints.staff_id && assignment.staff_id !== constraints.staff_id) return false;
   if (constraints.activity && assignment.activity !== constraints.activity) return false;
   if (constraints.room_id && assignment.room_id !== constraints.room_id) return false;
@@ -244,7 +278,7 @@ const matchesScheduleSlot = (
   assignment: Record<string, any>,
   constraints: Record<string, any>
 ) => {
-  if (constraints.day_name && assignment.day !== constraints.day_name) return false;
+  if (constraints.day_name && !sameDayLabel(assignment.day, constraints.day_name)) return false;
   if (constraints.room_id && assignment.room_id !== constraints.room_id) return false;
 
   const timeWindowBlock = normalizeTimeWindowBlock(constraints.time_window);
@@ -252,6 +286,9 @@ const matchesScheduleSlot = (
 
   return true;
 };
+
+const isBoxRoomId = (roomId: unknown) =>
+  typeof roomId === 'string' && roomId.startsWith('BOX_');
 
 const evaluateExecuteWeekMatch = (
   expected: ExpectedAction,
@@ -273,6 +310,19 @@ const evaluateExecuteWeekMatch = (
     return slotAssignments.every((assignment) =>
       matchesScheduleConstraints(assignment, constraints, staffRoster, roomDefinitions)
     );
+  }
+
+  if (expected.rule_id === 'keep_staff_in_sector_rule_v1') {
+    const timeWindowBlock = normalizeTimeWindowBlock(constraints.time_window);
+    const staffAssignments = weekSchedule.filter((assignment) => {
+      if (constraints.day_name && !sameDayLabel(assignment.day, constraints.day_name)) return false;
+      if (constraints.staff_id && assignment.staff_id !== constraints.staff_id) return false;
+      if (timeWindowBlock && assignment.block !== timeWindowBlock) return false;
+      return true;
+    });
+
+    if (staffAssignments.length === 0) return false;
+    return staffAssignments.some((assignment) => isBoxRoomId(assignment.room_id));
   }
 
   const matchingAssignments = weekSchedule.filter((assignment) =>

@@ -156,7 +156,7 @@ const getDefaultRoom = (staff: StaffMember): string => {
 };
 
 // Helper to generate default Clinical schedule
-const generateDefaultSchedule = (): ScheduleAssignment[] => {
+export const buildDefaultWeeklySchedule = (): ScheduleAssignment[] => {
     const assignments: ScheduleAssignment[] = [];
     INITIAL_STAFF.forEach(staff => {
         const defaultRoom = getDefaultRoom(staff);
@@ -178,19 +178,17 @@ const generateDefaultSchedule = (): ScheduleAssignment[] => {
                     activity = 'ADMIN'; // Investigacion
                     roomId = 'OFICINA_TECNICA';
                 }
-                if (day === 'Lunes' && block === 'AM') {
-                    if (staff.id === 'andres-guzman') {
-                        activity = 'CLINICAL';
-                        roomId = 'BOX_5';
-                    }
+                if (day === 'Lunes' && block === 'AM' && staff.id === 'javier-castro') {
+                    activity = 'TERRAIN';
+                    roomId = 'TERRENO';
                 }
                 if (day === 'Miércoles' && block === 'PM' && staff.id === 'marcela-soto') {
                     activity = 'CLINICAL';
                     roomId = 'BOX_6';
                 }
-                if (day === 'Viernes' && block === 'AM' && staff.id === 'paz-herrera') {
+                if (day === 'Viernes' && block === 'AM' && staff.id === 'andres-guzman') {
                     activity = 'CLINICAL';
-                    roomId = 'BOX_3';
+                    roomId = 'BOX_5';
                 }
 
                 assignments.push({
@@ -344,7 +342,7 @@ export const INITIAL_GAME_STATE: GameState = {
   projectProgress: 0,
   stakeholders: CESFAM_STAKEHOLDERS,
   staffRoster: INITIAL_STAFF,
-  weeklySchedule: generateDefaultSchedule(),
+  weeklySchedule: buildDefaultWeeklySchedule(),
   calendar: [],
   eventsLog: [],
   history: {},

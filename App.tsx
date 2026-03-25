@@ -1,6 +1,6 @@
 ﻿
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { ActionEffectsPreview, ConversationMode, GameState, GlobalEffectsUI, InternalEffectsPreview, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from './types';
+import { ActionEffectsPreview, ConversationMode, DailyResolution, GameState, GlobalEffectsUI, InternalEffectsPreview, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from './types';
 import { SIMULATOR_CONFIGS } from './data/simulatorConfigs';
 import { getVersionContentPack, type VersionContentPack } from './data/versions';
 import { startLogging, finalizeLogging } from './services/Timelogger';
@@ -10,9 +10,11 @@ import { MechanicProvider } from './mechanics/MechanicContext';
 import { MechanicDispatchAction, OfficeState } from './mechanics/types';
 import { buildSessionExport } from './services/sessionExport';
 import { useMechanicLogSync } from './hooks/useMechanicLogSync';
+import { compareExpectedVsActual } from './services/ComparisonEngine';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
 import { isFrontendComparisonMode } from './services/comparisonMode';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from './services/developerAccess';
+import { appendTimeBlockEmails } from './services/emailTriggers';
 import { resolveDayEffectsLocally, resolutionHasChanges } from './services/localDayResolution';
 import { applyDailyResolutionToState } from './services/dailyResolutionState';
 import {
@@ -33,8 +35,16 @@ import {
   resolveStakeholderByRef,
   sequenceBelongsToStakeholder,
 } from './services/stakeholderResolver';
+import {
+  canEditCesfamSchedule,
+  getCesfamScheduleExecuteDisabledReason,
+  getCesfamWeekInfo,
+  wasCesfamScheduleSubmittedThisWeek,
+} from './services/cesfamScheduleTiming';
+import { buildDefaultWeeklySchedule } from './data/versions/cesfam/defaults';
 
 import Header from './components/Header';
+import DayReviewScreen from './components/DayReviewScreen';
 import EndGameScreen from './components/EndGameScreen';
 import WarningPopup from './components/WarningPopup';
 import Sidebar from './components/Sidebar';
@@ -47,9 +57,19 @@ import SplashScreen from './components/SplashScreen';
 import type { DailyEffectSummary } from './types';
 import { useCaseTracker } from './hooks/useCaseTracker';
 import { useCommitmentsTracker } from './hooks/useCommitmentsTracker';
+import { buildCesfamDayReviewData, type CesfamDayReviewData } from './services/dayReview';
+import { evaluateConditionGroup } from './services/commitments';
 
 type ActiveTab = string;
 type AppStep = 'version_selection' | 'splash' | 'game';
+
+interface PendingDayReviewState {
+  nextState: GameState;
+  summary: DailyEffectSummary | null;
+  resolution: DailyResolution | null;
+  reviewData: CesfamDayReviewData;
+  deferredEmailIds: string[];
+}
 
 const PERIOD_DURATION = 90;
 const API_BASE_URL =
@@ -161,6 +181,12 @@ const appendCaseEventEmails = (
   };
 };
 
+const getSequenceCompletionEmailIds = (sequenceId?: string): string[] => {
+  if (sequenceId === CASE1_INTRO_SEQUENCE_ID) return ['case1-docs-ready'];
+  if (sequenceId === CASE1_FRIDAY_REMINDER_SEQUENCE_ID) return ['case1-friday-reminder'];
+  return [];
+};
+
 const resolveMechanics = (config: SimulatorConfig | null): ResolvedMechanicConfig[] => {
   if (!config) return [];
   return config.mechanics.flatMap((mechanic) => {
@@ -212,6 +238,8 @@ export default function App(): React.ReactElement {
   const [questionsBaseDialogue, setQuestionsBaseDialogue] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
+  const [pendingDayReview, setPendingDayReview] = useState<PendingDayReviewState | null>(null);
+  const [isPreparingDayReview, setIsPreparingDayReview] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showLogPanel, setShowLogPanel] = useState(false);
   const [isLeftRailExpanded, setIsLeftRailExpanded] = useState(false);
@@ -231,6 +259,7 @@ export default function App(): React.ReactElement {
   });
   const audioUnlocked = useRef(false);
   const timeSlots = contentPack.defaults.timeSlots;
+  const morningSlot = (timeSlots[0] ?? 'mañana') as TimeSlotType;
   const roomDefinitions = contentPack.defaults.roomDefinitions ?? [];
   const directorObjectives = contentPack.defaults.directorObjectives;
   const secretaryRole = contentPack.defaults.secretaryRole;
@@ -257,14 +286,50 @@ export default function App(): React.ReactElement {
     () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
     [enabledMechanics]
   );
-  const effectiveTimerPaused = isTimerPaused || isDialogueTyping;
+  const effectiveTimerPaused = isTimerPaused || isDialogueTyping || isPreparingDayReview || Boolean(pendingDayReview);
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
+  const mergeMechanicFlushIntoState = useCallback((baseState: GameState): GameState => {
+    const flushed = mechanicEngine.flush();
+    if (!flushed.events.length && !flushed.canonical.length && !flushed.expected.length) {
+      return baseState;
+    }
+
+    const nextExpected = [...baseState.expectedActions, ...flushed.expected];
+    const nextCanonical = [...baseState.canonicalActions, ...flushed.canonical];
+
+    return {
+      ...baseState,
+      mechanicEvents: [...baseState.mechanicEvents, ...flushed.events],
+      canonicalActions: nextCanonical,
+      expectedActions: nextExpected,
+      comparisons: isFrontendComparisonMode
+        ? baseState.comparisons
+        : [
+            ...baseState.comparisons,
+            ...compareExpectedVsActual(
+              nextExpected,
+              nextCanonical,
+              baseState.comparisons,
+              { includeNotDone: false }
+            ),
+          ],
+    };
+  }, []);
   const stageTabs = [
     { id: 'stage_1', label: 'Etapa 1: Inicio', status: 'active' as const },
     { id: 'stage_2', label: 'Etapa 2: Progreso', status: 'upcoming' as const },
     { id: 'stage_3', label: 'Etapa 3: Cierre', status: 'upcoming' as const }
   ];
+  const mechanicIconByTab: Record<string, string> = {
+    interaction: '🏢',
+    map: '🗺️',
+    schedule: '📅',
+    emails: '✉️',
+    documents: '📁',
+    calendar: '📆',
+    data_export: '📤',
+  };
 
   useEffect(() => {
     if (appStep !== 'game') return;
@@ -387,6 +452,16 @@ export default function App(): React.ReactElement {
     });
   }, [markCaseUpdatesSeen, markCommitmentsSeen]);
 
+  const handleLeftRailEnter = useCallback(() => {
+    setIsLeftRailExpanded(true);
+    setIsObjectivesOpen(false);
+  }, []);
+
+  const handleLeftRailLeave = useCallback(() => {
+    setIsLeftRailExpanded(false);
+    setIsObjectivesOpen(false);
+  }, []);
+
   useEffect(() => {
     if (isObjectivesOpen && hasUnseenObjectiveUpdates) {
       markCaseUpdatesSeen();
@@ -413,12 +488,19 @@ export default function App(): React.ReactElement {
     return actions;
   };
 
-  const buildPostSequenceActions = (stakeholder: Stakeholder): PlayerAction[] => {
+  const buildPostSequenceActions = (
+    stakeholder: Stakeholder,
+    options?: { concludeLabel?: string; concludeCost?: string }
+  ): PlayerAction[] => {
     const actions: PlayerAction[] = [];
     if (hasQuestionsFor(stakeholder)) {
       actions.push({ label: 'Hacer preguntas', cost: 'Opcional', action: 'ask_questions', uiVariant: 'success' });
     }
-    actions.push({ label: 'Concluir Reunion', cost: 'Finalizar', action: 'conclude_meeting' });
+    actions.push({
+      label: options?.concludeLabel ?? 'Concluir Reunion',
+      cost: options?.concludeCost ?? 'Finalizar',
+      action: 'conclude_meeting'
+    });
     return actions;
   };
 
@@ -507,7 +589,15 @@ export default function App(): React.ReactElement {
   );
 
   const shouldTriggerContingentSequence = (sequence: MeetingSequence, state: GameState) => {
-    if (!sequence.isContingent || !sequence.contingentRules) return false;
+    if (!sequence.isContingent) return false;
+    if (sequence.contingentConditions && !evaluateConditionGroup(state, sequence.contingentConditions)) {
+      return false;
+    }
+
+    if (!sequence.contingentRules) {
+      return Boolean(sequence.contingentConditions);
+    }
+
     const rules = sequence.contingentRules;
 
     if (typeof rules.budgetBelow === 'number' && state.budget >= rules.budgetBelow) {
@@ -609,6 +699,7 @@ export default function App(): React.ReactElement {
   }, [gameState, gameStatus, appStep, directorObjectives]);
 
   useEffect(() => {
+    if (pendingDayReview || isPreparingDayReview) return;
     if (appStep !== 'game' || gameStatus !== 'playing' || currentMeeting) return;
 
     const inevitableSeq = scenarioData.sequences.find(seq =>
@@ -636,7 +727,7 @@ export default function App(): React.ReactElement {
     } else {
       console.error(`[Content] Sequence ${sequenceToStart.sequence_id} references unknown stakeholderId="${sequenceToStart.stakeholderId}"`);
     }
-  }, [gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData, isSequenceWindowOpen]);
+  }, [pendingDayReview, isPreparingDayReview, gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData, isSequenceWindowOpen]);
 
   const advanceTime = useCallback((currentState: GameState): GameState => {
     let nextSlotIndex = timeSlots.indexOf(currentState.timeSlot) + 1;
@@ -655,6 +746,18 @@ export default function App(): React.ReactElement {
 
     let newState = { ...currentState, day: nextDay, timeSlot: nextSlot, history: { ...currentState.history, ...historyUpdate } };
 
+    if (
+      selectedVersion === 'CESFAM' &&
+      nextDay > currentState.day &&
+      getCesfamWeekInfo(nextDay).dayIndex === 0
+    ) {
+      newState = {
+        ...newState,
+        weeklySchedule: buildDefaultWeeklySchedule(),
+        eventsLog: [...newState.eventsLog, 'Se reinició la planificación para la nueva semana.'],
+      };
+    }
+
     if (nextDay > currentState.day) {
       newEvents.push(`Ha comenzado el día ${nextDay}.`);
       newState.stakeholders = newState.stakeholders.map(sh => {
@@ -669,7 +772,7 @@ export default function App(): React.ReactElement {
     }
     newState.eventsLog = [...newState.eventsLog, ...newEvents];
     return newState;
-  }, []);
+  }, [selectedVersion]);
 
   const applyLocalDailyResolution = useCallback(
     (baseState: GameState, completedDay: number) => {
@@ -682,6 +785,88 @@ export default function App(): React.ReactElement {
       return { nextState, resolution };
     },
     [roomDefinitions]
+  );
+
+  const resolveCompletedDayTransition = useCallback(
+    async (completedDay: number, snapshot: GameState) => {
+      if (isFrontendComparisonMode) {
+        const localResult = applyLocalDailyResolution(snapshot, completedDay);
+        const summary = localResult.resolution
+          ? summarizeDeltas(
+              completedDay,
+              localResult.resolution.global_deltas,
+              localResult.resolution.stakeholder_deltas
+            )
+          : null;
+
+        return {
+          nextState: localResult.nextState,
+          resolution: localResult.resolution,
+          summary,
+        };
+      }
+
+      try {
+        const exportPayload = buildSessionExport({
+          gameState: snapshot,
+          config,
+          sessionId: sessionIdRef.current,
+          startedAt: sessionStartRef.current ?? Date.now(),
+          endedAt: Date.now(),
+          roomDefinitions,
+        });
+
+        const firstResp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(exportPayload),
+        });
+
+        if (!firstResp.ok) {
+          return { nextState: snapshot, resolution: null, summary: null };
+        }
+
+        const resp = await fetch(
+          `${API_BASE_URL.replace(/\/$/, '')}/sessions/${exportPayload.session_metadata.session_id}/resolve_day_effects?day=${completedDay}`,
+          { method: 'POST' }
+        );
+
+        if (!resp.ok) {
+          return { nextState: snapshot, resolution: null, summary: null };
+        }
+
+        const data = await resp.json();
+        const resolution: DailyResolution = {
+          day: completedDay,
+          comparisons: data.comparisons || [],
+          global_deltas: data.global_deltas || {},
+          stakeholder_deltas: data.stakeholder_deltas || {},
+          resolved_expected_action_ids: (data.comparisons || [])
+            .map((comparison: any) => comparison.expected_action_id)
+            .filter(Boolean),
+          status: data.cached ? 'cached' : 'applied',
+          created_at: new Date().toISOString(),
+        };
+
+        const nextState = applyDailyResolutionToState(snapshot, resolution);
+        const summary = summarizeDeltas(
+          completedDay,
+          resolution.global_deltas,
+          resolution.stakeholder_deltas
+        );
+
+        return { nextState, resolution, summary };
+      } catch (err: any) {
+        console.error('[Backend] resolveCompletedDayTransition error:', {
+          error: err?.message || String(err),
+          apiUrl: API_BASE_URL,
+          type: err?.name,
+        });
+        showToast(`Error de conexión: ${err?.message || 'No se pudo conectar al servidor'}`);
+        return { nextState: snapshot, resolution: null, summary: null };
+      }
+    },
+    [applyLocalDailyResolution, config, roomDefinitions, showToast]
   );
 
   const advanceToCase1Monday = useCallback((
@@ -704,18 +889,28 @@ export default function App(): React.ReactElement {
     let nextState: GameState = {
       ...stateAfterMeetingEnd,
       day: CASE1_NEXT_MONDAY_DAY,
-      timeSlot: 'maÃ±ana',
+      timeSlot: morningSlot,
+      weeklySchedule: buildDefaultWeeklySchedule(),
       history: { ...stateAfterMeetingEnd.history, [gameState.day]: stateAfterMeetingEnd.stakeholders },
-      eventsLog: [...stateAfterMeetingEnd.eventsLog, 'Borrador semanal enviado. Comienza el lunes siguiente.'],
+      eventsLog: [
+        ...stateAfterMeetingEnd.eventsLog,
+        'Borrador semanal enviado. Comienza el lunes siguiente.',
+        'Se reinici? la planificaci?n para la nueva semana.',
+      ],
     };
     if (isFrontendComparisonMode) {
       const localResult = applyLocalDailyResolution(stateAfterMeetingEnd, stateAfterMeetingEnd.day);
       nextState = {
         ...localResult.nextState,
         day: CASE1_NEXT_MONDAY_DAY,
-        timeSlot: 'maÃ±ana',
+        timeSlot: morningSlot,
+        weeklySchedule: buildDefaultWeeklySchedule(),
         history: { ...localResult.nextState.history, [gameState.day]: localResult.nextState.stakeholders },
-        eventsLog: [...localResult.nextState.eventsLog, 'Borrador semanal enviado. Comienza el lunes siguiente.'],
+        eventsLog: [
+          ...localResult.nextState.eventsLog,
+          'Borrador semanal enviado. Comienza el lunes siguiente.',
+          'Se reinici? la planificaci?n para la nueva semana.',
+        ],
       };
       if (localResult.resolution) {
         setDailySummary(
@@ -742,7 +937,7 @@ export default function App(): React.ReactElement {
     setIsTimerPaused(false);
     pendingCase1EndingRef.current = null;
     syncLogs();
-  }, [gameState, characterInFocus, secretaryRole, emailTemplates, registerSequenceCompleted, syncLogs, applyLocalDailyResolution]);
+  }, [gameState, characterInFocus, secretaryRole, emailTemplates, registerSequenceCompleted, syncLogs, applyLocalDailyResolution, morningSlot]);
 
   const syncDayWithBackend = useCallback(
     async (completedDay: number, snapshot: GameState) => {
@@ -870,7 +1065,9 @@ export default function App(): React.ReactElement {
         sh.name === characterInFocus.name ? { ...sh, lastMetDay: gameState.day } : sh
       );
     }
+    stateAfterMeetingEnd = mergeMechanicFlushIntoState(stateAfterMeetingEnd);
     const skipTimeAdvance = Boolean(options?.skipTimeAdvance);
+    const deferredEmailIds = getSequenceCompletionEmailIds(justCompletedSequenceId);
     const shouldBlockFridayClose =
       selectedVersion === 'CESFAM' &&
       !skipTimeAdvance &&
@@ -880,13 +1077,7 @@ export default function App(): React.ReactElement {
       stateAfterMeetingEnd.lastScheduleSubmissionDay !== CASE1_FRIDAY_DAY;
 
     if (shouldBlockFridayClose) {
-      let blockedState = stateAfterMeetingEnd;
-      if (justCompletedSequenceId === CASE1_INTRO_SEQUENCE_ID) {
-        blockedState = appendCaseEventEmails(blockedState, emailTemplates, ['case1-docs-ready'], blockedState.day);
-      }
-      if (justCompletedSequenceId === CASE1_FRIDAY_REMINDER_SEQUENCE_ID) {
-        blockedState = appendCaseEventEmails(blockedState, emailTemplates, ['case1-friday-reminder'], blockedState.day);
-      }
+      const blockedState = appendCaseEventEmails(stateAfterMeetingEnd, emailTemplates, deferredEmailIds, stateAfterMeetingEnd.day);
       registerSequenceCompleted(justCompletedSequenceId);
       setGameState(blockedState);
       setCharacterInFocus(null);
@@ -902,7 +1093,7 @@ export default function App(): React.ReactElement {
       selectedVersion === 'CESFAM' &&
       justCompletedSequenceId === 'SCHEDULE_WAR_SEQ' &&
       stateAfterMeetingEnd.day === 3 &&
-      stateAfterMeetingEnd.timeSlot === 'maÃ±ana';
+      stateAfterMeetingEnd.timeSlot === morningSlot;
 
     let newState = skipTimeAdvance
       ? stateAfterMeetingEnd
@@ -915,13 +1106,51 @@ export default function App(): React.ReactElement {
             eventsLog: [...stateAfterMeetingEnd.eventsLog, 'Ha comenzado el bloque de la tarde del miércoles.'],
           }
         : advanceTime(stateAfterMeetingEnd);
-    if (justCompletedSequenceId === CASE1_INTRO_SEQUENCE_ID) {
-      newState = appendCaseEventEmails(newState, emailTemplates, ['case1-docs-ready'], newState.day);
-    }
-    if (justCompletedSequenceId === CASE1_FRIDAY_REMINDER_SEQUENCE_ID) {
-      newState = appendCaseEventEmails(newState, emailTemplates, ['case1-friday-reminder'], newState.day);
-    }
     const completedDay = !skipTimeAdvance ? ((newState as any).__completedDay as number | null) : null;
+    const shouldOpenCesfamDayReview =
+      selectedVersion === 'CESFAM' &&
+      completedDay !== null &&
+      completedDay >= 3 &&
+      completedDay < CASE1_FRIDAY_DAY;
+
+    registerSequenceCompleted(justCompletedSequenceId);
+
+    if (shouldOpenCesfamDayReview) {
+      const snapshot = { ...newState };
+      delete (snapshot as any).__completedDay;
+
+      setCurrentMeeting(null);
+      setConversationMode('idle');
+      setQuestionsOrigin(null);
+      setQuestionsBaseDialogue('');
+      setCharacterInFocus(null);
+      setIsSidebarOpen(false);
+      setIsHelpOpen(false);
+      setIsTimerPaused(true);
+      setCountdown(PERIOD_DURATION);
+      setIsPreparingDayReview(true);
+
+      void (async () => {
+        const resolved = await resolveCompletedDayTransition(completedDay, snapshot);
+        const reviewData = buildCesfamDayReviewData(
+          resolved.nextState,
+          completedDay,
+          resolved.nextState.day,
+          resolved.resolution
+        );
+
+        setPendingDayReview({
+          nextState: resolved.nextState,
+          summary: resolved.summary,
+          resolution: resolved.resolution,
+          reviewData,
+          deferredEmailIds,
+        });
+        setIsPreparingDayReview(false);
+      })();
+      return;
+    }
+
     if (isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
       const snapshot = { ...newState };
       delete (snapshot as any).__completedDay;
@@ -939,8 +1168,8 @@ export default function App(): React.ReactElement {
         setDailySummary(null);
       }
     }
-    registerSequenceCompleted(justCompletedSequenceId);
     delete (newState as any).__completedDay;
+    newState = appendCaseEventEmails(newState, emailTemplates, deferredEmailIds, newState.day);
     setGameState(newState);
     if (!skipTimeAdvance) {
       if (!isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
@@ -957,7 +1186,7 @@ export default function App(): React.ReactElement {
     }
     setCharacterInFocus(null);
     syncLogs();
-  }, [gameState, characterInFocus, advanceTime, secretaryRole, registerSequenceCompleted, syncLogs, selectedVersion, emailTemplates]);
+  }, [gameState, characterInFocus, advanceTime, secretaryRole, registerSequenceCompleted, syncLogs, selectedVersion, emailTemplates, mergeMechanicFlushIntoState, resolveCompletedDayTransition, morningSlot]);
 
   useEffect(() => {
     if (effectiveTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
@@ -992,6 +1221,11 @@ export default function App(): React.ReactElement {
       return newEmails.length > 0 ? { ...prev, inbox: [...prev.inbox, ...newEmails] } : prev;
     });
   }, [appStep, emailTemplates]);
+
+  useEffect(() => {
+    if (appStep !== 'game' || pendingDayReview || isPreparingDayReview) return;
+    setGameState((prev) => appendTimeBlockEmails(prev, emailTemplates, prev.day, prev.timeSlot));
+  }, [appStep, pendingDayReview, isPreparingDayReview, gameState.day, gameState.timeSlot, emailTemplates]);
 
   const handleUpdateSchedule = (newSchedule: ScheduleAssignment[]) => {
     setGameState(prev => ({ ...prev, weeklySchedule: newSchedule }));
@@ -1109,42 +1343,54 @@ export default function App(): React.ReactElement {
       syncLogs();
 
       if (selectedVersion === 'CESFAM') {
-          if (gameState.day < CASE1_FRIDAY_DAY) {
-              setWarningPopupMessage('El borrador semanal solo puede enviarse el viernes.');
+          const executeDisabledReason = getCesfamScheduleExecuteDisabledReason(
+            gameState.day,
+            gameState.lastScheduleSubmissionDay
+          );
+
+          if (executeDisabledReason) {
+              setWarningPopupMessage(executeDisabledReason);
               setActiveTab('schedule');
               return;
           }
 
-          if (gameState.lastScheduleSubmissionDay === CASE1_FRIDAY_DAY) {
-              setWarningPopupMessage('El borrador de esta semana ya fue enviado.');
-              setActiveTab('schedule');
+          const { week } = getCesfamWeekInfo(gameState.day);
+
+          if (week === 1) {
+              const outcome = resolveCase1SubmissionOutcome(gameState, roomDefinitions);
+              pendingCase1EndingRef.current = {
+                  sequenceId: outcome.sequenceId,
+                  emailIds: outcome.emailIds,
+              };
+
+              setGameState(prev => ({
+                  ...prev,
+                  lastScheduleSubmissionDay: prev.day,
+                  eventsLog: [...prev.eventsLog, `Borrador semanal enviado en el dia ${prev.day}.`],
+              }));
+
+              const endingSequence = scenarioData.sequences.find(seq => seq.sequence_id === outcome.sequenceId);
+              const stakeholder = gameState.stakeholders.find(entry => entry.id === 'sofia-castro');
+
+              if (endingSequence && stakeholder) {
+                  startSequence(endingSequence, stakeholder, {
+                      pauseTimer: true,
+                      actionLabel: 'Revisar cierre del caso',
+                      actionCost: 'Cierre',
+                  });
+              }
+
+              setWarningPopupMessage('Borrador semanal enviado.');
+              setActiveTab('interaction');
               return;
           }
-
-          const outcome = resolveCase1SubmissionOutcome(gameState, roomDefinitions);
-          pendingCase1EndingRef.current = {
-              sequenceId: outcome.sequenceId,
-              emailIds: outcome.emailIds,
-          };
 
           setGameState(prev => ({
               ...prev,
               lastScheduleSubmissionDay: prev.day,
-              eventsLog: [...prev.eventsLog, `Borrador semanal enviado en el dia ${prev.day}.`],
+              eventsLog: [...prev.eventsLog, `Planificaci?n semanal enviada en el dia ${prev.day}.`],
           }));
-
-          const endingSequence = scenarioData.sequences.find(seq => seq.sequence_id === outcome.sequenceId);
-          const stakeholder = gameState.stakeholders.find(entry => entry.id === 'sofia-castro');
-
-          if (endingSequence && stakeholder) {
-              startSequence(endingSequence, stakeholder, {
-                  pauseTimer: true,
-                  actionLabel: 'Revisar cierre del caso',
-                  actionCost: 'Cierre',
-              });
-          }
-
-          setWarningPopupMessage('Borrador semanal enviado.');
+          setWarningPopupMessage('Planificaci?n semanal enviada.');
           setActiveTab('interaction');
           return;
       }
@@ -1165,7 +1411,7 @@ export default function App(): React.ReactElement {
   };
 
   const handlePlayerAction = async (action: PlayerAction) => {
-    if (gameStatus !== 'playing') return;
+    if (gameStatus !== 'playing' || pendingDayReview || isPreparingDayReview) return;
     if (action.action === 'open_conflicted_schedule') { handleSetupScheduleWar(); return; }
 
     if (action.action === 'ask_questions' && characterInFocus) {
@@ -1250,7 +1496,13 @@ export default function App(): React.ReactElement {
                 if (nextNodeIndex >= sequence.nodes.length) {
                     setPersonalizedDialogue(sequence.finalDialogue);
                     setConversationMode('post_sequence');
-                    setPlayerActions(buildPostSequenceActions(characterInFocus));
+                    const postSequenceActions =
+                      selectedVersion === 'CESFAM' && sequence.sequence_id === 'AGENDA_CRISIS_RESOLUTION_SEQ'
+                        ? [{ label: 'Abrir Planificacion', cost: 'Obligatorio', action: 'conclude_meeting' } satisfies PlayerAction]
+                        : CASE1_ENDING_SEQUENCE_IDS.has(sequence.sequence_id)
+                          ? [{ label: 'Iniciar lunes', cost: 'Cierre', action: 'conclude_meeting' } satisfies PlayerAction]
+                          : buildPostSequenceActions(characterInFocus);
+                    setPlayerActions(postSequenceActions);
                     setIsLoading(false);
                     return;
                 }
@@ -1271,7 +1523,13 @@ export default function App(): React.ReactElement {
             case 'end_meeting_sequence':
                 setPersonalizedDialogue(sequence.finalDialogue);
                 setConversationMode('post_sequence');
-                setPlayerActions(buildPostSequenceActions(characterInFocus));
+                setPlayerActions(
+                  selectedVersion === 'CESFAM' && sequence.sequence_id === 'AGENDA_CRISIS_RESOLUTION_SEQ'
+                    ? [{ label: 'Abrir Planificacion', cost: 'Obligatorio', action: 'conclude_meeting' } satisfies PlayerAction]
+                    : CASE1_ENDING_SEQUENCE_IDS.has(sequence.sequence_id)
+                      ? [{ label: 'Iniciar lunes', cost: 'Cierre', action: 'conclude_meeting' } satisfies PlayerAction]
+                      : buildPostSequenceActions(characterInFocus)
+                );
                 setIsLoading(false);
                 return;
         }
@@ -1279,6 +1537,30 @@ export default function App(): React.ReactElement {
     
     if (action.action === 'conclude_meeting') {
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
+        if (
+          selectedVersion === 'CESFAM' &&
+          justCompletedSequenceId === 'AGENDA_CRISIS_RESOLUTION_SEQ'
+        ) {
+          setGameState(prev => ({
+            ...prev,
+            completedSequences:
+              justCompletedSequenceId && !prev.completedSequences.includes(justCompletedSequenceId)
+                ? [...prev.completedSequences, justCompletedSequenceId]
+                : prev.completedSequences,
+          }));
+          registerSequenceCompleted(justCompletedSequenceId);
+          setCurrentMeeting(null);
+          setConversationMode('idle');
+          setQuestionsOrigin(null);
+          setQuestionsBaseDialogue('');
+          setCharacterInFocus(null);
+          setActiveTab('schedule');
+          setWarningPopupMessage('Debes enviar la planificación antes de cerrar el viernes.');
+          setIsTimerPaused(true);
+          setCountdown(0);
+          setIsLoading(false);
+          return;
+        }
         if (
           justCompletedSequenceId &&
           pendingCase1EndingRef.current &&
@@ -1293,7 +1575,7 @@ export default function App(): React.ReactElement {
         const shouldAdvanceAfterInitialChiefsSequence =
           selectedVersion === 'CESFAM' &&
           gameState.day === 3 &&
-          gameState.timeSlot === 'maÃ±ana' &&
+          gameState.timeSlot === morningSlot &&
           currentMeeting?.sequence?.sequence_id === 'SCHEDULE_WAR_SEQ';
         const skipTimeAdvance = !shouldForceAdvanceBlock && !shouldAdvanceAfterInitialChiefsSequence;
         setCurrentMeeting(null);
@@ -1388,6 +1670,25 @@ export default function App(): React.ReactElement {
   };
 
   const handleManualAdvance = () => { advanceTimeAndUpdateFocus(); };
+  const handleContinueFromDayReview = useCallback(() => {
+    if (!pendingDayReview) return;
+
+    const nextState = appendCaseEventEmails(
+      pendingDayReview.nextState,
+      emailTemplates,
+      pendingDayReview.deferredEmailIds,
+      pendingDayReview.nextState.day
+    );
+
+    setPendingDayReview(null);
+    setGameState(nextState);
+    setDailySummary(pendingDayReview.summary);
+    setActiveTab('interaction');
+    setCountdown(PERIOD_DURATION);
+    setIsTimerPaused(false);
+    syncLogs();
+  }, [pendingDayReview, emailTemplates, syncLogs]);
+
   const handleMarkEmailAsRead = (emailId: string) => {
     setGameState(prev => ({ ...prev, inbox: prev.inbox.map(e => e.email_id === emailId ? { ...e, isRead: true } : e) }));
   };
@@ -1407,6 +1708,8 @@ export default function App(): React.ReactElement {
     setFinalPersistError(null);
     setCurrentMeeting(null);
     setCharacterInFocus(null);
+    setPendingDayReview(null);
+    setIsPreparingDayReview(false);
     setCurrentDialogue('');
     setPlayerActions([]);
     setIsLoading(false);
@@ -1588,6 +1891,58 @@ export default function App(): React.ReactElement {
     return [...ids];
   }, [scenarioData, gameState, isSequenceWindowOpen]);
 
+  const collapsedMechanicIndicators = useMemo(() => {
+    const unreadEmails = gameState.inbox.filter((entry) => !entry.isRead).length;
+    const unreadDocuments = (contentPack.documents ?? []).filter(
+      (document) => !gameState.readDocuments.includes(document.id)
+    ).length;
+
+    return playerVisibleMechanics.map((mechanic) => {
+      let hasUpdate = false;
+      let badgeCount = 0;
+
+      switch (mechanic.tab_id) {
+        case 'emails':
+          hasUpdate = unreadEmails > 0;
+          badgeCount = unreadEmails;
+          break;
+        case 'documents':
+          hasUpdate = unreadDocuments > 0;
+          badgeCount = unreadDocuments;
+          break;
+        case 'map':
+          hasUpdate = availableProactiveStakeholderIds.length > 0;
+          break;
+        case 'schedule':
+          hasUpdate =
+            selectedVersion === 'CESFAM' &&
+            canEditCesfamSchedule(gameState.day) &&
+            !wasCesfamScheduleSubmittedThisWeek(gameState.day, gameState.lastScheduleSubmissionDay);
+          break;
+        default:
+          hasUpdate = false;
+      }
+
+      return {
+        id: mechanic.mechanic_id,
+        tabId: mechanic.tab_id,
+        icon: mechanicIconByTab[mechanic.tab_id] || '•',
+        hasUpdate,
+        badgeCount,
+        isActive: activeTab === mechanic.tab_id,
+      };
+    });
+  }, [
+    activeTab,
+    availableProactiveStakeholderIds,
+    contentPack.documents,
+    gameState.day,
+    gameState.inbox,
+    gameState.lastScheduleSubmissionDay,
+    gameState.readDocuments,
+    playerVisibleMechanics,
+    selectedVersion,
+  ]);
   const mechanicContextValue = {
     gameState,
     engine: mechanicEngine,
@@ -1644,8 +1999,23 @@ export default function App(): React.ReactElement {
          isTimerPaused={isTimerPaused}
          onToggleBitacora={() => setShowLogPanel((prev) => !prev)}
          hasBitacora
-       />
+      />
       {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
+      {isPreparingDayReview && (
+        <div className="fixed inset-0 z-[175] flex items-center justify-center bg-black/75 backdrop-blur-sm">
+          <div className="rounded-2xl border border-blue-950/80 bg-slate-950/95 px-6 py-5 text-center shadow-2xl">
+            <div className="text-xs uppercase tracking-[0.32em] text-blue-200/70">Cierre diario</div>
+            <div className="mt-3 text-lg font-semibold text-white">Preparando resumen del día...</div>
+          </div>
+        </div>
+      )}
+      {pendingDayReview && (
+        <DayReviewScreen
+          data={pendingDayReview.reviewData}
+          resolution={pendingDayReview.resolution}
+          onContinue={handleContinueFromDayReview}
+        />
+      )}
       {gameStatus !== 'playing' && (
         <EndGameScreen
           status={gameStatus}
@@ -1711,19 +2081,40 @@ export default function App(): React.ReactElement {
       
       <div className="mt-4 flex gap-3">
         <div
-          className={`relative flex-shrink-0 overflow-hidden transition-all duration-300 ease-out ${isLeftRailExpanded ? (isObjectivesOpen ? 'w-80' : 'w-52') : 'w-5'}`}
-          onMouseEnter={() => setIsLeftRailExpanded(true)}
-          onMouseLeave={() => setIsLeftRailExpanded(false)}
+          className="relative flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out"
+          style={{ width: `${isLeftRailExpanded ? (isObjectivesOpen ? 320 : 208) : 64}px` }}
+          onMouseEnter={handleLeftRailEnter}
+          onMouseLeave={handleLeftRailLeave}
         >
-          {!isLeftRailExpanded && (
-            <div className="flex h-full min-h-[32rem] w-5 items-center justify-center">
-              <div className="flex h-full min-h-[32rem] w-3 rounded-full border border-white/10 bg-slate-900/85 shadow-[0_12px_24px_rgba(0,0,0,0.28)]">
-                <div className={`mx-auto mt-3 h-8 w-1.5 rounded-full ${hasUnseenObjectiveUpdates ? 'bg-amber-300 shadow-[0_0_14px_rgba(252,211,77,0.75)]' : 'bg-white/25'}`} />
+          <div className="flex h-full min-h-[32rem] flex-col gap-3 pt-3">
+            <button
+              onClick={handleToggleObjectives}
+              className={`group relative flex h-16 items-center overflow-hidden rounded-[1.6rem] border bg-slate-900/85 px-2.5 shadow-[0_12px_24px_rgba(0,0,0,0.28)] transition-all duration-300 ${
+                isLeftRailExpanded ? 'w-full border-blue-950/80' : 'w-16 border-white/10'
+              }`}
+            >
+              <div className={`relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border text-slate-900 transition-all ${hasUnseenObjectiveUpdates ? 'border-amber-200 bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,0.75)]' : 'border-amber-300/70 bg-amber-300/90'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="7"></circle>
+                  <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"></circle>
+                </svg>
+                {objectivesUnseenCount > 0 && (
+                  <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {objectivesUnseenCount}
+                  </span>
+                )}
               </div>
-            </div>
-          )}
-          {isLeftRailExpanded && (
-            <div className="flex flex-col items-start animate-slide-fade">
+              <div
+                className={`flex min-w-0 items-center justify-between whitespace-nowrap transition-all duration-300 ease-out ${
+                  isLeftRailExpanded ? 'ml-3 w-full opacity-100 translate-x-0' : 'ml-0 w-0 opacity-0 translate-x-[-10px]'
+                }`}
+              >
+                <span className="text-[11px] uppercase tracking-[0.24em] text-amber-200/90">Objetivos</span>
+                <span className="pr-1 text-lg text-amber-300">{isObjectivesOpen ? '▾' : '▸'}</span>
+              </div>
+            </button>
+
+            {isLeftRailExpanded && (
               <CaseObjectivesPanel
                 isOpen={isObjectivesOpen}
                 onToggle={handleToggleObjectives}
@@ -1731,27 +2122,69 @@ export default function App(): React.ReactElement {
                 unseenCount={objectivesUnseenCount}
                 activeCase={activeCase}
                 commitments={commitments}
-                className="mb-3"
+                hideHeader
+                className="w-full"
               />
-              <aside className="w-full transition-opacity duration-300 ease-out animate-slide-fade">
-                <nav className="flex flex-col gap-2" aria-label="Tabs">
-                  {playerVisibleMechanics.map((m) => (
+            )}
+
+            <aside className="w-full">
+              <nav className="flex flex-col gap-3" aria-label="Tabs">
+                {playerVisibleMechanics.map((m) => {
+                  const indicator = collapsedMechanicIndicators.find((item) => item.tabId === m.tab_id);
+                  return (
                     <button
                       key={m.mechanic_id}
                       onClick={() => setActiveTab(m.tab_id)}
-                      className={`tab-button w-full text-left transition-transform duration-200 ease-out hover:translate-x-1 ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
+                      className={`group relative flex h-14 items-center overflow-hidden rounded-[1.4rem] border bg-slate-900/85 px-2.5 shadow-[0_12px_24px_rgba(0,0,0,0.24)] transition-all duration-300 ${
+                        isLeftRailExpanded ? 'w-full border-blue-950/80' : 'w-16 border-white/10'
+                      } ${activeTab === m.tab_id ? 'ring-1 ring-blue-900/45' : ''}`}
                     >
-                      {m.label}
+                      <div className={`relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border text-lg transition-all ${
+                        indicator?.hasUpdate
+                          ? 'border-cyan-200/80 bg-cyan-400/20 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.55)] animate-pulse'
+                          : activeTab === m.tab_id
+                            ? 'border-white/40 bg-white/18 text-white shadow-[0_10px_18px_rgba(0,0,0,0.22)]'
+                            : 'border-white/15 bg-white/10 text-white shadow-[0_10px_18px_rgba(0,0,0,0.22)]'
+                      }`}>
+                        <span>{mechanicIconByTab[m.tab_id] || '•'}</span>
+                        {(indicator?.badgeCount ?? 0) > 0 && (
+                          <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-cyan-500 px-1 text-[10px] font-bold text-white">
+                            {indicator?.badgeCount}
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className={`min-w-0 overflow-hidden whitespace-nowrap text-left transition-all duration-300 ease-out ${
+                          isLeftRailExpanded ? 'ml-3 w-full opacity-100 translate-x-0' : 'ml-0 w-0 opacity-0 translate-x-[-10px]'
+                        }`}
+                      >
+                        <span className={`block ${activeTab === m.tab_id ? 'text-white' : 'text-slate-300'}`}>{m.label}</span>
+                      </div>
                     </button>
-                  ))}
-                </nav>
-              </aside>
-            </div>
-          )}
+                  );
+                })}
+              </nav>
+            </aside>
+          </div>
         </div>
 
-        <main className="flex-grow">
+        <main className="relative flex-grow">
           {renderMechanicTab()}
+          {toastMessage && (
+            <div className="pointer-events-none absolute right-4 top-4 z-30 max-w-sm w-[21rem] animate-memo-toast">
+              <div className="overflow-hidden rounded-2xl border border-cyan-200/40 bg-slate-950/90 shadow-[0_18px_42px_rgba(0,0,0,0.38)] backdrop-blur-md">
+                <div className="h-1.5 w-full bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300" />
+                <div className="flex items-start gap-3 px-4 py-3.5">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-cyan-200/25 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.18)]">
+                    💭
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold leading-snug text-white">{toastMessage}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -1788,20 +2221,12 @@ export default function App(): React.ReactElement {
           </ul>
         </div>
       )}
-      {toastMessage && (
-        <div className="fixed top-1/2 right-6 -translate-y-1/2 max-w-xs w-[18rem] bg-gray-900/95 text-white px-5 py-4 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.45)] border border-teal-200/60 text-base font-semibold tracking-wide animate-fade-in z-50">
-          <div className="flex items-start gap-2">
-            <span className="text-xl leading-none">💭</span>
-            <span className="leading-tight">{toastMessage}</span>
-          </div>
-        </div>
-      )}
       <style>{`
-        @keyframes slide-fade {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes memo-toast {
+          from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .animate-slide-fade { animation: slide-fade 0.25s ease-out; }
+        .animate-memo-toast { animation: memo-toast 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
       `}</style>
      </div>
     </div>

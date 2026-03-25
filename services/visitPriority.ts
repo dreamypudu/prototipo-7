@@ -1,4 +1,4 @@
-import type { CanonicalAction, ExpectedAction, TimeSlotType } from '../types';
+﻿import type { CanonicalAction, ExpectedAction, TimeSlotType } from '../types';
 
 const DAY_INDEX_BY_LABEL: Record<string, number> = {
   lunes: 0,
@@ -6,7 +6,9 @@ const DAY_INDEX_BY_LABEL: Record<string, number> = {
   martes: 1,
   tuesday: 1,
   miercoles: 2,
-  'miÃ©rcoles': 2,
+  'mi\u00e9rcoles': 2,
+  'mi?rcoles': 2,
+  'mi??rcoles': 2,
   wednesday: 2,
   jueves: 3,
   thursday: 3,
@@ -14,8 +16,11 @@ const DAY_INDEX_BY_LABEL: Record<string, number> = {
   friday: 4,
 };
 
-const SLOT_ORDER: Record<TimeSlotType, number> = {
+const SLOT_ORDER: Record<string, number> = {
+  'ma\u00f1ana': 0,
   'maÃ±ana': 0,
+  'ma?ana': 0,
+  'ma??ana': 0,
   tarde: 1,
   noche: 2,
 };
@@ -38,8 +43,11 @@ const normalizeTimeWindowBlock = (value: unknown): 'AM' | 'PM' | null => {
 };
 
 const normalizeSlotBlock = (value: unknown): 'AM' | 'PM' | null => {
-  if (value === 'maÃ±ana') return 'AM';
-  if (value === 'tarde') return 'PM';
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'mañana' || normalized === 'maã±ana' || normalized === 'ma?ana' || normalized === 'ma??ana') return 'AM';
+    if (normalized === 'tarde') return 'PM';
+  }
   return normalizeTimeWindowBlock(value);
 };
 
@@ -51,7 +59,7 @@ const resolveWeekdayTargetDay = (expected: ExpectedAction): number | null => {
   if (createdDayIndex === null) return null;
   const currentWeekStart = expected.created_day - createdDayIndex;
   const sameWeekTargetDay = currentWeekStart + expectedDayIndex;
-  return sameWeekTargetDay < expected.created_day ? expected.created_day : sameWeekTargetDay;
+  return sameWeekTargetDay < expected.created_day ? sameWeekTargetDay + 5 : sameWeekTargetDay;
 };
 
 const resolveDueDay = (expected: ExpectedAction): number | null => {
@@ -73,8 +81,8 @@ const isExpiredBySchedule = (
 
   const slotConstraint = normalizeSlotBlock(expected.constraints?.slot ?? expected.constraints?.time_window);
   if (!slotConstraint) return false;
-  const dueSlot: TimeSlotType = slotConstraint === 'AM' ? 'maÃ±ana' : 'tarde';
-  return SLOT_ORDER[currentTimeSlot] > SLOT_ORDER[dueSlot];
+  const dueSlot: TimeSlotType = slotConstraint === 'AM' ? 'mañana' : 'tarde';
+  return (SLOT_ORDER[currentTimeSlot] ?? 0) > (SLOT_ORDER[dueSlot] ?? 0);
 };
 
 const isVisitInsideWindow = (expected: ExpectedAction, actual: CanonicalAction) => {
@@ -173,3 +181,4 @@ export const resolveVisitPriorityState = (
     reason: 'priority_not_respected',
   };
 };
+

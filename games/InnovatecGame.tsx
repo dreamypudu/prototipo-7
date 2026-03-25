@@ -7,6 +7,7 @@ import { buildSessionExport } from '../services/sessionExport';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from '../services/globalEffects';
 import { isFrontendComparisonMode } from '../services/comparisonMode';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../services/developerAccess';
+import { appendTimeBlockEmails } from '../services/emailTriggers';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../services/localDayResolution';
 import { applyDailyResolutionToState } from '../services/dailyResolutionState';
 import {
@@ -189,6 +190,11 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     if (activeTab !== 'data_export') return;
     syncLogs();
   }, [activeTab, syncLogs]);
+
+  useEffect(() => {
+    if (!isGameStarted) return;
+    setGameState((prev) => appendTimeBlockEmails(prev, EMAIL_TEMPLATES, prev.day, prev.timeSlot));
+  }, [isGameStarted, gameState.day, gameState.timeSlot]);
 
   const setPersonalizedDialogue = useCallback((dialogue: string) => {
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
@@ -1408,17 +1414,31 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
           </nav>
         </div>
 
-        <main className="flex-grow mt-4">
+        <main className="relative flex-grow mt-4">
           {renderMechanicTab()}
-        </main>
-        {toastMessage && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 max-w-xl bg-gradient-to-br from-yellow-500/95 via-orange-500/95 to-amber-600/95 text-white px-10 py-7 rounded-3xl shadow-[0_18px_60px_rgba(0,0,0,0.48)] border-2 border-yellow-100/70 text-2xl font-bold tracking-wide animate-fade-in">
-            <div className="flex items-start gap-4">
-              <span className="text-3xl leading-none">⚠️</span>
-              <span className="leading-tight">{toastMessage}</span>
+          {toastMessage && (
+            <div className="pointer-events-none absolute right-4 top-4 z-30 max-w-sm w-[21rem] animate-memo-toast">
+              <div className="overflow-hidden rounded-2xl border border-cyan-200/40 bg-slate-950/90 shadow-[0_18px_42px_rgba(0,0,0,0.38)] backdrop-blur-md">
+                <div className="h-1.5 w-full bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300" />
+                <div className="flex items-start gap-3 px-4 py-3.5">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-cyan-200/25 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.18)]">
+                    💭
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold leading-snug text-white">{toastMessage}</div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </main>
+        <style>{`
+          @keyframes memo-toast {
+            from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .animate-memo-toast { animation: memo-toast 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+        `}</style>
       </div>
     </MechanicProvider>
   );

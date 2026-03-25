@@ -37,30 +37,33 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 transition-opacity duration-500">
-      <div className="text-center animate-fade-in w-full max-w-md">
+    <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 transition-opacity duration-500 px-6">
+      <div className="text-center animate-fade-in w-full max-w-md flex flex-col items-center">
         {/* Logo */}
-        <div className="inline-block mb-8 animate-pulse-slow">
-            <img src={logoUrl || DEFAULT_LOGO_URL} alt="Logo" className="w-160 h-100 object-contain" 
-            style={{ width: '5000px', height: '300px', margin: '8px' }}/>
+        <div className="inline-block mb-2 animate-pulse-slow">
+            <img
+              src={logoUrl || DEFAULT_LOGO_URL}
+              alt="Logo"
+              className="object-contain"
+              style={{ width: '100%', maxWidth: '320px', height: '180px', margin: '0 auto' }}
+            />
         </div>
         
         {title === 'COMPASS' ? (
           <img
             src={animatedLogoSrc}
             alt="COMPASS"
-            className="mx-auto mb-2 object-contain"
+            className="mx-auto mb-1 object-contain"
             style={{ width: '240px', maxWidth: '80%', height: 'auto' }}
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
           />
         ) : (
-          <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
+          <h1 className="text-4xl font-bold text-white mb-1">{title}</h1>
         )}
-        <p className="text-lg text-blue-300 mb-8">{subtitle}</p>
+        <p className="text-lg text-blue-300 mb-6">{subtitle}</p>
         
         {/* Registro directo */}
-        <div className="w-full h-24 flex items-center justify-center">
-          <div className="w-full animate-fade-in-up">
+        <div className="w-full animate-fade-in-up mt-2">
               <input
                   type="text"
                   value={playerName}
@@ -76,7 +79,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
                   >
                   Iniciar Simulación
               </button>
-          </div>
+              <p className="mt-4 text-sm leading-relaxed text-slate-300/90">
+                Los datos recopilados en esta herramienta no se usarán para investigación ni estarán asociados a tu identidad. Se utilizarán
+                únicamente para validación interna del funcionamiento de la herramienta (Congreso Mejor Universidad 2026, Concepción).
+              </p>
         </div>
       </div>
        <style>{`

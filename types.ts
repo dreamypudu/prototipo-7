@@ -376,6 +376,7 @@ export interface MeetingSequence {
     isInevitable?: boolean;
     isContingent?: boolean;
     contingentRules?: ContingentRules;
+    contingentConditions?: ConditionGroup;
 }
 
 export interface ContingentRules {
@@ -426,12 +427,25 @@ export interface ExpectedActionCondition {
   minCount?: number;
 }
 
+export interface PromiseOutcomeCondition {
+  kind: 'promise_outcome';
+  sourceNodeId?: string;
+  sourceOptionId?: string;
+  ruleId?: string;
+  actionType?: string;
+  targetRefIncludes?: string;
+  stakeholderId?: string;
+  outcomeIn?: ComparisonResult['outcome'][];
+  minCount?: number;
+}
+
 export type NarrativeCondition =
   | GlobalMetricCondition
   | StakeholderMetricCondition
   | CompletedSequenceCondition
   | CompletedScenarioCondition
-  | ExpectedActionCondition;
+  | ExpectedActionCondition
+  | PromiseOutcomeCondition;
 
 export interface ConditionGroup {
   all?: NarrativeCondition[];
@@ -480,6 +494,11 @@ export interface EmailTemplate {
     | {
         type: 'ON_CASE_EVENT';
         event_id: string;
+      }
+    | {
+        type: 'ON_TIME_BLOCK';
+        day: number;
+        slot: TimeSlotType;
       };
   from: string;
   subject: string;

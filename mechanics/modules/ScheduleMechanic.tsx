@@ -1,24 +1,33 @@
 import React from 'react';
 import SchedulerInterface from '../../components/SchedulerInterface';
 import { useMechanicContext } from '../MechanicContext';
+import {
+  canEditCesfamSchedule,
+  canSubmitCesfamSchedule,
+  getCesfamScheduleEditDisabledReason,
+  getCesfamScheduleExecuteDisabledReason,
+  wasCesfamScheduleSubmittedThisWeek,
+} from '../../services/cesfamScheduleTiming';
 
 const ScheduleMechanic: React.FC = () => {
   const { gameState, dispatch, contentPack } = useMechanicContext();
   const isCesfam = contentPack.version === 'CESFAM';
-  const draftAlreadySubmitted = gameState.lastScheduleSubmissionDay === 5;
-  const canExecuteWeek = isCesfam ? gameState.day >= 5 && !draftAlreadySubmitted : true;
+  const submittedThisWeek = isCesfam
+    ? wasCesfamScheduleSubmittedThisWeek(gameState.day, gameState.lastScheduleSubmissionDay)
+    : false;
+  const canEditSchedule = isCesfam ? canEditCesfamSchedule(gameState.day) : true;
+  const canExecuteWeek = isCesfam
+    ? canSubmitCesfamSchedule(gameState.day, gameState.lastScheduleSubmissionDay)
+    : true;
   const executeLabel = isCesfam
-    ? draftAlreadySubmitted
-      ? 'Borrador enviado'
-      : 'Enviar borrador semanal'
+    ? submittedThisWeek
+      ? 'Planificación enviada'
+      : 'Enviar planificación semanal'
     : 'Ejecutar semana';
   const executeDisabledReason = isCesfam
-    ? draftAlreadySubmitted
-      ? 'El borrador de esta semana ya fue enviado.'
-      : gameState.day < 5
-        ? 'El borrador solo puede enviarse el viernes.'
-        : null
+    ? getCesfamScheduleExecuteDisabledReason(gameState.day, gameState.lastScheduleSubmissionDay)
     : null;
+  const editDisabledReason = isCesfam ? getCesfamScheduleEditDisabledReason(gameState.day) : null;
 
   return (
     <SchedulerInterface
@@ -28,6 +37,8 @@ const ScheduleMechanic: React.FC = () => {
       executeLabel={executeLabel}
       canExecuteWeek={canExecuteWeek}
       executeDisabledReason={executeDisabledReason}
+      canEditSchedule={canEditSchedule}
+      editDisabledReason={editDisabledReason}
     />
   );
 };

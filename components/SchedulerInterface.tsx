@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ActivityType, DayOfWeek, GameState, ScheduleAssignment, ScheduleBlock, StaffMember } from '../types';
 import { CESFAM_ROOMS, DAYS_OF_WEEK, SCHEDULE_BLOCKS } from '../constants';
 import { useMechanicContext } from '../mechanics/MechanicContext';
@@ -13,6 +14,8 @@ interface SchedulerInterfaceProps {
     executeLabel?: string;
     canExecuteWeek?: boolean;
     executeDisabledReason?: string | null;
+    canEditSchedule?: boolean;
+    editDisabledReason?: string | null;
 }
 
 interface OverlayRect {
@@ -99,8 +102,8 @@ const AssignmentOverlay: React.FC<AssignmentOverlayProps> = ({
     const availableBoxes = CESFAM_ROOMS.filter(room => room.id.startsWith('BOX'));
     const resolvedRoom = CESFAM_ROOMS.find(room => room.id === resolvedRoomId);
 
-    return (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 lg:p-6 animate-fade-in">
+    const overlay = (
+        <div className="fixed inset-0 z-[170] bg-black/80 backdrop-blur-sm p-4 lg:p-6 animate-fade-in">
             <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 lg:grid lg:grid-cols-[minmax(420px,500px)_minmax(0,1fr)]">
                 <div className="bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl overflow-hidden animate-slide-in-left">
                     <div className="border-b border-gray-700 bg-gray-900/70 px-6 py-5">
@@ -225,6 +228,8 @@ const AssignmentOverlay: React.FC<AssignmentOverlayProps> = ({
             `}</style>
         </div>
     );
+
+    return createPortal(overlay, document.body);
 };
 
 const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
@@ -234,6 +239,8 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
     executeLabel = 'Ejecutar semana',
     canExecuteWeek = true,
     executeDisabledReason,
+    canEditSchedule = true,
+    editDisabledReason,
 }) => {
     const { engine } = useMechanicContext();
     const [editingCell, setEditingCell] = useState<{ staffId: string; day: DayOfWeek; block: ScheduleBlock } | null>(null);
@@ -393,6 +400,7 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
     }, [physicalConflictGroups, orderedStaff, gameState.weeklySchedule]);
 
     const handleCellClick = (staffId: string, day: DayOfWeek, block: ScheduleBlock) => {
+        if (!canEditSchedule) return;
         const assignment = gameState.weeklySchedule.find(item => item.staffId === staffId && item.day === day && item.block === block);
         setEditingCell({ staffId, day, block });
         setSelectedActivity(assignment?.activity ?? 'CLINICAL');
@@ -509,6 +517,9 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
                 <div>
                     <h2 className="text-3xl font-bold text-blue-300">Planificación Semanal</h2>
                     <p className="text-gray-400">Asigne actividades. Cuide las horas de contrato vs asignadas.</p>
+                    {!canEditSchedule && editDisabledReason && (
+                        <p className="mt-2 text-sm font-medium text-amber-300">{editDisabledReason}</p>
+                    )}
                 </div>
                 <div className="flex gap-4">
                     <div className="flex items-center gap-2">
@@ -621,9 +632,10 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
                                                                     cellRefs.current[cellKey] = node;
                                                                 }}
                                                                 onClick={() => handleCellClick(staffMember.id, day, block)}
-                                                                className={`w-full h-12 rounded shadow-sm transition-all transform hover:scale-105 flex flex-col items-center justify-center p-1 relative ${
+                                                                disabled={!canEditSchedule}
+                                                                className={`w-full h-12 rounded shadow-sm transition-all flex flex-col items-center justify-center p-1 relative ${
                                                                     assign ? ACTIVITY_COLORS[assign.activity] : 'bg-gray-700'
-                                                                } ${isConflict ? 'ring-4 ring-red-500 animate-pulse z-10' : ''}`}
+                                                                } ${canEditSchedule ? 'transform hover:scale-105 cursor-pointer' : 'cursor-not-allowed opacity-70 saturate-75'} ${isConflict ? 'ring-4 ring-red-500 animate-pulse z-10' : ''}`}
                                                                 title={`${day} ${block}: ${assign ? ACTIVITY_LABELS[assign.activity] : 'Sin asignar'}`}
                                                             >
                                                                 {isConflict && <span className="text-xs font-bold text-white bg-red-600 px-1 rounded absolute -top-2">CHOQUE</span>}

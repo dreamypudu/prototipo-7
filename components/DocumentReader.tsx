@@ -12,6 +12,24 @@ const DocumentReader: React.FC<DocumentReaderProps> = ({ documents, readDocument
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
     const { engine, gameState } = useMechanicContext();
 
+    if (documents.length === 0) {
+        return (
+            <div className="bg-slate-950/70 p-6 rounded-xl border border-slate-800 animate-fade-in h-[75vh] flex flex-col shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="px-3 py-1 rounded-md bg-amber-200/20 border border-amber-300/40 text-amber-100 text-xs font-semibold tracking-wide uppercase">Archivo</div>
+                    <h2 className="text-3xl font-black text-white drop-shadow-sm">Centro de Documentos</h2>
+                </div>
+                <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/40 text-slate-300">
+                    No hay documentos disponibles.
+                </div>
+                <style>{`
+                    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                    .animate-fade-in { animation: fade-in 0.5s ease-in forwards; }
+                `}</style>
+            </div>
+        );
+    }
+
     const handleSelectDoc = (doc: Document) => {
         setSelectedDocId(doc.id);
         if (!readDocuments.includes(doc.id)) {
