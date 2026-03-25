@@ -242,6 +242,12 @@ def create_schema(conn):
         )
         """
     )
+    conn.execute(
+        """
+        ALTER TABLE comparisons
+        ADD COLUMN IF NOT EXISTS rule_id TEXT
+        """
+    )
     # Drop legacy FKs, clean orphans, then add FK with ON DELETE SET NULL (so Supabase shows relationships)
     conn.execute("ALTER TABLE comparisons DROP CONSTRAINT IF EXISTS comparisons_expected_action_id_fkey CASCADE")
     conn.execute("ALTER TABLE comparisons DROP CONSTRAINT IF EXISTS comparisons_canonical_action_id_fkey CASCADE")
