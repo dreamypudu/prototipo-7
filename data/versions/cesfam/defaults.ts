@@ -1,4 +1,4 @@
-import { GameState, TimeSlotType, DirectorObjectives, StaffMember, ScheduleAssignment, DayOfWeek, ScheduleBlock, RoomDefinition } from '../../../types';
+import { ActivityType, GameState, TimeSlotType, DirectorObjectives, StaffMember, ScheduleAssignment, DayOfWeek, ScheduleBlock, RoomDefinition } from '../../../types';
 import { CESFAM_STAKEHOLDERS } from './stakeholders';
 
 export const TIME_SLOTS: TimeSlotType[] = ['mañana', 'tarde'];
@@ -23,27 +23,18 @@ export const getGameDate = (dayNumber: number): { week: number, dayName: string,
 // Room Definitions used in Map and Scheduler
 // Updated colors to be translucent (bg-opacity-20) for better background visibility
 export const CESFAM_ROOMS: RoomDefinition[] = [
-    { id: 'COORDINACION', name: 'Coordinación', sector: 'ADMIN', gridArea: '1 / 1 / 2 / 2', color: 'bg-purple-900/20 border-purple-500/50 hover:bg-purple-900/40' },
-    { id: 'FARMACIA', name: 'Farmacia', sector: 'ADMIN', gridArea: '1 / 2 / 2 / 4', color: 'bg-teal-900/20 border-teal-500/50 hover:bg-teal-900/40' },
-    
-    // AZUL (Left)
-    { id: 'BOX_1', name: 'Box 1 (Azul)', sector: 'AZUL', gridArea: '2 / 1 / 3 / 2', color: 'bg-blue-900/20 border-blue-500/50 hover:bg-blue-900/40' },
-    { id: 'BOX_2', name: 'Box 2 (Azul)', sector: 'AZUL', gridArea: '3 / 1 / 4 / 2', color: 'bg-blue-900/20 border-blue-500/50 hover:bg-blue-900/40' },
-    { id: 'BOX_3', name: 'Box 3 (Azul)', sector: 'AZUL', gridArea: '4 / 1 / 5 / 2', color: 'bg-blue-900/20 border-blue-500/50 hover:bg-blue-900/40' },
-    
-    // ROJO (Center)
-    { id: 'BOX_4', name: 'Box 4 (Rojo)', sector: 'ROJO', gridArea: '2 / 2 / 3 / 3', color: 'bg-red-900/20 border-red-500/50 hover:bg-red-900/40' },
-    { id: 'BOX_5', name: 'Box 5 (Rojo)', sector: 'ROJO', gridArea: '3 / 2 / 4 / 3', color: 'bg-red-900/20 border-red-500/50 hover:bg-red-900/40' },
-    { id: 'BOX_6', name: 'Box 6 (Rojo)', sector: 'ROJO', gridArea: '4 / 2 / 5 / 3', color: 'bg-red-900/20 border-red-500/50 hover:bg-red-900/40' },
-
-    // AMARILLO (Right)
-    { id: 'BOX_7', name: 'Box 7 (Amarillo)', sector: 'AMARILLO', gridArea: '2 / 3 / 3 / 4', color: 'bg-yellow-900/20 border-yellow-500/50 hover:bg-yellow-900/40' },
-    { id: 'BOX_8', name: 'Box 8 (Amarillo)', sector: 'AMARILLO', gridArea: '3 / 3 / 4 / 4', color: 'bg-yellow-900/20 border-yellow-500/50 hover:bg-yellow-900/40' },
-    { id: 'OFICINA_TECNICA', name: 'Oficinas Técnicas', sector: 'AMARILLO', gridArea: '4 / 3 / 5 / 4', color: 'bg-gray-900/30 border-gray-500/50 hover:bg-gray-800/50' }, 
+    // BOXES
+    { id: 'BOX_1', name: 'Box 1', sector: 'AZUL', gridArea: '1 / 1 / 2 / 2', color: 'bg-slate-900/25 border-slate-400/50 hover:bg-slate-800/45' },
+    { id: 'BOX_2', name: 'Box 2', sector: 'AZUL', gridArea: '1 / 2 / 2 / 3', color: 'bg-slate-900/25 border-slate-400/50 hover:bg-slate-800/45' },
+    { id: 'BOX_3', name: 'Box 3', sector: 'AZUL', gridArea: '1 / 3 / 2 / 4', color: 'bg-slate-900/25 border-slate-400/50 hover:bg-slate-800/45' },
+    { id: 'BOX_4', name: 'Box 4', sector: 'ROJO', gridArea: '2 / 1 / 3 / 2', color: 'bg-slate-900/25 border-slate-400/50 hover:bg-slate-800/45' },
+    { id: 'BOX_5', name: 'Box 5', sector: 'ROJO', gridArea: '2 / 2 / 3 / 3', color: 'bg-slate-900/25 border-slate-400/50 hover:bg-slate-800/45' },
+    { id: 'BOX_6', name: 'Box 6', sector: 'ROJO', gridArea: '2 / 3 / 3 / 4', color: 'bg-slate-900/25 border-slate-400/50 hover:bg-slate-800/45' },
 
     // BOTTOM
-    { id: 'AREA_COMUN', name: 'Área Común', sector: 'COMMON', gridArea: '5 / 1 / 6 / 3', color: 'bg-gray-900/30 border-gray-600/50 hover:bg-gray-800/50' },
-    { id: 'TERRENO', name: 'Salida a Terreno', sector: 'OUTSIDE', gridArea: '5 / 3 / 6 / 4', color: 'bg-green-900/20 border-green-500/50 hover:bg-green-900/40' },
+    { id: 'OFICINA_TECNICA', name: 'Oficinas Administrativas', sector: 'AMARILLO', gridArea: '3 / 1 / 4 / 2', color: 'bg-gray-900/30 border-gray-500/50 hover:bg-gray-800/50' },
+    { id: 'AREA_COMUN', name: 'Auditorio', sector: 'COMMON', gridArea: '3 / 2 / 4 / 3', color: 'bg-gray-900/30 border-gray-600/50 hover:bg-gray-800/50' },
+    { id: 'TERRENO', name: 'Salida a Terreno', sector: 'OUTSIDE', gridArea: '3 / 3 / 4 / 4', color: 'bg-green-900/20 border-green-500/50 hover:bg-green-900/40' },
 ];
 
 export const INITIAL_STAFF: StaffMember[] = [
@@ -152,14 +143,14 @@ const getDefaultRoom = (staff: StaffMember): string => {
     if (staff.id === 'javier-castro') return 'BOX_3';
     
     // ROJO
-    if (staff.id === 'marcela-soto') return 'COORDINACION'; // Suele estar gestionando
+    if (staff.id === 'marcela-soto') return 'OFICINA_TECNICA'; // Suele estar gestionando
     if (staff.id === 'eduardo-naranjo') return 'BOX_5';
-    if (staff.id === 'claudia-morales') return 'BOX_4';
+    if (staff.id === 'claudia-morales') return 'OFICINA_TECNICA';
     
     // AMARILLO
     if (staff.id === 'daniel-rios') return 'TERRENO'; // Siempre en la calle
-    if (staff.id === 'francisca-solis') return 'BOX_7';
-    if (staff.id === 'ricardo-meza') return 'BOX_8'; 
+    if (staff.id === 'francisca-solis') return 'BOX_6';
+    if (staff.id === 'ricardo-meza') return 'BOX_4'; 
 
     return 'AREA_COMUN';
 };
@@ -179,9 +170,27 @@ const generateDefaultSchedule = (): ScheduleAssignment[] => {
                     activity = 'TERRAIN';
                     roomId = 'TERRENO';
                 }
-                if (staff.id === 'andres-guzman' && day === 'Viernes') {
-                    activity = 'ADMIN'; // Investigación
+                if (staff.id === 'marcela-soto' || staff.id === 'claudia-morales') {
+                    activity = 'ADMIN';
                     roomId = 'OFICINA_TECNICA';
+                }
+                if (staff.id === 'andres-guzman' && day === 'Viernes') {
+                    activity = 'ADMIN'; // Investigacion
+                    roomId = 'OFICINA_TECNICA';
+                }
+                if (day === 'Lunes' && block === 'AM') {
+                    if (staff.id === 'andres-guzman') {
+                        activity = 'CLINICAL';
+                        roomId = 'BOX_5';
+                    }
+                }
+                if (day === 'Miércoles' && block === 'PM' && staff.id === 'marcela-soto') {
+                    activity = 'CLINICAL';
+                    roomId = 'BOX_6';
+                }
+                if (day === 'Viernes' && block === 'AM' && staff.id === 'paz-herrera') {
+                    activity = 'CLINICAL';
+                    roomId = 'BOX_3';
                 }
 
                 assignments.push({
@@ -196,6 +205,119 @@ const generateDefaultSchedule = (): ScheduleAssignment[] => {
     });
     return assignments;
 };
+
+type PresentMapSlotAssignments = Array<{
+    staffId: string;
+    activity: ActivityType;
+    roomId: string;
+}>;
+
+const PRESENT_MAP_LAYOUTS: Array<{
+    day: DayOfWeek;
+    block: ScheduleBlock;
+    assignments: PresentMapSlotAssignments;
+}> = [
+    {
+        day: DAYS_OF_WEEK[2],
+        block: 'AM',
+        assignments: [
+            { staffId: 'andres-guzman', activity: 'CLINICAL', roomId: 'BOX_1' },
+            { staffId: 'paz-herrera', activity: 'CLINICAL', roomId: 'BOX_2' },
+            { staffId: 'javier-castro', activity: 'CLINICAL', roomId: 'BOX_3' },
+            { staffId: 'marcela-soto', activity: 'ADMIN', roomId: 'OFICINA_TECNICA' },
+            { staffId: 'eduardo-naranjo', activity: 'CLINICAL', roomId: 'BOX_5' },
+            { staffId: 'claudia-morales', activity: 'CLINICAL', roomId: 'BOX_4' },
+            { staffId: 'daniel-rios', activity: 'TERRAIN', roomId: 'TERRENO' },
+            { staffId: 'francisca-solis', activity: 'CLINICAL', roomId: 'BOX_6' },
+            { staffId: 'ricardo-meza', activity: 'TRAINING', roomId: 'AREA_COMUN' },
+        ],
+    },
+    {
+        day: DAYS_OF_WEEK[2],
+        block: 'PM',
+        assignments: [
+            { staffId: 'andres-guzman', activity: 'ADMIN', roomId: 'OFICINA_TECNICA' },
+            { staffId: 'paz-herrera', activity: 'CLINICAL', roomId: 'BOX_1' },
+            { staffId: 'javier-castro', activity: 'CLINICAL', roomId: 'BOX_2' },
+            { staffId: 'marcela-soto', activity: 'CLINICAL', roomId: 'BOX_4' },
+            { staffId: 'eduardo-naranjo', activity: 'CLINICAL', roomId: 'BOX_5' },
+            { staffId: 'claudia-morales', activity: 'CLINICAL', roomId: 'BOX_6' },
+            { staffId: 'daniel-rios', activity: 'TERRAIN', roomId: 'TERRENO' },
+            { staffId: 'francisca-solis', activity: 'CLINICAL', roomId: 'BOX_3' },
+            { staffId: 'ricardo-meza', activity: 'TRAINING', roomId: 'AREA_COMUN' },
+        ],
+    },
+    {
+        day: DAYS_OF_WEEK[3],
+        block: 'AM',
+        assignments: [
+            { staffId: 'andres-guzman', activity: 'CLINICAL', roomId: 'BOX_5' },
+            { staffId: 'paz-herrera', activity: 'CLINICAL', roomId: 'BOX_1' },
+            { staffId: 'javier-castro', activity: 'CLINICAL', roomId: 'BOX_2' },
+            { staffId: 'marcela-soto', activity: 'CLINICAL', roomId: 'BOX_4' },
+            { staffId: 'eduardo-naranjo', activity: 'CLINICAL', roomId: 'BOX_3' },
+            { staffId: 'claudia-morales', activity: 'ADMIN', roomId: 'OFICINA_TECNICA' },
+            { staffId: 'daniel-rios', activity: 'TERRAIN', roomId: 'TERRENO' },
+            { staffId: 'francisca-solis', activity: 'CLINICAL', roomId: 'BOX_6' },
+            { staffId: 'ricardo-meza', activity: 'TRAINING', roomId: 'AREA_COMUN' },
+        ],
+    },
+    {
+        day: DAYS_OF_WEEK[3],
+        block: 'PM',
+        assignments: [
+            { staffId: 'andres-guzman', activity: 'ADMIN', roomId: 'OFICINA_TECNICA' },
+            { staffId: 'paz-herrera', activity: 'CLINICAL', roomId: 'BOX_2' },
+            { staffId: 'javier-castro', activity: 'CLINICAL', roomId: 'BOX_1' },
+            { staffId: 'marcela-soto', activity: 'CLINICAL', roomId: 'BOX_4' },
+            { staffId: 'eduardo-naranjo', activity: 'CLINICAL', roomId: 'BOX_5' },
+            { staffId: 'claudia-morales', activity: 'CLINICAL', roomId: 'BOX_3' },
+            { staffId: 'daniel-rios', activity: 'TERRAIN', roomId: 'TERRENO' },
+            { staffId: 'francisca-solis', activity: 'CLINICAL', roomId: 'BOX_6' },
+            { staffId: 'ricardo-meza', activity: 'TRAINING', roomId: 'AREA_COMUN' },
+        ],
+    },
+    {
+        day: DAYS_OF_WEEK[4],
+        block: 'AM',
+        assignments: [
+            { staffId: 'andres-guzman', activity: 'ADMIN', roomId: 'OFICINA_TECNICA' },
+            { staffId: 'paz-herrera', activity: 'CLINICAL', roomId: 'BOX_1' },
+            { staffId: 'javier-castro', activity: 'CLINICAL', roomId: 'BOX_2' },
+            { staffId: 'marcela-soto', activity: 'CLINICAL', roomId: 'BOX_4' },
+            { staffId: 'eduardo-naranjo', activity: 'CLINICAL', roomId: 'BOX_5' },
+            { staffId: 'claudia-morales', activity: 'CLINICAL', roomId: 'BOX_3' },
+            { staffId: 'daniel-rios', activity: 'TERRAIN', roomId: 'TERRENO' },
+            { staffId: 'francisca-solis', activity: 'CLINICAL', roomId: 'BOX_6' },
+            { staffId: 'ricardo-meza', activity: 'TRAINING', roomId: 'AREA_COMUN' },
+        ],
+    },
+    {
+        day: DAYS_OF_WEEK[4],
+        block: 'PM',
+        assignments: [
+            { staffId: 'andres-guzman', activity: 'TRAINING', roomId: 'AREA_COMUN' },
+            { staffId: 'paz-herrera', activity: 'CLINICAL', roomId: 'BOX_1' },
+            { staffId: 'javier-castro', activity: 'CLINICAL', roomId: 'BOX_2' },
+            { staffId: 'marcela-soto', activity: 'ADMIN', roomId: 'OFICINA_TECNICA' },
+            { staffId: 'eduardo-naranjo', activity: 'CLINICAL', roomId: 'BOX_4' },
+            { staffId: 'claudia-morales', activity: 'CLINICAL', roomId: 'BOX_5' },
+            { staffId: 'daniel-rios', activity: 'TERRAIN', roomId: 'TERRENO' },
+            { staffId: 'francisca-solis', activity: 'CLINICAL', roomId: 'BOX_6' },
+            { staffId: 'ricardo-meza', activity: 'CLINICAL', roomId: 'BOX_3' },
+        ],
+    },
+];
+
+export const CESFAM_PRESENT_MAP_SCHEDULE: ScheduleAssignment[] = PRESENT_MAP_LAYOUTS.flatMap(({ day, block, assignments }) =>
+    assignments.map(({ staffId, activity, roomId }) => ({
+        staffId,
+        day,
+        block,
+        activity,
+        roomId,
+    }))
+);
 
 
 export const DIRECTOR_OBJECTIVES: DirectorObjectives = {
@@ -258,10 +380,13 @@ export const INITIAL_GAME_STATE: GameState = {
   playerActionsLog: [],
   playerNotes: "",
   scenarioSchedule: {}, // Initialize empty, will be populated by App on startup
+  lastScheduleSubmissionDay: null,
   mechanicEvents: [],
   canonicalActions: [],
   expectedActions: [],
-  comparisons: []
+  comparisons: [],
+  dailyResolutions: [],
+  resolvedExpectedActionIds: []
 };
 
 export const buildInitialGameState = (): GameState => structuredClone(INITIAL_GAME_STATE);

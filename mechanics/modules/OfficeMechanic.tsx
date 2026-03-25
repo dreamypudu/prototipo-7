@@ -7,7 +7,7 @@ import Spinner from '../../components/ui/Spinner';
 import { Stakeholder } from '../../types';
 
 const OfficeMechanic: React.FC = () => {
-  const { gameState, office, dispatch } = useMechanicContext();
+  const { gameState, office, dispatch, contentPack } = useMechanicContext();
 
   if (!office || office.variant !== 'default') {
     return null;
@@ -22,12 +22,22 @@ const OfficeMechanic: React.FC = () => {
     currentMeeting,
     onPlayerAction,
     onNavigateTab,
-    onActionHover
+    onActionHover,
+    onDialogueTypingChange
   } = office;
 
   let sceneParticipants: Stakeholder[] | undefined;
-  if (currentMeeting?.sequence.sequence_id === 'SCHEDULE_WAR_SEQ') {
-    const currentNodeId = currentMeeting.sequence.nodes[currentMeeting.nodeIndex];
+  const currentNodeId = currentMeeting?.sequence.nodes[currentMeeting.nodeIndex];
+  const currentNodeDefinition = currentNodeId
+    ? contentPack.scenarios.scenarios.find((node) => node.node_id === currentNodeId)
+    : undefined;
+
+  if (currentNodeDefinition?.participantIds && currentNodeDefinition.participantIds.length > 0) {
+    const participants = currentNodeDefinition.participantIds
+      .map((participantId) => gameState.stakeholders.find((stakeholder) => stakeholder.id === participantId))
+      .filter((stakeholder): stakeholder is Stakeholder => Boolean(stakeholder));
+    sceneParticipants = participants.length > 0 ? participants : undefined;
+  } else if (currentMeeting?.sequence.sequence_id === 'SCHEDULE_WAR_SEQ') {
     if (currentNodeId !== 'SCHEDULE_WAR_SOFIA_CHOICE') {
       const guzman = gameState.stakeholders.find((s) => s.role === 'Jefe Sector Azul');
       const soto = gameState.stakeholders.find((s) => s.role === 'Jefa Sector Rojo');
@@ -53,6 +63,7 @@ const OfficeMechanic: React.FC = () => {
           dialogue={currentDialogue}
           timeSlot={gameState.timeSlot}
           backgroundKey={backgroundKey as any}
+          onTypingStateChange={onDialogueTypingChange}
         />
       );
     }

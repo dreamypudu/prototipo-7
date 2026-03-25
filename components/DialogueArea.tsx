@@ -10,13 +10,14 @@ interface DialogueAreaProps {
   dialogue: string;
   timeSlot: TimeSlotType;
   backgroundKey?: keyof typeof backgroundImages;
+  onTypingStateChange?: (isTyping: boolean) => void;
 }
 
 const backgroundImages: Record<TimeSlotType | 'hospital' | 'box', string> = {
   'mañana': 'https://i.pinimg.com/736x/35/a9/f3/35a9f3bb8237d372fb960e95354aba20.jpg', // bright/day
   tarde: 'https://i.pinimg.com/736x/02/aa/5d/02aa5dae9b46b77ad4f8a387ab24ce3c.jpg',   // brighter golden/sunset
   noche: 'https://i.pinimg.com/736x/02/aa/5d/02aa5dae9b46b77ad4f8a387ab24ce3c.jpg',    // fallback for night
-  hospital: 'https://i.imgur.com/zlolSsQ.jpeg',                                         // fallback for hospital
+  hospital: 'avatars/pasillo-hospital.png',                                         // fallback for hospital
   box: 'https://i.imgur.com/cvbTEHv.jpeg'                                               // neutral box background
 };
 
@@ -26,9 +27,11 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
   allStakeholders,
   dialogue,
   timeSlot,
-  backgroundKey
+  backgroundKey,
+  onTypingStateChange
 }) => {
   const [skipTyping, setSkipTyping] = React.useState(false);
+  const lastTypingStateRef = React.useRef<boolean | null>(null);
 
   // Reset el salto cuando cambia el diálogo (solo afecta a la línea actual)
   React.useEffect(() => {
@@ -38,6 +41,15 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
   const safeDialogue = typeof dialogue === 'string' ? dialogue : '';
   const typedText = useTypewriter(safeDialogue, 15);
   const displayedText = skipTyping ? safeDialogue : typedText;
+  const isTyping = safeDialogue.length > 0 && !skipTyping && displayedText.length < safeDialogue.length;
+
+  React.useEffect(() => {
+    if (lastTypingStateRef.current == isTyping) return;
+    lastTypingStateRef.current = isTyping;
+    onTypingStateChange?.(isTyping);
+  }, [isTyping, onTypingStateChange]);
+
+  React.useEffect(() => () => onTypingStateChange?.(false), [onTypingStateChange]);
 
   const key = backgroundKey || timeSlot;
   const bgImage = backgroundImages[key] || backgroundImages['mañana'];
@@ -191,7 +203,7 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
           <h3 className="text-xl font-bold text-white drop-shadow-md">{stakeholder.name}</h3>
           <span className="text-xs text-gray-400 uppercase tracking-widest">({stakeholder.role})</span>
         </div>
-        <p
+        <div
           className="text-md lg:text-lg text-gray-100 leading-relaxed max-h-28 mt-4 pr-2 scroll-soft overflow-visible cursor-pointer"
           onClick={() => setSkipTyping(true)}
           title="Click para mostrar todo el texto"
@@ -202,7 +214,7 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
               displayedText.length === safeDialogue.length || skipTyping ? 'animate-none opacity-0' : 'animate-pulse'
             }`}
           />
-        </p>
+        </div>
       </div>
       <style>{`
         @keyframes fade-in {

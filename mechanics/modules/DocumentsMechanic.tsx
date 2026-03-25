@@ -1,13 +1,12 @@
 import React from 'react';
 import DocumentReader from '../../components/DocumentReader';
-import { DOCUMENTS } from '../../data/documents';
 import { useMechanicContext } from '../MechanicContext';
 
 const DocumentsMechanic: React.FC = () => {
-  const { gameState, dispatch } = useMechanicContext();
+  const { gameState, dispatch, contentPack } = useMechanicContext();
   return (
     <DocumentReader
-      documents={DOCUMENTS}
+      documents={contentPack.documents}
       readDocuments={gameState.readDocuments}
       onMarkAsRead={(documentId) => dispatch({ type: 'mark_document_read', docId: documentId })}
     />

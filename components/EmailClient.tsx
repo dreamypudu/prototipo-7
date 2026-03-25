@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { InboxEmail } from '../types';
-import { EMAIL_TEMPLATES } from '../data/emails';
+import { EmailTemplate, InboxEmail } from '../types';
 import { useMechanicContext } from '../mechanics/MechanicContext';
 
 interface EmailClientProps {
     inbox: InboxEmail[];
+    templates: EmailTemplate[];
     onMarkAsRead: (emailId: string) => void;
 }
 
-const EmailClient: React.FC<EmailClientProps> = ({ inbox, onMarkAsRead }) => {
+const EmailClient: React.FC<EmailClientProps> = ({ inbox, templates, onMarkAsRead }) => {
     const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
     const { engine, gameState } = useMechanicContext();
 
@@ -36,7 +36,7 @@ const EmailClient: React.FC<EmailClientProps> = ({ inbox, onMarkAsRead }) => {
     };
 
     const sortedInbox = [...inbox].sort((a, b) => b.dayReceived - a.dayReceived);
-    const selectedEmailTemplate = EMAIL_TEMPLATES.find(e => e.email_id === selectedEmailId);
+    const selectedEmailTemplate = templates.find(e => e.email_id === selectedEmailId);
 
     return (
         <div className="bg-slate-950/70 p-6 rounded-xl border border-slate-800 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-md animate-fade-in h-[70vh] flex flex-col">
@@ -55,7 +55,7 @@ const EmailClient: React.FC<EmailClientProps> = ({ inbox, onMarkAsRead }) => {
                 <div className="w-1/3 flex-shrink-0 bg-slate-900/70 p-3 rounded-lg border border-slate-800/80 overflow-y-auto shadow-inner">
                     <ul className="space-y-2">
                         {sortedInbox.map(inboxEmail => {
-                            const template = EMAIL_TEMPLATES.find(t => t.email_id === inboxEmail.email_id);
+                            const template = templates.find(t => t.email_id === inboxEmail.email_id);
                             if (!template) return null;
                             const isSelected = selectedEmailId === inboxEmail.email_id;
                             return (

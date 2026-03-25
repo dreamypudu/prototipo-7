@@ -1,466 +1,965 @@
-
 import { ScenarioFile } from '../../../types';
 
 export const scenarios: ScenarioFile = {
-  simulation_id: "CESFAM_SECTORS_MANAGEMENT",
+  simulation_id: 'CESFAM_SECTORS_MANAGEMENT',
   scenarios: [
-    // --- Dr. Guzmán (SECTOR AZUL) ---
     {
-      node_id: "AZUL_S1_RESEARCH_TIME",
-      stakeholderRole: "Jefe Sector Azul",
-
-      stakeholderId: "andres-guzman",
-      dialogue: "Director, seré breve. La Sociedad Chilena de Medicina Familiar nos ha invitado a participar en un estudio multicéntrico. Es una oportunidad de oro para el prestigio del CESFAM. Necesito que liberes 11 horas semanales de mi agenda y la de la enfermera Herrera para investigación. Eso sí, tendremos que reducir las consultas de morbilidad, pero la calidad lo vale.",
-      options: [
-        {
-          option_id: "A", cardTitle: "Aprobar Propuesta", cardEmoji: "✅", text: "Dr. Guzmán, el prestigio es importante, concedido. Autorizo las horas, pero el Sector Rojo deberá absorber su demanda rechazada.", tags: { "focus": "prestige", "risk": "overload_others" },
-          consequences: { 
-            trustChange: 15, supportChange: 10, reputationChange: 10, 
-            dialogueResponse: "Excelente visión, Director. Sabía que usted entendía la diferencia entre 'atender' y 'hacer medicina'.",
-            expected_actions: [
-              {
-                mechanic_id: "scheduler",
-                action_type: "execute_week",
-                target_ref: "global",
-                constraints: { staff_id: "andres-guzman", activity: "ADMIN", min_hours: 11 },
-                rule_id: "research_hours_rule_v1",
-                effects: {
-                  TRUE: { global: { reputation: 3 } },
-                  FALSE: { global: { reputation: -4 } }
-                }
-              }
-            ]
-          }
-        },
-        {
-          option_id: "B", cardTitle: "Rechazar Propuesta", cardEmoji: "⛔", text: "Imposible, Andrés. Tenemos lista de espera. Si quieren investigar, debe ser fuera del horario clínico o manteniendo el rendimiento.", tags: { "focus": "coverage", "risk": "blue_morale" },
-          consequences: { trustChange: -15, supportChange: -10, reputationChange: -20, dialogueResponse: "Entiendo... Priorizamos la fábrica de números sobre la ciencia. Paz Herrera estará muy decepcionada." }
-        },
-        {
-          option_id: "C", cardTitle: "Buscar Equilibrio", cardEmoji: "⚖️", text: "Busquemos un punto medio. Autorizo 5 horas para el estudio, pero deben comprometerse a una charla de capacitación para los otros sectores.", tags: { "focus": "balance", "risk": "medium" },
-          consequences: { 
-            trustChange: 5, supportChange: 0, reputationChange: 20, 
-            dialogueResponse: "Mmm. Es poco tiempo, pero acepto el trato por el bien del equipo docente. Negociemos los detalles.",
-            expected_actions: [
-              {
-                mechanic_id: "scheduler",
-                action_type: "execute_week",
-                target_ref: "global",
-                constraints: { staff_id: "andres-guzman", activity: "ADMIN", min_hours: 5 },
-                rule_id: "research_hours_rule_v1",
-                effects: {
-                  TRUE: { global: { reputation: 2 } },
-                  FALSE: { global: { reputation: -3 } }
-                }
-              },
-              {
-                mechanic_id: "scheduler",
-                action_type: "execute_week",
-                target_ref: "global",
-                constraints: { staff_id: "andres-guzman", activity: "TRAINING", min_hours: 2 },
-                rule_id: "training_commitment_rule_v1",
-                effects: {
-                  TRUE: { stakeholder: { trust: 3, support: 2 } },
-                  FALSE: { stakeholder: { trust: -3, support: -2 } }
-                }
-              }
-            ]
-          }
-        }
-      ]
+      node_id: 'INTRO_S1_SALUDO',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      dialogue: 'Este es su primer dia como director del Centro de Salud. Antes de que empiece a correr el reloj, necesito dejarlo ubicado en la realidad del centro.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: 'Partamos por el panorama general.' } }],
     },
     {
-      node_id: "AZUL_S2_ELITISM",
-      stakeholderRole: "Jefe Sector Azul",
+      node_id: 'INTRO_S1_EQUIPOS',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      dialogue: 'Hoy el Centro de Salud trabaja en tres sectores: Azul, Rojo y Amarillo. Cada uno tiene su propia jefatura, su equipo clinico y su forma de defender prioridades.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: 'Y cuando llega el momento de planificar, todos empujan para lados distintos.' } }],
+    },
+    {
+      node_id: 'INTRO_S1_PLANIFICACION',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      dialogue: 'Este viernes tiene que quedar lista la planificacion que se va a usar el lunes. Siempre chocamos con lo mismo: pocos boxes, horas clinicas y administrativas por contrato, capacitaciones y salidas a terreno compitiendo por el mismo espacio.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: 'Las jefaturas ya llegaron con sus primeras propuestas.' } }],
+    },
+    {
+      node_id: 'INTRO_S1_REVISION',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      dialogue: 'Su trabajo es revisar esas propuestas, detectar topes y decidir que costo esta dispuesto a repartir. Si algo queda mal armado hoy, el lunes lo vamos a pagar en atencion, reclamos o conflicto interno.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: 'Las mecanicas ya estan preparadas para eso.' } }],
+    },
+    {
+      node_id: 'INTRO_S1_MECANICAS',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      dialogue: 'Puede moverse por el mapa para visitar personas, revisar correos y documentos desde el PC y ajustar la propuesta semanal en la planificacion. Si le parece, hare pasar ahora a las tres jefaturas.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Continuar', cardEmoji: '➡️', text: 'Continuar', tags: {}, consequences: { dialogueResponse: 'Muy bien. Ya vienen subiendo.' } }],
+    },
 
-      stakeholderId: "andres-guzman",
-      dialogue: "Otra cosa. El TENS Javier Castro me comenta que le están pidiendo cubrir turnos en el Sector Amarillo. Me niego rotundamente. Javier está entrenado para procedimientos de alta complejidad, no para ir a repartir leche con Ríos. Necesito que blinde a mi equipo técnico.",
+    {
+      node_id: 'SCHEDULE_WAR_INTRO',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      dialogue: 'Director, traigo la propuesta del Sector Azul. Reservamos bloques criticos para sostener calidad tecnica y un espacio protegido para docencia. Si eso se cae, se cae algo mas que una agenda.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'SCHEDULE_WAR_SOTO',
+      stakeholderRole: 'Jefa Sector Rojo',
+      stakeholderId: 'marcela-soto',
+      dialogue: 'Un momento. En Rojo ya no tenemos margen para improvisar. Si alguien bloquea el box critico o vuelve a mover personal sin acuerdo, el lunes parte con problemas serios para mi sector.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'SCHEDULE_WAR_RIOS',
+      stakeholderRole: 'Jefe Sector Amarillo',
+      stakeholderId: 'daniel-rios',
+      dialogue: 'Mientras ustedes discuten criterios, en Amarillo estamos llegando con gente que no aguanta otra reagendacion. Si el lunes no aparece una salida real, me revienta la sala de espera.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'SCHEDULE_WAR_GUZMAN_RETORT',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      dialogue: 'Daniel, esto no se sostiene solo apagando incendios. Si el Centro de Salud no protege sus espacios estrategicos, despues todos pagan el costo de la mediocridad.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'SCHEDULE_WAR_SOTO_FINAL',
+      stakeholderRole: 'Jefa Sector Rojo',
+      stakeholderId: 'marcela-soto',
+      dialogue: 'Y si la planificacion sigue resolviendose a costa del mismo funcionario, despues no me pidan que mire para el lado. Eso no va a pasar.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'SCHEDULE_WAR_SOFIA_CHOICE',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      dialogue: 'Ya escucho a las tres jefaturas. Dejeme anotado con quien le conviene profundizar primero mañana, cuando empecemos a cerrar el conflicto del borrador.',
       options: [
         {
-          option_id: "A", cardTitle: "Javier Es Funcionario del Ces...", cardEmoji: "🗂️", text: "Javier es funcionario del CESFAM, no propiedad del Sector Azul. Si hay necesidad en el Amarillo, debe ir.", tags: { "style": "institutional" },
-          consequences: { 
-            trustChange: -10, supportChange: -10, reputationChange: 11, dialogueResponse: "Formalmente cierto, prácticamente un error. Desmotivará a mi mejor elemento.",
+          option_id: 'A',
+          cardTitle: 'Priorizar Azul',
+          cardEmoji: '🔵',
+          text: 'Quiero partir con Andres Guzman. Necesito entender primero la presion tecnica y politica del Sector Azul.',
+          tags: { focus: 'azul' },
+          consequences: {
+            trustChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Bien. Le avisaré que irá en la tarde.',
             expected_actions: [
               {
-                mechanic_id: "scheduler",
-                action_type: "execute_week",
-                target_ref: "global",
-                constraints: { staff_id: "javier-castro", target_sector_id: "AMARILLO" },
-                rule_id: "cross_sector_help_rule_v1",
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:andres-guzman',
+                constraints: { day: 'Wednesday', time_window: 'PM', grace_days: 0 },
+                rule_id: 'visit_priority_rule_v1',
+                ui: {
+                  title: 'Priorizar reunion con Dr. Andres Guzman - Miercoles PM',
+                  description: 'Miercoles PM - primera visita',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 5, support: 5 } },
+                  FALSE: { stakeholder: { trust: -5, support: -5 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Priorizar Amarillo',
+          cardEmoji: '🟡',
+          text: 'Quiero partir con Daniel Rios. Necesito entender primero la presion asistencial y comunitaria del Sector Amarillo.',
+          tags: { focus: 'amarillo' },
+          consequences: {
+            trustChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Bien. Le avisaré que irá en la tarde.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:daniel-rios',
+                constraints: { day: 'Wednesday', time_window: 'PM', grace_days: 0 },
+                rule_id: 'visit_priority_rule_v1',
+                ui: {
+                  title: 'Priorizar reunion con Sr. Daniel Rios - Miercoles PM',
+                  description: 'Miercoles PM - primera visita',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 5, support: 5 } },
+                  FALSE: { stakeholder: { trust: -5, support: -5 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'C',
+          cardTitle: 'Priorizar Rojo',
+          cardEmoji: '🔴',
+          text: 'Quiero partir con Marcela Soto. Necesito aclarar primero el frente normativo y laboral del Sector Rojo.',
+          tags: { focus: 'rojo' },
+          consequences: {
+            trustChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Bien. Le avisaré que irá en la tarde.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:marcela-soto',
+                constraints: { day: 'Wednesday', time_window: 'PM', grace_days: 0 },
+                rule_id: 'visit_priority_rule_v1',
+                ui: {
+                  title: 'Priorizar reunion con Enf. Marcela Soto - Miercoles PM',
+                  description: 'Miercoles PM - primera visita',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 5, support: 5 } },
+                  FALSE: { stakeholder: { trust: -5, support: -5 } },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+
+    {
+      node_id: 'INTRO_GUZMAN_NODE_1',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      dialogue: 'Director, bienvenido. Soy el Dr. Andres Guzman, jefe del Sector Azul. Llevo ocho años en este Centro de Salud y conozco exactamente que sostiene a este sector. Se lo digo desde el principio: esto funciona porque nosotros lo hacemos funcionar.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }]
+    },
+    {
+      node_id: 'INTRO_GUZMAN_NODE_2',
+      stakeholderRole: 'Enfermera Sector Azul',
+      stakeholderId: 'andres-guzman',
+      participantIds: ['andres-guzman', 'paz-herrera'],
+      dialogue: 'Director, ella es Paz Herrera. Es la enfermera que mantiene este sector en orden.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Saludar a Paz',
+          cardEmoji: '🤝',
+          text: 'Buenas tardes, enfermera Herrera. Espero que podamos trabajar bien juntos.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Mientras las prioridades queden claras, no deberiamos tener problemas.',
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Asentir',
+          cardEmoji: '🙂',
+          text: '(Asentir con un gesto cordial y dejar que Guzman siga marcando el ritmo de la reunion.)',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 0,
+            dialogueResponse: 'Perfecto. Entonces sigamos.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'INTRO_GUZMAN_NODE_3',
+      stakeholderRole: 'TENS Sector Azul',
+      stakeholderId: 'andres-guzman',
+      participantIds: ['andres-guzman', 'paz-herrera', 'javier-castro'],
+      dialogue: 'Y el es Javier Castro, nuestro TENS. Siempre disponible, incluso cuando el resto del Centro de Salud se acuerda tarde del Sector Azul.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+      {node_id: 'INTRO_GUZMAN_NODE_4',
+      stakeholderRole: 'TENS Sector Azul',
+      stakeholderId: 'javier-castro',
+      participantIds: ['andres-guzman', 'paz-herrera', 'javier-castro'],
+      dialogue: '(Javier baja la mirada antes de hablar). Hola, Director. Bienvenido.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'INTRO_GUZMAN_NODE_5',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      participantIds: ['andres-guzman', 'paz-herrera', 'javier-castro'],
+      dialogue: 'Hay algo que necesito dejar instalado desde su primer dia. Los viernes en la mañana usamos el Box 5 para el convenio con la Facultad de Medicina. No es un capricho: trae internos, prestigio y una relacion que la direccion anterior cuido bastante.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Reconocer convenio',
+          cardEmoji: '📋',
+          text: 'Entendido, doctor. Tomo nota del convenio y de la prioridad que hoy tiene para Azul.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 5,
+            reputationChange: 10,
+            dialogueResponse: 'Me alegra que lo entienda desde el principio. Es algo que no conviene interrumpir a la ligera.',
+            expected_actions: [
+              {
+                mechanic_id: 'scheduler',
+                action_type: 'execute_week',
+                target_ref: 'global',
+                constraints: { room_id: 'BOX_5', target_sector_id: 'AZUL', day_name: 'Viernes', time_window: 'AM' },
+                rule_id: 'reserve_room_for_sector_rule_v1',
+                ui: {
+                  title: 'Resguardar Box 5 para Azul - Viernes AM',
+                  description: 'Viernes AM - convenio con Facultad',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 5, support: 5 } },
+                  FALSE: { stakeholder: { trust: -5, support: -5 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Preguntar impacto',
+          cardEmoji: '❓',
+          text: 'Antes de comprometer nada, necesito saber como impacta ese uso del Box 5 en los otros sectores.',
+          tags: { ethics_level: 'postconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: -5,
+            reputationChange: 5,
+            dialogueResponse: 'Los otros sectores se adaptan. Asi ha funcionado siempre. Si alguien sale perjudicado, no ha sido Azul.',
+          },
+        },
+        {
+          option_id: 'C',
+          cardTitle: 'No comprometerse',
+          cardEmoji: '🤐',
+          text: 'Lo tendre en cuenta. Primero necesito ver el panorama completo antes de fijar una postura.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 0,
+            dialogueResponse: 'Prudente. Aunque en este caso no hay tanto que analizar como parece.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'INTRO_GUZMAN_NODE_6',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      dialogue: 'Mañana jueves en la tarde pase por mi oficina. Quiero mostrarle con calma como opera realmente el Sector Azul y por que el Box 5 no es una pelea menor. Hay cosas que no aparecen en ningun informe.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Confirmar visita',
+          cardEmoji: '📅',
+          text: 'De acuerdo. Mañana jueves en la tarde paso por su oficina.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Excelente. Lo espero en la tarde. Prefiero hablar esto antes de que la semana se cierre mal.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:andres-guzman',
+                constraints: { day: 'Thursday', time_window: 'PM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Dr. Andres Guzman - Jueves PM',
+                  description: 'Jueves PM - oficina Sector Azul',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 5, support: 5 } },
+                  FALSE: { stakeholder: { trust: -5, support: -5 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Pedir otro horario',
+          cardEmoji: '🗓️',
+          text: 'Jueves en la tarde me complica. Si es importante, podria ser el viernes en la mañana.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: -5,
+            reputationChange: -5,
+            dialogueResponse: 'No es lo ideal, pero peor seria dejarlo para la proxima semana. Si va a ser, que sea el viernes temprano.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:andres-guzman',
+                constraints: { day: 'Friday', time_window: 'AM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Dr. Andres Guzman - Viernes AM',
+                  description: 'Viernes AM - oficina Sector Azul',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 5, support: 5 } },
+                  FALSE: { stakeholder: { trust: -5, support: -5 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'C',
+          cardTitle: 'Responder evasivo',
+          cardEmoji: '⏳',
+          text: 'Lo tendre presente, doctor. Esta semana aun estoy ordenando demasiadas cosas como para comprometer otra visita.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: -5,
+            reputationChange: -5,
+            dialogueResponse: 'Entiendo. Pero cuando uno posterga este tipo de conversaciones, despues el costo lo paga otro.',
+          },
+        },
+      ],
+    },
+
+
+
+   
+  
+
+    {
+      node_id: 'ROJO_MEETING_1_INTRO',
+      stakeholderId: 'marcela-soto',
+      stakeholderRole: 'Jefa Sector Rojo',
+      participantIds: ['eduardo-naranjo', 'claudia-morales'],
+      dialogue: 'Director, bienvenido. Soy Marcela Soto, enfermera y jefa del Sector Rojo. Queria aprovechar que asumio hoy para presentarle formalmente a mi equipo clinico.',
+      options: [
+        {
+          option_id: 'NEXT',
+          cardTitle: 'Siguiente',
+          cardEmoji: '➡️',
+          text: 'Mucho gusto. Tomen asiento, por favor.',
+          tags: {},
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 0,
+            dialogueResponse: 'Gracias. Seremos breves.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'ROJO_MEETING_1_TEAM',
+      stakeholderId: 'marcela-soto',
+      stakeholderRole: 'Jefa Sector Rojo',
+      participantIds: ['eduardo-naranjo', 'claudia-morales'],
+      dialogue: 'El es el Dr. Eduardo Naranjo, nuestro medico. Y ella es Claudia Morales, nuestra TENS. Como vera, somos un equipo unido. Nuestro pilar es el apego estricto a la normativa y la proteccion de los derechos laborales. No toleramos improvisaciones que pongan en riesgo al personal.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Respeto las normas',
+          cardEmoji: '⚖️',
+          text: 'Me parece excelente, Marcela. El respeto a la normativa es fundamental para una buena gestion y cuidare de sus derechos laborales.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Me alivia escuchar eso de la nueva jefatura. Ya hemos tenido malas experiencias antes.',
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Cuidado con la rigidez',
+          cardEmoji: '⚠️',
+          text: 'Entiendo, pero espero que ese apego a la norma no se convierta en una excusa para no cumplir las metas asistenciales que nos exige el Ministerio.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: -10,
+            reputationChange: -5,
+            dialogueResponse: 'Nosotros no ponemos excusas, Director. Protegemos la salud mental de los funcionarios para poder atender de forma segura.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'ROJO_MEETING_1_REQUEST',
+      stakeholderId: 'marcela-soto',
+      stakeholderRole: 'Jefa Sector Rojo',
+      participantIds: ['eduardo-naranjo', 'claudia-morales'],
+      dialogue: 'Precisamente sobre las metas y la carga laboral queria hablarle. Tenemos un tema delicado con las auditorias que prefiero tratar con los documentos en mano. Necesito que vaya a nuestro sector mañana jueves por la tarde para una reunion formal. Puede comprometerse a iré',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Me comprometo',
+          cardEmoji: '✅',
+          text: 'De acuerdo. Agendare la visita a su sector para mañana jueves en la tarde.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 0,
+            reputationChange: 5,
+            dialogueResponse: 'Perfecto. Lo estaremos esperando con los registros listos.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:marcela-soto',
+                constraints: { day: 'Thursday', time_window: 'PM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Enf. Marcela Soto - Jueves PM',
+                  description: 'Revision formal de auditorias en Sector Rojo',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 10, support: 5 } },
+                  FALSE: { stakeholder: { trust: -15, support: -10 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'No puedo prometerlo',
+          cardEmoji: '⛔',
+          text: 'No puedo comprometerme a un dia y hora exactos todavia. Tengo que revisar mi agenda completa y las urgencias de los otros sectores primero.',
+          tags: { ethics_level: 'postconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: 0,
+            reputationChange: -5,
+            dialogueResponse: 'Entiendo. Quedaremos a la espera entonces, aunque el tema es urgente y no seremos responsables por los atrasos.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'AMARILLO_MEETING_1_INTRO',
+      stakeholderId: 'daniel-rios',
+      stakeholderRole: 'Jefe Sector Amarillo',
+      participantIds: ['ricardo-meza', 'francisca-solis'],
+      dialogue: 'Jefe. Digo... Director. Bienvenido. Soy Daniel Rios, encargado del Sector Amarillo. Pasabamos a saludarlo rapidito con los chiquillos aprovechando un huequito, que la sala de espera esta que revienta.',
+      options: [
+        {
+          option_id: 'NEXT',
+          cardTitle: 'Siguiente',
+          cardEmoji: '➡️',
+          text: 'Hola Daniel. Pasen, por favor, me alegra conocerlos aunque sea un momento.',
+          tags: {},
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 0,
+            dialogueResponse: 'Buena onda, jefe. Seremos super concretos.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'AMARILLO_MEETING_1_TEAM',
+      stakeholderId: 'daniel-rios',
+      stakeholderRole: 'Jefe Sector Amarillo',
+      participantIds: ['ricardo-meza', 'francisca-solis'],
+      dialogue: 'Mire, le presento al Dr. Ricardo Meza y a la enfermera Francisca Solis. Nosotros somos de accion, director. Aqui la necesidad sobra y la burocracia asfixia. A veces hay que saltarse un poco los protocolos para que la gente no sufra esperando.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Apoyar la acción',
+          cardEmoji: '❤️',
+          text: 'Lo entiendo, Daniel. La prioridad siempre debe ser el bienestar de la comunidad. Buscaremos la forma de agilizar los procesos para que puedan trabajar mejor.',
+          tags: { ethics_level: 'postconvencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 5,
+            reputationChange: 10,
+            dialogueResponse: 'Eso queriamos escuchar. Alguien que tenga calle y entienda la urgencia real.',
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Exigir protocolos',
+          cardEmoji: '📘',
+          text: 'Valoro su vocacion, Daniel, pero no podemos saltarnos las normativas. Un error por improvisar nos costaria un sumario a todos.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: -10,
+            reputationChange: -10,
+            dialogueResponse: 'Pucha, jefe... Si nos ponemos a llenar papeles por cada gasa, la mitad del barrio se nos queda sin atencion.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'AMARILLO_MEETING_1_REQUEST',
+      stakeholderId: 'daniel-rios',
+      stakeholderRole: 'Jefe Sector Amarillo',
+      participantIds: ['ricardo-meza', 'francisca-solis'],
+      dialogue: 'Justo por esa urgencia queriamos hablarle. Tenemos un operativo en terreno y nos faltan insumos criticos. Necesito que vaya a nuestro sector mañana jueves en la mañana para mostrarle la realidad en vivo. Contamos con usted?',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Iré mañana',
+          cardEmoji: '✅',
+          text: 'Agendado, Daniel. Mañana jueves durante la mañana estare en su sector para revisar esos insumos.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 5,
+            supportChange: 0,
+            reputationChange: 5,
+            dialogueResponse: 'Excelente. Vaya con zapatos comodos, que le vamos a mostrar todo el despliegue.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:daniel-rios',
+                constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Sr. Daniel Rios - Jueves AM',
+                  description: 'Revision de operativo e insumos del Sector Amarillo',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 10, support: 5 } },
+                  FALSE: { stakeholder: { trust: -15, support: -10 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'No puedo prometerlo',
+          cardEmoji: '⛔',
+          text: 'No puedo asegurar mi presencia, Daniel. Hay otras urgencias administrativas que debo resolver primero antes de bloquear mi mañana.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: -10,
+            supportChange: -5,
+            reputationChange: -5,
+            dialogueResponse: 'Ya veo... urgencias administrativas. Bueno, nosotros seguiremos atajando los problemas solos entonces.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'AGENDA_CRISIS_THURS_1',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      dialogue: 'Director, buen dia. Revise las propuestas que le dejaron ayer las jefaturas. Si usted aprueba todo tal como esta, la planificacion de la proxima semana entra en choque desde el primer bloque.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AGENDA_CRISIS_THURS_2',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      dialogue: 'Primer tope critico: Lunes AM en el Box 5. Andres Guzman lo deja para su bloque clinico, pero Eduardo Naranjo aparece agendado en el mismo box para Rojo. Si no lo corrige, el lunes parten peleando el espacio.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AGENDA_CRISIS_THURS_3',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      dialogue: 'Segundo: Miercoles PM en el Box 6. Marcela Soto lo deja tomado para Rojo, pero Francisca Solis tambien quedo puesta ahi desde Amarillo. Ese cruce no se va a resolver solo.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AGENDA_CRISIS_THURS_4',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      dialogue: 'Y tercero: Viernes AM en el Box 3. Paz Herrera y Javier Castro quedaron al mismo tiempo en el mismo box. Azul no tiene margen para absorber otro error de coordinacion interna.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AGENDA_CRISIS_THURS_5',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      dialogue: 'Tiene hasta mañana viernes en la tarde para corregir esto manualmente en la Planificacion. Si llega la hora de enviar el borrador con estos choques adentro, yo igual tendre que mandarlo.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AGENDA_CRISIS_THURS_6',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      dialogue: 'Le sugiero usar esta misma mañana para empezar a negociar en terreno. A quien le doy el aviso de que usted va en camino ahora mismo?',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Ir al Sector Azul',
+          cardEmoji: '🔵',
+          text: 'Ire a ver al Dr. Guzman. Entre el Box 5 del lunes y el cruce del viernes, Azul ya tiene dos problemas abiertos.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 5,
+            dialogueResponse: 'Avisare al Dr. Guzman que va para alla. Suerte intentando moverle prioridades a Azul.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:andres-guzman',
+                constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Dr. Andres Guzman - Jueves AM',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 10, support: 5 } },
+                  FALSE: { stakeholder: { trust: -15, support: -10 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Ir al Sector Rojo',
+          cardEmoji: '🔴',
+          text: 'Ire con Marcela Soto. Necesito dimensionar cuanto margen real tiene Rojo para mover auditorias y box clinicos.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 5,
+            dialogueResponse: 'Buena idea. Le dire a Marcela Soto que la visita ahora.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:marcela-soto',
+                constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Enf. Marcela Soto - Jueves AM',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 10, support: 5 } },
+                  FALSE: { stakeholder: { trust: -15, support: -10 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'C',
+          cardTitle: 'Ir al Sector Amarillo',
+          cardEmoji: '🟡',
+          text: 'Ire con Daniel Rios. Si Amarillo sigue empujando box compartidos a mitad de semana, el resto del tablero se va a seguir desordenando.',
+          tags: { ethics_level: 'postconvencional' },
+          consequences: {
+            trustChange: 0,
+            supportChange: 0,
+            reputationChange: 5,
+            dialogueResponse: 'Entendido. Rios va a notar que priorizo el frente mas expuesto hacia comunidad. Le aviso que va para alla.',
+            expected_actions: [
+              {
+                mechanic_id: 'map',
+                action_type: 'visit_stakeholder',
+                target_ref: 'stakeholder:daniel-rios',
+                constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
+                rule_id: 'visit_stakeholder_rule_v1',
+                ui: {
+                  title: 'Visitar a Sr. Daniel Rios - Jueves AM',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 10, support: 5 } },
+                  FALSE: { stakeholder: { trust: -15, support: -10 } },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'AZUL_NEGOTIATION_1',
+      stakeholderId: 'andres-guzman',
+      stakeholderRole: 'Jefe Sector Azul',
+      participantIds: ['paz-herrera'],
+      dialogue: 'Director, lo estabamos esperando. Supongo que ya vio el desastre logistico que intentan armar los otros sectores en la planificacion.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AZUL_NEGOTIATION_2',
+      stakeholderId: 'andres-guzman',
+      stakeholderRole: 'Jefe Sector Azul',
+      participantIds: ['paz-herrera'],
+      dialogue: 'Ire directo al grano. El Box 5 del viernes en la mañana es innegociable. Tenemos el convenio con la Universidad y pacientes complejos citados. No voy a mandar alumnos ni pacientes al pasillo porque Eduardo Naranjo quiera ese mismo box para Rojo.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Asegurar Box 5',
+          cardEmoji: '✅',
+          text: 'Tiene razon, doctor. El convenio universitario es estrategico para el Centro de Salud. Les garantizo el Box 5 el viernes en la mañana.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 10,
+            supportChange: 5,
+            reputationChange: 10,
+            dialogueResponse: 'Una decision sensata, Director. Sabia que podiamos entendernos en terminos de calidad.',
+            expected_actions: [
+              {
+                mechanic_id: 'scheduler',
+                action_type: 'execute_week',
+                target_ref: 'global',
+                constraints: { room_id: 'BOX_5', target_sector_id: 'AZUL', day_name: 'Viernes', time_window: 'AM' },
+                rule_id: 'reserve_room_for_sector_rule_v1',
+                ui: {
+                  title: 'Resguardar Box 5 para Dr. Andres Guzman - Viernes AM',
+                },
+                effects: {
+                  TRUE: { stakeholder: { trust: 10, support: 5 } },
+                  FALSE: { stakeholder: { trust: -15, support: -15 } },
+                },
+              },
+            ],
+          },
+        },
+        {
+          option_id: 'B',
+          cardTitle: 'Priorizar a Naranjo',
+          cardEmoji: '⚖️',
+          text: 'La salud ocupacional de Eduardo Naranjo tambien pesa. Si necesita ese box por prescripcion, Azul va a tener que adaptarse.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: -10,
+            supportChange: -10,
+            reputationChange: -5,
+            dialogueResponse: 'Me esta diciendo que va a sacrificar una alianza institucional por darle el gusto a Rojo. Tomo nota.',
+          },
+        },
+        {
+          option_id: 'C',
+          cardTitle: 'Seguir evaluando',
+          cardEmoji: '⏳',
+          text: 'Todavia no voy a garantizarles nada. Necesito revisar toda la carga del viernes antes de cerrar los boxes definitivos.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: 0,
+            reputationChange: -5,
+            dialogueResponse: 'No hay mucho que evaluar. Si nos quita el box, yo mismo llamare a la Universidad para explicarles su decision.',
+          },
+        },
+      ],
+    },
+    {
+      node_id: 'AZUL_NEGOTIATION_3',
+      stakeholderId: 'paz-herrera',
+      stakeholderRole: 'Enfermera Sector Azul',
+      participantIds: ['andres-guzman'],
+      dialogue: 'Ese no es nuestro unico problema. El lunes en la mañana tengo curaciones avanzadas de pie diabetico. Pero Daniel Rios ya dejo entrever que quiere llevarse a Javier Castro para reforzar terreno.',
+      options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+    },
+    {
+      node_id: 'AZUL_NEGOTIATION_4',
+      stakeholderId: 'paz-herrera',
+      stakeholderRole: 'Enfermera Sector Azul',
+      participantIds: ['andres-guzman'],
+      dialogue: 'Yo no puedo hacer procedimientos de alta complejidad sola, Director. Exijo que el lunes en la mañana Javier Castro se quede con Azul en el Centro de Salud. Amarillo tendra que arreglarse sin el.',
+      options: [
+        {
+          option_id: 'A',
+          cardTitle: 'Retener a Javier',
+          cardEmoji: '🏥',
+          text: 'De acuerdo, Paz. Las curaciones complejas son prioridad clinica. El lunes en la mañana Javier Castro se queda con Azul.',
+          tags: { ethics_level: 'convencional' },
+          consequences: {
+            trustChange: 10,
+            supportChange: 5,
+            reputationChange: 5,
+            dialogueResponse: 'Perfecto. Le avisare a Javier que el lunes se queda con nosotros.',
+            expected_actions: [
+              {
+                mechanic_id: 'scheduler',
+                action_type: 'execute_week',
+                target_ref: 'global',
+                constraints: { staff_id: 'javier-castro', target_sector_id: 'AZUL', day_name: 'Lunes', time_window: 'AM' },
+                rule_id: 'keep_staff_in_sector_rule_v1',
+                ui: {
+                  title: 'Mantener a Javier Castro con Sector Azul - Lunes AM',
+                },
                 effects: {
                   TRUE: { stakeholder: { trust: 10, support: 10 } },
-                  FALSE: { stakeholder: { trust: -10, support: -10 } }
-                }
-              }
-            ]
-          }
+                  FALSE: { stakeholder: { trust: -15, support: -10 } },
+                },
+              },
+            ],
+          },
         },
         {
-          option_id: "B", cardTitle: "Tiene Razón", cardEmoji: "🗂️", text: "Tiene razón. Mantengamos la especialización de Javier en el Azul. Buscaré un reemplazo externo para el Amarillo.", tags: { "style": "silo" },
-          consequences: { trustChange: 10, supportChange: 10, dialogueResponse: "Gracias. La especialización es la clave de la eficiencia." }
-        }
-      ]
-    },
-
-    // --- Enf. Soto (SECTOR ROJO) ---
-    {
-      node_id: "ROJO_S1_BURNOUT_BLOCK",
-      stakeholderRole: "Jefa Sector Rojo",
-
-      stakeholderId: "marcela-soto",
-      dialogue: "Director, he visto las metas de gestión. Nos piden aumentar un 15% los controles cardiovasculares. Le informo que mi sector NO se sumará a esa meta. El Dr. Naranjo ya está al límite y Claudia, mi TENS, me ha mostrado indicadores claros de riesgo psicosocial. No voy a sacrificar a mi gente por un bono.",
-      options: [
-        {
-          option_id: "A", cardTitle: "Ajuste Presupuestario", cardEmoji: "💰", text: "Marcela, las metas vienen del Servicio de Salud, no son opcionales. Debemos cumplirlas o nos cortan el presupuesto.", tags: { "focus": "compliance_external" },
-          consequences: { trustChange: -20, supportChange: -15, dialogueResponse: "Entonces prepárese para las licencias médicas. Si usted no nos cuida, nos cuidaremos nosotros bajo el amparo legal." }
+          option_id: 'B',
+          cardTitle: 'Apoyar operativo',
+          cardEmoji: '🚶‍♂️',
+          text: 'El operativo comunitario de Amarillo tambien es una urgencia sanitaria. Si hace falta, tendra que resolver esas curaciones con menos apoyo.',
+          tags: { ethics_level: 'postconvencional' },
+          consequences: {
+            trustChange: -10,
+            supportChange: -10,
+            reputationChange: 5,
+            dialogueResponse: 'Eso es una negligencia administrativa. Si un paciente se complica por falta de manos, lo voy a dejar por escrito.',
+          },
         },
         {
-          option_id: "B", cardTitle: "Comprendo la Preocupación", cardEmoji: "🗂️", text: "Comprendo la preocupación. Hagamos una cosa: congelemos las auditorías internas por este mes para liberar tiempo clínico para los controles.", tags: { "focus": "negotiation" },
-          consequences: { trustChange: 5, supportChange: 5, dialogueResponse: "¿Suspender las auditorías? Es riesgoso... pero si me lo da por escrito, podría liberar algo de carga del Dr. Naranjo." }
+          option_id: 'C',
+          cardTitle: 'Buscar alternativas',
+          cardEmoji: '🔄',
+          text: 'Voy a intentar cuadrar los horarios, pero no prometo nada. Quizas tenga que mover parte de sus curaciones.',
+          tags: { ethics_level: 'preconvencional' },
+          consequences: {
+            trustChange: -5,
+            supportChange: -5,
+            reputationChange: -5,
+            dialogueResponse: 'Mis curaciones no se mueven, Director. Le sugiero que lo resuelva antes de que llegue el lunes.',
+          },
         },
-        {
-          option_id: "C", cardTitle: "Resolver Conflicto", cardEmoji: "🤝", text: "Tienes razón. La salud mental del equipo es prioridad. Ajustaré las metas del Rojo y pediré al Azul y Amarillo que compensen.", tags: { "focus": "welfare" },
-          consequences: { trustChange: 20, supportChange: 15, dialogueResponse: "Gracias, Director. Claudia verá esto como una gran victoria sindical. Cuente con mi lealtad." }
-        }
-      ]
+      ],
     },
-    {
-      node_id: "ROJO_S2_PROTOCOL",
-      stakeholderRole: "Jefa Sector Rojo",
-
-      stakeholderId: "marcela-soto",
-      dialogue: "Me han llegado rumores de que el Sector Amarillo está entregando medicamentos a domicilio sin la receta física completa, solo con fotos de WhatsApp. Eso es ilegal. Exijo que instruya un sumario administrativo contra Ríos, o yo misma tendré que hacer la denuncia a Contraloría.",
-      options: [
-        {
-          option_id: "A", cardTitle: "Aplicar Protocolo", cardEmoji: "📘", text: "Proceda con la denuncia si lo estima conveniente, Marcela. La ley es la ley.", tags: { "style": "legalistic" },
-          consequences: { trustChange: 10, supportChange: 5, dialogueResponse: "Correcto. La institucionalidad debe protegerse." }
-        },
-        {
-          option_id: "B", cardTitle: "Marcela, no Escales Esto", cardEmoji: "🗂️", text: "Por favor, Marcela, no escales esto. Ríos solo intenta ayudar a postrados. Hablaré con él para regularizarlo.", tags: { "style": "mediator" },
-          consequences: { trustChange: -10, supportChange: 0, dialogueResponse: "La 'buena intención' no nos salvará de un juicio por mala praxis. Queda bajo su responsabilidad." }
-        }
-      ]
-    },
-
-    // --- Sr. Ríos (SECTOR AMARILLO) ---
-    {
-      node_id: "AMARILLO_S1_EMERGENCY",
-      stakeholderRole: "Jefe Sector Amarillo",
-
-      stakeholderId: "daniel-rios",
-      dialogue: "¡Jefe! Perdón que entre así, pero tengo una crisis. Se nos inundó la sede vecinal donde hacemos los controles de niños. Necesito usar la Sala de Reuniones del Sector Azul hoy mismo. El Dr. Guzmán me cerró la puerta en la cara diciendo que tiene un 'seminario'. ¡Tengo a las mamás con las guaguas afuera bajo la lluvia!",
-      options: [
-        {
-          option_id: "A", cardTitle: "Asignar Recursos", cardEmoji: "🧩", text: "Daniel, calma. Ordenaré a Guzmán que abra la sala inmediatamente. La atención de pacientes es prioridad sobre cualquier seminario.", tags: { "focus": "community" },
-          consequences: { 
-            trustChange: 20, supportChange: 15, reputationChange: 10, dialogueResponse: "¡Grande Jefe! Sabía que usted tenía calle. Voy corriendo a avisarle a la Francisca.",
-            expected_actions: [
-              {
-                mechanic_id: "scheduler",
-                action_type: "execute_week",
-                target_ref: "global",
-                constraints: { room_id: "BOX_1", target_sector_id: "AMARILLO", time_window: "AM" },
-                rule_id: "emergency_room_rule_v1",
-                effects: {
-                  TRUE: { global: { reputation: 4 } },
-                  FALSE: { global: { reputation: -4 } }
-                }
-              }
-            ]
-          }
-        },
-        {
-          option_id: "B", cardTitle: "Rechazar Propuesta", cardEmoji: "⛔", text: "No podemos interrumpir al Azul así. Dile al Dr. Meza que atienda en el pasillo o reagende. No podemos desvestir un santo para vestir otro.", tags: { "focus": "order" },
-          consequences: { trustChange: -20, supportChange: -20, reputationChange: -15, dialogueResponse: "¿Reagendar? ¿Con lluvia? Jefe, la Francisca se me va a poner a llorar de rabia. Esto va a salir mal." }
-        },
-        {
-          option_id: "C", cardTitle: "Asignar Recursos", cardEmoji: "🧩", text: "Usa mi oficina y la sala de espera central. Improvisemos, pero no generemos una guerra con Guzmán hoy.", tags: { "focus": "improvisation" },
-          consequences: { trustChange: 10, supportChange: 5, dialogueResponse: "Ya, vale. Es incómodo, pero salva el día. Gracias por apañar." }
-        }
-      ]
-    },
-    {
-      node_id: "AMARILLO_S2_DOCTOR_FLIGHT",
-      stakeholderRole: "Jefe Sector Amarillo",
-
-      stakeholderId: "daniel-rios",
-      dialogue: "Tengo otro drama. El Dr. Meza está chato. Dice que sin ecógrafo portátil no puede hacer bien las visitas domiciliarias. Amenazó con renunciar mañana. Necesito que compremos uno urgente o que le quitemos el que tiene guardado la Enf. Soto en el Rojo 'por si acaso'.",
-      options: [
-        {
-          option_id: "A", cardTitle: "Asignar Recursos", cardEmoji: "🧩", text: "Quítaselo al Rojo. Si Soto lo tiene guardado y no lo usa, es un desperdicio. La prioridad es retener a Meza.", tags: { "action": "reallocate" },
-          consequences: { trustChange: 15, supportChange: 10, dialogueResponse: "¡Eso! Meza se queda feliz. Soto va a gritar, pero que grite." }
-        },
-        {
-          option_id: "B", cardTitle: "Ajuste Presupuestario", cardEmoji: "💰", text: "No hay presupuesto para compra ni voy a pelear con Soto. Dile a Meza que se adapte a lo que hay.", tags: { "action": "deny" },
-          consequences: { trustChange: -10, supportChange: -15, dialogueResponse: "Pucha... entonces vaya buscando otro médico, porque a este lo perdemos fijo." }
-        }
-      ]
-    },
-
-    // --- NEW INEVITABLE EVENTS SCENARIOS ---
-    {
-      node_id: "INTRO_S1_SALUDO",
-      stakeholderRole: "Asistente Administrativa",
-      stakeholderId: "sofia-castro",
-      dialogue: "Este es su primer día de trabajo, ¡Qué emoción!.  Primero, necesito ponerlo al día antes de que tome el control del CESFAM.",
-      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Primero, el panorama general." } }]
-    },
-    {
-      node_id: "INTRO_S1_EQUIPOS",
-      stakeholderRole: "Asistente Administrativa",
-      stakeholderId: "sofia-castro",
-      dialogue: "Hoy el CESFAM está organizado en tres sectores: Azul, Rojo y Amarillo. Cada uno tiene su jefe de sector y su propio equipo clínico. Ya prepararon propuestas de planificación para terminar esta semana sin desordenar la próxima.",
-      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "El problema es que planificar aquí nunca es simple." } }]
-    },
-    {
-      node_id: "INTRO_S1_PLANIFICACION",
-      stakeholderRole: "Asistente Administrativa",
-      stakeholderId: "sofia-castro",
-      dialogue: "Para este viernes debe quedar lista la planificación que usaremos el lunes. El problema es siempre el mismo: faltan box para cubrir las consultas, hay horas administrativas y clínicas que respetar por contrato, además de capacitación y salidas a terreno que se van turnando con el uso de los box.",
-      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "Los jefes ya adelantaron parte del trabajo." } }]
-    },
-    {
-      node_id: "INTRO_S1_REVISION",
-      stakeholderRole: "Asistente Administrativa",
-      stakeholderId: "sofia-castro",
-      dialogue: "Lo que usted debe hacer ahora es revisar las planificaciones que trajeron los jefes de sector y detectar topes, sobrecargas o incumplimientos de horas. Si algo queda mal armado hoy, el lunes lo pagaremos con atraso, reclamos o conflicto interno. Por eso, debe hablar con cada persona dentro del equipo para resolver esto.",
-      options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "En cuanto a las mecánicas, el flujo sigue igual." } }]
-    },
-    {
-      node_id: "INTRO_S1_MECANICAS",
-      stakeholderRole: "Asistente Administrativa",
-      stakeholderId: "sofia-castro",
-      dialogue: "Puede acceder al mapa cliqueando en la puerta de la derecha. Los correos y la planificación dentro del pc. También si se pierde, puede usar los tabs de la izquierda. Las visitas consumen bloques, la agenda permite revisar topes y los correos o documentos le dan contexto antes de decidir. Si le parece, haré pasar a los tres jefes para que expongan sus propuestas.",
-      options: [{ option_id: "NEXT", cardTitle: "Continuar", cardEmoji: "➡️", text: "Continuar", tags: {}, consequences: { dialogueResponse: "Haré pasar a las jefaturas ahora mismo." } }]
-    },
-    // 2. CRISIS FARMACIA
-    {
-        node_id: "CRISIS_FARM_S1",
-        stakeholderRole: "Asistente Administrativa",
-
-        stakeholderId: "sofia-castro",
-      dialogue: "¡Director! Emergencia. Farmacia reporta quiebre de stock de insulina y losartán. El camión de la central de abastecimiento no llegará hasta en 3 días. Hay pacientes diabéticos reclamando en el hall. ¿Qué hacemos?",
-        options: [
-            {
-                option_id: "A", cardTitle: "Rechazar Propuesta", cardEmoji: "⛔", text: "Compra de emergencia con caja chica en farmacia privada. Es caro, pero no podemos dejar a los pacientes sin insulina.", tags: { "action": "emergency_buy" },
-                consequences: { budgetChange: -50000, reputationChange: 10, dialogueResponse: "Es muy costoso y Finanzas nos auditará, pero calmará a la gente. Voy a gestionar la compra." }
-            },
-            {
-                option_id: "B", cardTitle: "Ajuste Presupuestario", cardEmoji: "💰", text: "Que los médicos ajusten tratamientos o den muestras médicas. No tenemos presupuesto para comprar afuera.", tags: { "action": "adjust" },
-                consequences: { reputationChange: -20, trustChange: -5, dialogueResponse: "Los médicos van a furiosos y los pacientes más aún. Prepárese para reclamos en la OIRS." }
-            }
-        ]
-    },
-
-    // 3. INSPECCION MINISTERIAL
-    {
-        node_id: "INSPECCION_MIN_S1",
-        stakeholderRole: "Jefa Sector Rojo",
-
-        stakeholderId: "marcela-soto",
-      dialogue: "Director, acaba de llegar una auditoría sorpresa del Ministerio. Quieren revisar los registros de IAAS (Infecciones). Mis registros en el Rojo están impecables, pero sé que el Sector Amarillo es un desastre en el papeleo. Si revisan allá, nos sumariarán a todos.",
-        options: [
-            {
-                option_id: "A", cardTitle: "Usted Es la Experta", cardEmoji: "🗂️", text: "Marcela, usted es la experta. Tome el control, vaya al Amarillo y ordene lo que pueda antes de que entren. Tiene autoridad total.", tags: { "action": "delegate_power" },
-                consequences: { trustChange: 20, supportChange: 10, dialogueResponse: "Entendido. Pondré orden, aunque a Ríos no le guste. Gracias por la confianza." }
-            },
-            {
-                option_id: "B", cardTitle: "Yo Recibiré los Auditores Tra...", cardEmoji: "🗂️", text: "Yo recibiré a los auditores y trataré de dilatar la visita al Amarillo. Usted quédese en su sector.", tags: { "action": "shield" },
-                consequences: { trustChange: -10, supportChange: 0, reputationChange: -5, dialogueResponse: "Es arriesgado, Director. Si encuentran algo, su cabeza será la que ruede, no la mía." }
-            }
-        ]
-    },
-
-    // 4. GUERRA DE HORARIOS (SCHEDULE WAR) - BROKEN DOWN FOR CINEMATIC EFFECT
-    {
-        node_id: "SCHEDULE_WAR_INTRO",
-        stakeholderRole: "Jefe Sector Azul",
-
-        stakeholderId: "andres-guzman",
-      dialogue: "Director, buenos días. He adelantado trabajo: aquí está la planificación del Sector Azul. Reservé el Box 5 todas las mañanas para el equipo de investigación. Tenemos el convenio universitario respirándonos en la nuca.",
-        options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "" } }]
-    },
-    {
-        node_id: "SCHEDULE_WAR_SOTO",
-        stakeholderRole: "Jefa Sector Rojo",
-
-        stakeholderId: "marcela-soto",
-      dialogue: "Un momento, Andrés. Director, en mi propuesta prioricé los bloques administrativos. Estamos atrasados con las auditorías IAAS. Además, vi que Andrés bloqueó el Box 5... eso es imposible. Mis TENS lo necesitan para curaciones complejas.",
-        options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "" } }]
-    },
-    {
-        node_id: "SCHEDULE_WAR_RIOS",
-        stakeholderRole: "Jefe Sector Amarillo",
-
-        stakeholderId: "daniel-rios",
-      dialogue: "Con todo respeto, mientras ustedes pelean por auditorías y papers, la sala de espera está que explota. Mi propuesta es simple: todos a atender. Necesito Box, cualquiera, ahora. Si priorizamos 'investigación' sobre la gente, los vecinos quemarán el CESFAM.",
-        options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "" } }]
-    },
-    {
-        node_id: "SCHEDULE_WAR_GUZMAN_RETORT",
-        stakeholderRole: "Jefe Sector Azul",
-
-        stakeholderId: "andres-guzman",
-      dialogue: "Daniel, por favor. Sin investigación no hay prestigio, y sin prestigio no hay fondos. Es visión estratégica.",
-        options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "" } }]
-    },
-    {
-        node_id: "SCHEDULE_WAR_SOTO_FINAL",
-        stakeholderRole: "Jefa Sector Rojo",
-
-        stakeholderId: "marcela-soto",
-      dialogue: "Y sin auditoría nos cierran el CESFAM. Es legalidad. Esa es mi propuesta, Director.",
-        options: [{ option_id: "NEXT", cardTitle: "Siguiente", cardEmoji: "➡️", text: "Siguiente", tags: {}, consequences: { dialogueResponse: "" } }]
-    },
-    {
-        node_id: "SCHEDULE_WAR_SOFIA_CHOICE",
-        stakeholderRole: "Asistente Administrativa",
-
-        stakeholderId: "sofia-castro",
-      dialogue: "Ya escuchó a los tres jefes. ¿Con cuál quiere reunirse primero para profundizar y ajustar su planificación?",
-        options: [
-            {
-                option_id: "A", cardTitle: "Ir con Guzmán primero", cardEmoji: "🗂️", text: "Quiero empezar con el Dr. Guzmán. Necesito entender primero la presión técnica y académica del Sector Azul.", tags: { "focus": "technical" },
-                consequences: { 
-                  trustChange: 5,
-                  dialogueResponse: "Entendido. Avisaré al Dr. Guzmán que será el primero en su agenda.",
-                  expected_actions: [
-                    {
-                      mechanic_id: "map",
-                      action_type: "visit_stakeholder",
-                      target_ref: "stakeholder:andres-guzman",
-                      constraints: { day: "Wednesday", grace_days: 2 },
-                      rule_id: "visit_priority_rule_v1",
-                      effects: {
-                        TRUE: { stakeholder: { trust: 2, support: 1 } },
-                        FALSE: { stakeholder: { trust: -2, support: -1 } }
-                      }
-                    }
-                  ]
-                }
-            },
-            {
-                option_id: "B", cardTitle: "Ir con Ríos primero", cardEmoji: "🗂️", text: "Quiero empezar con Daniel Ríos. Necesito ver primero la presión asistencial y territorial del Sector Amarillo.", tags: { "focus": "social" },
-                consequences: {
-                  trustChange: 5,
-                  dialogueResponse: "Bien. El Sr. Ríos se alegrará de saber que lo verá primero.",
-                  expected_actions: [
-                    {
-                      mechanic_id: "map",
-                      action_type: "visit_stakeholder",
-                      target_ref: "stakeholder:daniel-rios",
-                      constraints: { day: "Wednesday", grace_days: 2 },
-                      rule_id: "visit_priority_rule_v1",
-                      effects: {
-                        TRUE: { stakeholder: { trust: 2, support: 1 } },
-                        FALSE: { stakeholder: { trust: -2, support: -1 } }
-                      }
-                    }
-                  ]
-                }
-            },
-            {
-                option_id: "C", cardTitle: "Ir con Soto primero", cardEmoji: "🗂️", text: "Quiero empezar con la Enf. Soto. Necesito ordenar primero el frente normativo y operativo del Sector Rojo.", tags: { "focus": "normative" },
-                consequences: {
-                  trustChange: 5,
-                  dialogueResponse: "Prudente decisión. Le avisaré a la Enf. Soto que será la primera en pasar.",
-                  expected_actions: [
-                    {
-                      mechanic_id: "map",
-                      action_type: "visit_stakeholder",
-                      target_ref: "stakeholder:marcela-soto",
-                      constraints: { day: "Wednesday", grace_days: 2 },
-                      rule_id: "visit_priority_rule_v1",
-                      effects: {
-                        TRUE: { stakeholder: { trust: 2, support: 1 } },
-                        FALSE: { stakeholder: { trust: -2, support: -1 } }
-                      }
-                    }
-                  ]
-                }
-            }
-        ]
-    }
   ],
   sequences: [
-    // --- INEVITABLE EVENTS ---
-
     {
-        sequence_id: "OFFICE_INTRO_SEQ",
-        stakeholderRole: "Asistente Administrativa",
-
-        stakeholderId: "sofia-castro",
-    initialDialogue: "Director {playerName}. Soy Sofía Castro, su asistente administrativa. Antes de que el reloj empiece a correr, necesito dejarlo orientado.",
-        nodes: ["INTRO_S1_SALUDO","INTRO_S1_EQUIPOS","INTRO_S1_PLANIFICACION","INTRO_S1_REVISION","INTRO_S1_MECANICAS"],
-        finalDialogue: "Perfecto. Ahora que tiene el contexto, haré pasar a los jefes de sector.",
-        consumesTime: false,
-        triggerMap: { day: 3, slot: 'mañana' }, 
-        isInevitable: true
-    },
-
-    {
-        sequence_id: "SCHEDULE_WAR_SEQ",
-        stakeholderRole: "Jefe Sector Azul",
-
-        stakeholderId: "andres-guzman",
-    initialDialogue: "(Los tres jefes entran a su oficina con sus planificaciones semanales. El ambiente es cortés, pero claramente tenso).",
-        nodes: ["SCHEDULE_WAR_INTRO", "SCHEDULE_WAR_SOTO", "SCHEDULE_WAR_RIOS", "SCHEDULE_WAR_GUZMAN_RETORT", "SCHEDULE_WAR_SOTO_FINAL", "SCHEDULE_WAR_SOFIA_CHOICE"],
-        finalDialogue: "Muy bien. Ya quedó marcada su prioridad inicial. El reloj seguirá corriendo en cuanto retome el control.",
-        consumesTime: false,
-        triggerMap: { day: 3, slot: 'mañana' }, 
-        isInevitable: true
-    },
-
-    {
-        sequence_id: "CRISIS_FARMACIA",
-        stakeholderRole: "Asistente Administrativa",
-
-        stakeholderId: "sofia-castro",
-    initialDialogue: "Director, disculpe la interrupción abrupta, pero tenemos una situación crítica en Farmacia.",
-        nodes: ["CRISIS_FARM_S1"],
-        finalDialogue: "Procederé con su instrucción inmediatamente.",
-        triggerMap: { day: 6, slot: 'tarde' }, 
-        isInevitable: true
+      sequence_id: 'OFFICE_INTRO_SEQ',
+      stakeholderRole: 'Asistente Administrativa',
+      stakeholderId: 'sofia-castro',
+      initialDialogue: 'Director {playerName}. Soy Sofia Castro, su asistente administrativa. Antes de que empiece a correr el reloj, necesito dejarlo orientado.',
+      nodes: ['INTRO_S1_SALUDO', 'INTRO_S1_EQUIPOS', 'INTRO_S1_PLANIFICACION', 'INTRO_S1_REVISION', 'INTRO_S1_MECANICAS'],
+      finalDialogue: 'Perfecto. Ahora que tiene el contexto, hare pasar a las jefaturas.',
+      consumesTime: false,
+      triggerMap: { day: 3, slot: 'mañana' },
+      isInevitable: true,
     },
     {
-        sequence_id: "INSPECCION_MINISTERIAL",
-        stakeholderRole: "Jefa Sector Rojo",
-
-        stakeholderId: "marcela-soto",
-    initialDialogue: "Director, no mire ahora, pero acaba de entrar una comitiva del Ministerio. Es una auditoría sorpresa.",
-        nodes: ["INSPECCION_MIN_S1"],
-        finalDialogue: "Bien, actuaré rápido para salvar la evaluación del CESFAM.",
-        triggerMap: { day: 5, slot: 'tarde' }, 
-        isInevitable: true
-    },
-
-    // --- STANDARD SEQUENCES ---
-    {
-      sequence_id: "AZUL_MEETING_1",
-      stakeholderRole: "Jefe Sector Azul",
-
-      stakeholderId: "andres-guzman",
-    initialDialogue: "Director, bienvenido. Espero que su gestión esté a la altura de la complejidad técnica de este centro. En el Sector Azul nos enorgullecemos de nuestra excelencia académica. Tenemos asuntos estratégicos que definir.",
-      nodes: ["AZUL_S1_RESEARCH_TIME", "AZUL_S2_ELITISM"],
-      finalDialogue: "Bien. Veremos si sus decisiones rinden frutos en los indicadores de calidad. Con permiso, tengo una videoconferencia con la Facultad."
+      sequence_id: 'SCHEDULE_WAR_SEQ',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      initialDialogue: '(Las tres jefaturas entran con sus planificaciones.)',
+      nodes: ['SCHEDULE_WAR_INTRO', 'SCHEDULE_WAR_SOTO', 'SCHEDULE_WAR_RIOS', 'SCHEDULE_WAR_GUZMAN_RETORT', 'SCHEDULE_WAR_SOTO_FINAL', 'SCHEDULE_WAR_SOFIA_CHOICE'],
+      finalDialogue: 'Muy bien. Gracias por su tiempo, director',
+      consumesTime: false,
+      triggerMap: { day: 3, slot: 'mañana' },
+      isInevitable: true,
     },
     {
-      sequence_id: "ROJO_MEETING_1",
-      stakeholderRole: "Jefa Sector Rojo",
-
-      stakeholderId: "marcela-soto",
-    initialDialogue: "Buenos días, Director. Soy Marcela Soto. Le adelanto que en el Sector Rojo trabajamos estrictamente apegados a la normativa vigente. No toleraré improvisaciones que pongan en riesgo a mi equipo.",
-      nodes: ["ROJO_S1_BURNOUT_BLOCK", "ROJO_S2_PROTOCOL"],
-      finalDialogue: "Dejaré constancia de esta reunión en el acta interna. Mientras respetemos los derechos de los funcionarios, nos llevaremos bien."
+      sequence_id: 'AZUL_MEETING_1',
+      stakeholderRole: 'Jefe Sector Azul',
+      stakeholderId: 'andres-guzman',
+      initialDialogue: 'Director, antes de entrar al detalle del conflicto, quiero que conozca como se sostiene nuestro equipo.',
+      nodes: ['INTRO_GUZMAN_NODE_1', 'INTRO_GUZMAN_NODE_2', 'INTRO_GUZMAN_NODE_3', 'INTRO_GUZMAN_NODE_4', 'INTRO_GUZMAN_NODE_5', 'INTRO_GUZMAN_NODE_6'],
+      finalDialogue: 'Bien. Ya sabe con quien esta tratando y por que nuestro equipo no se va a mover sin pelear su espacio.',
+      consumesTime: false,
+      triggerMap: { day: 3, slot: 'tarde' },
     },
     {
-      sequence_id: "AMARILLO_MEETING_1",
-      stakeholderRole: "Jefe Sector Amarillo",
-
-      stakeholderId: "daniel-rios",
-    initialDialogue: "¡Jefe! O sea, Director. Soy el Daniel. Acá en el Amarillo somos de acción, poco papel y harta calle. Pero estamos colapsados, necesitamos ayuda real, no discursos.",
-      nodes: ["AMARILLO_S1_EMERGENCY", "AMARILLO_S2_DOCTOR_FLIGHT"],
-      finalDialogue: "Ya jefe, gracias por escuchar. Voy volando a ver un caso social complejo. ¡Cualquier cosa me whatsappea!"
-    }
-  ]
+      sequence_id: 'ROJO_MEETING_1_PROACTIVE',
+      stakeholderId: 'marcela-soto',
+      stakeholderRole: 'Jefa Sector Rojo',
+      initialDialogue: '(Marcela Soto está acompañada de dos funcionarios de su sector. Su postura es formal y algo a la defensiva).',
+      nodes: ['ROJO_MEETING_1_INTRO', 'ROJO_MEETING_1_TEAM', 'ROJO_MEETING_1_REQUEST'],
+      finalDialogue: 'Bien, Director. Dejaremos que continue con su instalacion. Que tenga un buen dia.',
+      consumesTime: false,
+      triggerMap: { day: 3, slot: 'tarde' },
+      isInevitable: false,
+    },
+    {
+      sequence_id: 'AMARILLO_MEETING_1_PROACTIVE',
+      stakeholderId: 'daniel-rios',
+      stakeholderRole: 'Jefe Sector Amarillo',
+      initialDialogue: '(Daniel Rios entra a tu oficina a paso rapido, seguido por dos profesionales de su equipo. Se ven agotados pero con mucha energia).',
+      nodes: ['AMARILLO_MEETING_1_INTRO', 'AMARILLO_MEETING_1_TEAM', 'AMARILLO_MEETING_1_REQUEST'],
+      finalDialogue: 'Vale jefe, lo dejamos trabajar. Cualquier cosa me manda un WhatsApp y lo resolvemos.',
+      consumesTime: false,
+      triggerMap: { day: 3, slot: 'tarde' },
+      isInevitable: false,
+    },
+    {
+      sequence_id: 'AGENDA_CRISIS_DETONATOR_SEQ',
+      stakeholderId: 'sofia-castro',
+      stakeholderRole: 'Asistente Administrativa',
+      initialDialogue: '(Sofia la espera en la oficina a primera hora. Tiene la planificacion abierta y varios cruces marcados en pantalla).',
+      nodes: [
+        'AGENDA_CRISIS_THURS_1',
+        'AGENDA_CRISIS_THURS_2',
+        'AGENDA_CRISIS_THURS_3',
+        'AGENDA_CRISIS_THURS_4',
+        'AGENDA_CRISIS_THURS_5',
+        'AGENDA_CRISIS_THURS_6',
+      ],
+      finalDialogue: 'Le dejo la agenda en sus manos, Director. Estare en recepcion si necesita que llame a alguien.',
+      consumesTime: false,
+      triggerMap: { day: 4, slot: 'mañana' },
+      isInevitable: true,
+    },
+    {
+      sequence_id: 'AZUL_NEGOTIATION_PROACTIVE',
+      stakeholderId: 'andres-guzman',
+      stakeholderRole: 'Jefe Sector Azul',
+      initialDialogue: '(Entra a la oficina del Sector Azul. Guzman revisa expedientes mientras Paz Herrera cruza los brazos, visiblemente molesta).',
+      nodes: [
+        'AZUL_NEGOTIATION_1',
+        'AZUL_NEGOTIATION_2',
+        'AZUL_NEGOTIATION_3',
+        'AZUL_NEGOTIATION_4',
+      ],
+      finalDialogue: 'El prestigio del centro tambien se juega en estas decisiones, Director. Piense bien antes de cerrar esa agenda.',
+      consumesTime: false,
+      triggerMap: { day: 4, slot: 'mañana' },
+      isInevitable: false,
+    },
+  ],
 };

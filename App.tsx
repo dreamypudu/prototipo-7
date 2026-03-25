@@ -1,6 +1,6 @@
 ﻿
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ConversationMode, GameState, GlobalEffectsUI, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from './types';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { ActionEffectsPreview, ConversationMode, GameState, GlobalEffectsUI, InternalEffectsPreview, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from './types';
 import { SIMULATOR_CONFIGS } from './data/simulatorConfigs';
 import { getVersionContentPack, type VersionContentPack } from './data/versions';
 import { startLogging, finalizeLogging } from './services/Timelogger';
@@ -8,10 +8,26 @@ import { mechanicEngine } from './services/MechanicEngine';
 import { MECHANIC_REGISTRY } from './mechanics/registry';
 import { MechanicProvider } from './mechanics/MechanicContext';
 import { MechanicDispatchAction, OfficeState } from './mechanics/types';
-import { compareExpectedVsActual } from './services/ComparisonEngine';
 import { buildSessionExport } from './services/sessionExport';
 import { useMechanicLogSync } from './hooks/useMechanicLogSync';
-import { clampReputation, resolveGlobalEffects } from './services/globalEffects';
+import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
+import { isFrontendComparisonMode } from './services/comparisonMode';
+import { resolveDayEffectsLocally, resolutionHasChanges } from './services/localDayResolution';
+import { applyDailyResolutionToState } from './services/dailyResolutionState';
+import {
+  clearSessionSnapshot,
+  downloadSessionSnapshot,
+  persistSessionExport,
+  saveSessionSnapshot,
+} from './services/sessionPersistence';
+import {
+  CASE1_ENDING_SEQUENCE_IDS,
+  CASE1_FRIDAY_DAY,
+  CASE1_FRIDAY_REMINDER_SEQUENCE_ID,
+  CASE1_INTRO_SEQUENCE_ID,
+  CASE1_NEXT_MONDAY_DAY,
+  resolveCase1SubmissionOutcome,
+} from './services/cesfamCase1';
 import {
   resolveStakeholderByRef,
   sequenceBelongsToStakeholder,
@@ -23,12 +39,13 @@ import WarningPopup from './components/WarningPopup';
 import Sidebar from './components/Sidebar';
 import HelpButton from './components/ui/HelpButton';
 import HelpPanel from './components/ui/HelpPanel';
-import ObjectivesWidget from './components/ui/ObjectivesWidget';
+import CaseObjectivesPanel from './components/ui/CaseObjectivesPanel';
 import VersionSelector from './components/VersionSelector';
 import InnovatecGame from './games/InnovatecGame';
 import SplashScreen from './components/SplashScreen';
 import type { DailyEffectSummary } from './types';
-import { useObjectivesTracker } from './hooks/useObjectivesTracker';
+import { useCaseTracker } from './hooks/useCaseTracker';
+import { useCommitmentsTracker } from './hooks/useCommitmentsTracker';
 
 type ActiveTab = string;
 type AppStep = 'version_selection' | 'splash' | 'game';
@@ -71,26 +88,25 @@ type ResolvedMechanicConfig = MechanicConfig & {
 const summarizeDeltas = (
   day: number,
   globalDeltas: { budget?: number; reputation?: number },
-  stakeholderDeltas: Record<string, any>,
-  stakeholders: Stakeholder[]
+  stakeholderDeltas: Record<string, any>
 ): DailyEffectSummary => {
-  const parts: string[] = [];
   const b = Number(globalDeltas?.budget || 0);
   const r = Number(globalDeltas?.reputation || 0);
-  parts.push(`Presupuesto ${b >= 0 ? '+' : ''}${b}`);
-  parts.push(`Reputación ${r >= 0 ? '+' : ''}${r}`);
-  const stakeParts: string[] = [];
-  Object.entries(stakeholderDeltas || {}).forEach(([id, delta]) => {
-    const sh = stakeholders.find(s => s.id === id);
-    if (!sh) return;
-    const t = Number(delta?.trust || 0);
-    const s = Number(delta?.support || 0);
-    stakeParts.push(`${sh.name}: confianza ${t >= 0 ? '+' : ''}${t}, apoyo ${s >= 0 ? '+' : ''}${s}`);
+  let strongestInternal = 0;
+  Object.values(stakeholderDeltas || {}).forEach((delta: any) => {
+    const trustDelta = Number(delta?.trust || 0);
+    const supportDelta = Number(delta?.support || 0);
+    if (Math.abs(trustDelta) > Math.abs(strongestInternal)) strongestInternal = trustDelta;
+    if (Math.abs(supportDelta) > Math.abs(strongestInternal)) strongestInternal = supportDelta;
   });
   return {
     day,
-    summary: parts.join(' | '),
-    stakeholderDetails: stakeParts
+    global: {
+      budget: b,
+      reputation: r,
+    },
+    internalTrend: strongestInternal > 0 ? 'up' : strongestInternal < 0 ? 'down' : 'neutral',
+    internalMagnitude: Math.abs(strongestInternal),
   };
 };
 
@@ -112,7 +128,35 @@ const createInitialGameState = (contentPack: VersionContentPack): GameState => {
       canonicalActions: [],
       expectedActions: [],
       comparisons: [],
+      dailyResolutions: [],
+      resolvedExpectedActionIds: [],
       questionLog: []
+  };
+};
+
+const appendCaseEventEmails = (
+  state: GameState,
+  emailTemplates: VersionContentPack['emails'],
+  eventIds: string[],
+  dayReceived: number
+): GameState => {
+  if (eventIds.length === 0) return state;
+
+  const templates = emailTemplates.filter(
+    (template) => template.trigger.type === 'ON_CASE_EVENT' && eventIds.includes(template.trigger.event_id)
+  );
+  const newInboxEntries = templates
+    .filter((template) => !state.inbox.some((entry) => entry.email_id === template.email_id))
+    .map((template) => ({
+      email_id: template.email_id,
+      dayReceived,
+      isRead: false,
+    }));
+
+  if (newInboxEntries.length === 0) return state;
+  return {
+    ...state,
+    inbox: [...state.inbox, ...newInboxEntries],
   };
 };
 
@@ -137,6 +181,7 @@ export default function App(): React.ReactElement {
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const sessionStartRef = useRef<number | null>(null);
   const sessionEndRef = useRef<number | null>(null);
+  const pendingCase1EndingRef = useRef<{ sequenceId: string; emailIds: string[] } | null>(null);
   const [appStep, setAppStep] = useState<AppStep>('version_selection');
   const [config, setConfig] = useState<SimulatorConfig | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<SimulatorVersion | null>(null);
@@ -152,12 +197,14 @@ export default function App(): React.ReactElement {
   
   const [countdown, setCountdown] = useState(PERIOD_DURATION);
   const [isTimerPaused, setIsTimerPaused] = useState(true);
+  const [isDialogueTyping, setIsDialogueTyping] = useState(false);
   const [gameStatus, setGameStatus] = useState<GameStatus>('playing');
   const [endGameMessage, setEndGameMessage] = useState<string>('');
   const [currentMeeting, setCurrentMeeting] = useState<{ sequence: MeetingSequence; nodeIndex: number } | null>(null);
   const [warningPopupMessage, setWarningPopupMessage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hoveredGlobalEffects, setHoveredGlobalEffects] = useState<GlobalEffectsUI | null>(null);
+  const [recentInternalResolution, setRecentInternalResolution] = useState<InternalEffectsPreview | null>(null);
   const [conversationMode, setConversationMode] = useState<ConversationMode>('idle');
   const [isObjectivesOpen, setIsObjectivesOpen] = useState(false);
   const [questionsOrigin, setQuestionsOrigin] = useState<ConversationMode | null>(null);
@@ -166,32 +213,45 @@ export default function App(): React.ReactElement {
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showLogPanel, setShowLogPanel] = useState(false);
-  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+  const [isLeftRailExpanded, setIsLeftRailExpanded] = useState(false);
   const [logPos, setLogPos] = useState<{ x: number; y: number }>({ x: 240, y: 110 });
   const [isLogDragging, setIsLogDragging] = useState(false);
   const [logDragOffset, setLogDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [finalPersistStatus, setFinalPersistStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [finalPersistError, setFinalPersistError] = useState<string | null>(null);
   const upSoundRef = useRef<HTMLAudioElement | null>(null);
   const downSoundRef = useRef<HTMLAudioElement | null>(null);
+  const finalPersistAttemptedRef = useRef(false);
   const prevStats = useRef<{ budget: number; reputation: number }>({
     budget: DEFAULT_INITIAL_STATE.budget,
     reputation: DEFAULT_INITIAL_STATE.reputation
   });
   const audioUnlocked = useRef(false);
   const timeSlots = contentPack.defaults.timeSlots;
+  const roomDefinitions = contentPack.defaults.roomDefinitions ?? [];
   const directorObjectives = contentPack.defaults.directorObjectives;
   const secretaryRole = contentPack.defaults.secretaryRole;
   const emailTemplates = contentPack.emails;
-  const objectivesTracker = useObjectivesTracker(contentPack.globalObjectives, contentPack.npcObjectives);
+  const caseTracker = useCaseTracker(contentPack.cases, gameState);
+  const commitmentTracker = useCommitmentsTracker(gameState, roomDefinitions, gameStatus);
   const {
-    globalVisible: globalObjectivesVisible,
-    npcVisible: npcObjectivesVisible,
-    unseenCount: objectivesUnseenCount,
-    hasUnseenUpdates: hasUnseenObjectiveUpdates,
+    activeCase,
+    unseenCount: caseUnseenCount,
+    hasUnseenUpdates: hasUnseenCaseUpdates,
     registerSequenceCompleted,
-    markAllSeen: markObjectiveUpdatesSeen,
-  } = objectivesTracker;
+    markAllSeen: markCaseUpdatesSeen,
+  } = caseTracker;
+  const {
+    commitments,
+    unseenCount: commitmentUnseenCount,
+    hasUnseenUpdates: hasUnseenCommitmentUpdates,
+    markAllSeen: markCommitmentsSeen,
+  } = commitmentTracker;
+  const objectivesUnseenCount = caseUnseenCount + commitmentUnseenCount;
+  const hasUnseenObjectiveUpdates = hasUnseenCaseUpdates || hasUnseenCommitmentUpdates;
   const enabledMechanics = resolveMechanics(config);
+  const effectiveTimerPaused = isTimerPaused || isDialogueTyping;
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
   const stageTabs = [
@@ -287,8 +347,8 @@ export default function App(): React.ReactElement {
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
   }, [gameState.playerName]);
 
-  const handleActionHover = useCallback((effects: GlobalEffectsUI | null) => {
-    setHoveredGlobalEffects(effects);
+  const handleActionHover = useCallback((effects: ActionEffectsPreview | null) => {
+    setHoveredGlobalEffects(effects?.global ?? null);
   }, []);
 
   const showToast = useCallback((msg: string, durationMs = 5000) => {
@@ -300,17 +360,19 @@ export default function App(): React.ReactElement {
     setIsObjectivesOpen((prev) => {
       const next = !prev;
       if (next) {
-        markObjectiveUpdatesSeen();
+        markCaseUpdatesSeen();
+        markCommitmentsSeen();
       }
       return next;
     });
-  }, [markObjectiveUpdatesSeen]);
+  }, [markCaseUpdatesSeen, markCommitmentsSeen]);
 
   useEffect(() => {
     if (isObjectivesOpen && hasUnseenObjectiveUpdates) {
-      markObjectiveUpdatesSeen();
+      markCaseUpdatesSeen();
+      markCommitmentsSeen();
     }
-  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markObjectiveUpdatesSeen]);
+  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markCaseUpdatesSeen, markCommitmentsSeen]);
 
   const hasQuestionsFor = (stakeholder: Stakeholder | null): boolean => {
     if (!stakeholder) return false;
@@ -471,21 +533,18 @@ export default function App(): React.ReactElement {
     return match ? Number(match[1]) : 0;
   };
 
+  const isSequenceWindowOpen = useCallback((sequence: MeetingSequence, state: GameState) => {
+    if (!sequence.triggerMap) return true;
+    if (state.day > sequence.triggerMap.day) return true;
+    if (state.day < sequence.triggerMap.day) return false;
+    return timeSlots.indexOf(state.timeSlot) >= timeSlots.indexOf(sequence.triggerMap.slot);
+  }, [timeSlots]);
+
   useEffect(() => {
     if (gameStatus === 'playing') return;
     if (appStep === 'game' && sessionEndRef.current === null) {
       sessionEndRef.current = Date.now();
     }
-    setGameState(prev => {
-      const newComparisons = compareExpectedVsActual(
-        prev.expectedActions,
-        prev.canonicalActions,
-        prev.comparisons,
-        { includeNotDone: true }
-      );
-      if (newComparisons.length === 0) return prev;
-      return { ...prev, comparisons: [...prev.comparisons, ...newComparisons] };
-    });
   }, [gameStatus, appStep, setGameState]);
 
   useEffect(() => {
@@ -535,8 +594,7 @@ export default function App(): React.ReactElement {
     const inevitableSeq = scenarioData.sequences.find(seq =>
       seq.isInevitable &&
       !gameState.completedSequences.includes(seq.sequence_id) &&
-      gameState.scenarioSchedule[seq.sequence_id]?.day === gameState.day &&
-      gameState.scenarioSchedule[seq.sequence_id]?.slot === gameState.timeSlot
+      isSequenceWindowOpen(seq, gameState)
     );
 
     const contingentSeq = scenarioData.sequences.find(seq =>
@@ -558,7 +616,7 @@ export default function App(): React.ReactElement {
     } else {
       console.error(`[Content] Sequence ${sequenceToStart.sequence_id} references unknown stakeholderId="${sequenceToStart.stakeholderId}"`);
     }
-  }, [gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData]);
+  }, [gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData, isSequenceWindowOpen]);
 
   const advanceTime = useCallback((currentState: GameState): GameState => {
     let nextSlotIndex = timeSlots.indexOf(currentState.timeSlot) + 1;
@@ -593,46 +651,101 @@ export default function App(): React.ReactElement {
     return newState;
   }, []);
 
-  const applyDailyDeltas = useCallback(
-    (prev: GameState, completedDay: number, globalDeltas: any, stakeholderDeltas: Record<string, any>): GameState => {
-      const deltaBudget = Number(globalDeltas?.budget || 0);
-      const deltaReputation = Number(globalDeltas?.reputation || 0);
-      const nextBudget = prev.budget + deltaBudget;
-      const nextReputation = clampReputation(prev.reputation + deltaReputation);
+  const applyLocalDailyResolution = useCallback(
+    (baseState: GameState, completedDay: number) => {
+      const resolution = resolveDayEffectsLocally(baseState, completedDay, roomDefinitions);
+      if (!resolutionHasChanges(resolution)) {
+        return { nextState: baseState, resolution: null as null };
+      }
 
-      const updatedStakeholders = prev.stakeholders.map((sh) => {
-        const deltas = stakeholderDeltas?.[sh.id];
-        if (!deltas) return sh;
-        const trustDelta = Number(deltas.trust || 0);
-        const supportDelta = Number(deltas.support || 0);
-        return {
-          ...sh,
-          trust: Math.max(0, Math.min(100, sh.trust + trustDelta)),
-          support: Math.max(sh.minSupport, Math.min(sh.maxSupport, sh.support + supportDelta)),
-        };
-      });
-
-      const summary = `Resolución día ${completedDay}: presupuesto ${deltaBudget >= 0 ? '+' : ''}${deltaBudget}, reputación ${deltaReputation >= 0 ? '+' : ''}${deltaReputation}`;
-      return {
-        ...prev,
-        budget: nextBudget,
-        reputation: nextReputation,
-        stakeholders: updatedStakeholders,
-        eventsLog: [...prev.eventsLog, summary],
-      };
+      const nextState = applyDailyResolutionToState(baseState, resolution);
+      return { nextState, resolution };
     },
-    []
+    [roomDefinitions]
   );
+
+  const advanceToCase1Monday = useCallback((
+    justCompletedSequenceId: string,
+    mondayEmailIds: string[]
+  ) => {
+    let stateAfterMeetingEnd = { ...gameState };
+    if (!stateAfterMeetingEnd.completedSequences.includes(justCompletedSequenceId)) {
+      stateAfterMeetingEnd.completedSequences = [...stateAfterMeetingEnd.completedSequences, justCompletedSequenceId];
+    }
+
+    if (characterInFocus && characterInFocus.role !== secretaryRole) {
+      stateAfterMeetingEnd.stakeholders = stateAfterMeetingEnd.stakeholders.map((stakeholder) =>
+        stakeholder.name === characterInFocus.name
+          ? { ...stakeholder, lastMetDay: gameState.day }
+          : stakeholder
+      );
+    }
+
+    let nextState: GameState = {
+      ...stateAfterMeetingEnd,
+      day: CASE1_NEXT_MONDAY_DAY,
+      timeSlot: 'maÃ±ana',
+      history: { ...stateAfterMeetingEnd.history, [gameState.day]: stateAfterMeetingEnd.stakeholders },
+      eventsLog: [...stateAfterMeetingEnd.eventsLog, 'Borrador semanal enviado. Comienza el lunes siguiente.'],
+    };
+    if (isFrontendComparisonMode) {
+      const localResult = applyLocalDailyResolution(stateAfterMeetingEnd, stateAfterMeetingEnd.day);
+      nextState = {
+        ...localResult.nextState,
+        day: CASE1_NEXT_MONDAY_DAY,
+        timeSlot: 'maÃ±ana',
+        history: { ...localResult.nextState.history, [gameState.day]: localResult.nextState.stakeholders },
+        eventsLog: [...localResult.nextState.eventsLog, 'Borrador semanal enviado. Comienza el lunes siguiente.'],
+      };
+      if (localResult.resolution) {
+        setDailySummary(
+          summarizeDeltas(
+            localResult.resolution.day,
+            localResult.resolution.global_deltas,
+            localResult.resolution.stakeholder_deltas
+          )
+        );
+      } else {
+        setDailySummary(null);
+      }
+    }
+    nextState = appendCaseEventEmails(nextState, emailTemplates, mondayEmailIds, CASE1_NEXT_MONDAY_DAY);
+
+    registerSequenceCompleted(justCompletedSequenceId);
+    setGameState(nextState);
+    setCurrentMeeting(null);
+    setConversationMode('idle');
+    setQuestionsOrigin(null);
+    setQuestionsBaseDialogue('');
+    setCharacterInFocus(null);
+    setCountdown(PERIOD_DURATION);
+    setIsTimerPaused(false);
+    pendingCase1EndingRef.current = null;
+    syncLogs();
+  }, [gameState, characterInFocus, secretaryRole, emailTemplates, registerSequenceCompleted, syncLogs, applyLocalDailyResolution]);
 
   const syncDayWithBackend = useCallback(
     async (completedDay: number, snapshot: GameState) => {
+      if (isFrontendComparisonMode) {
+        const resolution = resolveDayEffectsLocally(snapshot, completedDay, roomDefinitions);
+        if (!resolutionHasChanges(resolution)) {
+          setDailySummary(null);
+          return;
+        }
+
+        setGameState((prev) => applyDailyResolutionToState(prev, resolution));
+        setDailySummary(summarizeDeltas(completedDay, resolution.global_deltas, resolution.stakeholder_deltas));
+        return;
+      }
+
       try {
         const exportPayload = buildSessionExport({
           gameState: snapshot,
           config,
           sessionId: sessionIdRef.current,
           startedAt: sessionStartRef.current ?? Date.now(),
-          endedAt: Date.now()
+          endedAt: Date.now(),
+          roomDefinitions,
         });
         
         console.log(`[Backend] Attempting to connect to ${API_BASE_URL}`);
@@ -662,8 +775,20 @@ export default function App(): React.ReactElement {
         const data = await resp.json();
         const globalDeltas = data.global_deltas || {};
         const stakeholderDeltas = data.stakeholder_deltas || {};
-        setGameState((prev) => applyDailyDeltas(prev, completedDay, globalDeltas, stakeholderDeltas));
-        const summary = summarizeDeltas(completedDay, globalDeltas, stakeholderDeltas, gameState.stakeholders);
+        setGameState((prev) =>
+          applyDailyResolutionToState(prev, {
+            day: completedDay,
+            comparisons: data.comparisons || [],
+            global_deltas: globalDeltas,
+            stakeholder_deltas: stakeholderDeltas,
+            resolved_expected_action_ids: (data.comparisons || [])
+              .map((comparison: any) => comparison.expected_action_id)
+              .filter(Boolean),
+            status: data.cached ? 'cached' : 'applied',
+            created_at: new Date().toISOString(),
+          })
+        );
+        const summary = summarizeDeltas(completedDay, globalDeltas, stakeholderDeltas);
         setDailySummary(summary);
       } catch (err: any) {
         console.error('[Backend] syncDayWithBackend error:', {
@@ -674,7 +799,7 @@ export default function App(): React.ReactElement {
         showToast(`Error de conexión: ${err?.message || 'No se pudo conectar al servidor'}`);
       }
     },
-    [config, applyDailyDeltas, gameState.stakeholders, showToast]
+    [config, gameState.stakeholders, roomDefinitions, showToast]
   );
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
@@ -694,13 +819,15 @@ export default function App(): React.ReactElement {
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
+        const preview = resolveActionEffectsPreview(opt.consequences, activeStakeholder.name);
         return {
           label: opt.cardTitle || opt.text,
           description: opt.text,
           cardEmoji: opt.cardEmoji,
           action: opt.option_id,
           cost: 'Decisión',
-          globalEffectsUI: effects.ui
+          globalEffectsUI: effects.ui,
+          internalEffectsPreview: preview.internal,
         };
       })
     );
@@ -724,12 +851,79 @@ export default function App(): React.ReactElement {
       );
     }
     const skipTimeAdvance = Boolean(options?.skipTimeAdvance);
-    const newState = skipTimeAdvance ? stateAfterMeetingEnd : advanceTime(stateAfterMeetingEnd);
-    registerSequenceCompleted(justCompletedSequenceId, newState);
+    const shouldBlockFridayClose =
+      selectedVersion === 'CESFAM' &&
+      !skipTimeAdvance &&
+      !pendingCase1EndingRef.current &&
+      stateAfterMeetingEnd.day === CASE1_FRIDAY_DAY &&
+      stateAfterMeetingEnd.timeSlot === 'tarde' &&
+      stateAfterMeetingEnd.lastScheduleSubmissionDay !== CASE1_FRIDAY_DAY;
+
+    if (shouldBlockFridayClose) {
+      let blockedState = stateAfterMeetingEnd;
+      if (justCompletedSequenceId === CASE1_INTRO_SEQUENCE_ID) {
+        blockedState = appendCaseEventEmails(blockedState, emailTemplates, ['case1-docs-ready'], blockedState.day);
+      }
+      if (justCompletedSequenceId === CASE1_FRIDAY_REMINDER_SEQUENCE_ID) {
+        blockedState = appendCaseEventEmails(blockedState, emailTemplates, ['case1-friday-reminder'], blockedState.day);
+      }
+      registerSequenceCompleted(justCompletedSequenceId);
+      setGameState(blockedState);
+      setCharacterInFocus(null);
+      setActiveTab('schedule');
+      setWarningPopupMessage('Debes enviar el borrador semanal antes de cerrar el viernes.');
+      setIsTimerPaused(true);
+      setCountdown(0);
+      syncLogs();
+      return;
+    }
+
+    const shouldAdvanceFromInitialChiefsSequence =
+      selectedVersion === 'CESFAM' &&
+      justCompletedSequenceId === 'SCHEDULE_WAR_SEQ' &&
+      stateAfterMeetingEnd.day === 3 &&
+      stateAfterMeetingEnd.timeSlot === 'maÃ±ana';
+
+    let newState = skipTimeAdvance
+      ? stateAfterMeetingEnd
+      : shouldAdvanceFromInitialChiefsSequence
+        ? {
+            ...stateAfterMeetingEnd,
+            day: 3,
+            timeSlot: 'tarde',
+            history: { ...stateAfterMeetingEnd.history },
+            eventsLog: [...stateAfterMeetingEnd.eventsLog, 'Ha comenzado el bloque de la tarde del miércoles.'],
+          }
+        : advanceTime(stateAfterMeetingEnd);
+    if (justCompletedSequenceId === CASE1_INTRO_SEQUENCE_ID) {
+      newState = appendCaseEventEmails(newState, emailTemplates, ['case1-docs-ready'], newState.day);
+    }
+    if (justCompletedSequenceId === CASE1_FRIDAY_REMINDER_SEQUENCE_ID) {
+      newState = appendCaseEventEmails(newState, emailTemplates, ['case1-friday-reminder'], newState.day);
+    }
+    const completedDay = !skipTimeAdvance ? ((newState as any).__completedDay as number | null) : null;
+    if (isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
+      const snapshot = { ...newState };
+      delete (snapshot as any).__completedDay;
+      const localResult = applyLocalDailyResolution(snapshot, completedDay);
+      newState = localResult.nextState;
+      if (localResult.resolution) {
+        setDailySummary(
+          summarizeDeltas(
+            completedDay,
+            localResult.resolution.global_deltas,
+            localResult.resolution.stakeholder_deltas
+          )
+        );
+      } else {
+        setDailySummary(null);
+      }
+    }
+    registerSequenceCompleted(justCompletedSequenceId);
+    delete (newState as any).__completedDay;
     setGameState(newState);
     if (!skipTimeAdvance) {
-      const completedDay = (newState as any).__completedDay as number | null;
-      if (completedDay !== null && completedDay > 0) {
+      if (!isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
         const snapshot = { ...newState };
         delete (snapshot as any).__completedDay;
         syncDayWithBackend(completedDay, snapshot);
@@ -743,10 +937,10 @@ export default function App(): React.ReactElement {
     }
     setCharacterInFocus(null);
     syncLogs();
-  }, [gameState, characterInFocus, advanceTime, secretaryRole, registerSequenceCompleted, syncLogs]);
+  }, [gameState, characterInFocus, advanceTime, secretaryRole, registerSequenceCompleted, syncLogs, selectedVersion, emailTemplates]);
 
   useEffect(() => {
-    if (isTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
+    if (effectiveTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
@@ -761,13 +955,17 @@ export default function App(): React.ReactElement {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [isTimerPaused, activeTab, advanceTimeAndUpdateFocus, gameStatus, appStep, isInteractionBlockingTimeout]);
+  }, [effectiveTimerPaused, activeTab, advanceTimeAndUpdateFocus, gameStatus, appStep, isInteractionBlockingTimeout]);
 
   useEffect(() => {
     if (appStep !== 'game') return;
     setIsTimerPaused(false);
     setGameState(prev => {
-      const welcomeEmails = emailTemplates.filter(t => t.trigger.stakeholder_id === 'system-startup');
+      const welcomeEmails = emailTemplates.filter(
+        (template) =>
+          template.trigger.type === 'ON_MEETING_COMPLETE' &&
+          template.trigger.stakeholder_id === 'system-startup'
+      );
       const newEmails = welcomeEmails
         .filter(t => !prev.inbox.some(e => e.email_id === t.email_id))
         .map(t => ({ email_id: t.email_id, dayReceived: 1, isRead: false }));
@@ -830,8 +1028,7 @@ export default function App(): React.ReactElement {
       const blockingInevitable = scenarioData.sequences.find(seq =>
           seq.isInevitable &&
           !gameState.completedSequences.includes(seq.sequence_id) &&
-          gameState.scenarioSchedule[seq.sequence_id]?.day === gameState.day &&
-          gameState.scenarioSchedule[seq.sequence_id]?.slot === gameState.timeSlot
+          isSequenceWindowOpen(seq, gameState)
       );
       if (blockingInevitable) {
           setWarningPopupMessage("Hay un evento inevitable pendiente. Debes atenderlo antes de iniciar uno proactivo.");
@@ -855,7 +1052,8 @@ export default function App(): React.ReactElement {
               .filter(seq =>
                   sequenceBelongsToStakeholder(seq, stakeholder) &&
                   !seq.isInevitable &&
-                  !seq.isContingent
+                  !seq.isContingent &&
+                  isSequenceWindowOpen(seq, gameState)
               )
               .sort((a, b) => getSequenceOrder(a.sequence_id) - getSequenceOrder(b.sequence_id))
               .find(seq => !gameState.completedSequences.includes(seq.sequence_id));
@@ -888,11 +1086,54 @@ export default function App(): React.ReactElement {
   };
 
   const handleExecuteWeek = () => {
+      syncLogs();
+
+      if (selectedVersion === 'CESFAM') {
+          if (gameState.day < CASE1_FRIDAY_DAY) {
+              setWarningPopupMessage('El borrador semanal solo puede enviarse el viernes.');
+              setActiveTab('schedule');
+              return;
+          }
+
+          if (gameState.lastScheduleSubmissionDay === CASE1_FRIDAY_DAY) {
+              setWarningPopupMessage('El borrador de esta semana ya fue enviado.');
+              setActiveTab('schedule');
+              return;
+          }
+
+          const outcome = resolveCase1SubmissionOutcome(gameState, roomDefinitions);
+          pendingCase1EndingRef.current = {
+              sequenceId: outcome.sequenceId,
+              emailIds: outcome.emailIds,
+          };
+
+          setGameState(prev => ({
+              ...prev,
+              lastScheduleSubmissionDay: prev.day,
+              eventsLog: [...prev.eventsLog, `Borrador semanal enviado en el dia ${prev.day}.`],
+          }));
+
+          const endingSequence = scenarioData.sequences.find(seq => seq.sequence_id === outcome.sequenceId);
+          const stakeholder = gameState.stakeholders.find(entry => entry.id === 'sofia-castro');
+
+          if (endingSequence && stakeholder) {
+              startSequence(endingSequence, stakeholder, {
+                  pauseTimer: true,
+                  actionLabel: 'Revisar cierre del caso',
+                  actionCost: 'Cierre',
+              });
+          }
+
+          setWarningPopupMessage('Borrador semanal enviado.');
+          setActiveTab('interaction');
+          return;
+      }
+
       setGameState(prev => {
           const jumpDays = 5;
-          return { ...prev, day: prev.day + jumpDays, eventsLog: [...prev.eventsLog, `Semana Ejecutada. Avanzado al día ${prev.day + jumpDays}.`] };
+          return { ...prev, day: prev.day + jumpDays, eventsLog: [...prev.eventsLog, `Semana ejecutada. Avanzado al dia ${prev.day + jumpDays}.`] };
       });
-      setWarningPopupMessage("Semana ejecutada con éxito.");
+      setWarningPopupMessage('Semana ejecutada con exito.');
       setActiveTab('interaction');
   };
 
@@ -1018,8 +1259,23 @@ export default function App(): React.ReactElement {
     
     if (action.action === 'conclude_meeting') {
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
+        if (
+          justCompletedSequenceId &&
+          pendingCase1EndingRef.current &&
+          pendingCase1EndingRef.current.sequenceId === justCompletedSequenceId &&
+          CASE1_ENDING_SEQUENCE_IDS.has(justCompletedSequenceId)
+        ) {
+          advanceToCase1Monday(justCompletedSequenceId, pendingCase1EndingRef.current.emailIds);
+          setIsLoading(false);
+          return;
+        }
         const shouldForceAdvanceBlock = countdown <= 0;
-        const skipTimeAdvance = !shouldForceAdvanceBlock && currentMeeting?.sequence?.consumesTime === false;
+        const shouldAdvanceAfterInitialChiefsSequence =
+          selectedVersion === 'CESFAM' &&
+          gameState.day === 3 &&
+          gameState.timeSlot === 'maÃ±ana' &&
+          currentMeeting?.sequence?.sequence_id === 'SCHEDULE_WAR_SEQ';
+        const skipTimeAdvance = !shouldForceAdvanceBlock && !shouldAdvanceAfterInitialChiefsSequence;
         setCurrentMeeting(null);
         setConversationMode('idle');
         setQuestionsOrigin(null);
@@ -1044,7 +1300,11 @@ export default function App(): React.ReactElement {
             
             // PSYCHOMETRIC REGISTRATION
             if (consequences.expected_actions) {
-              mechanicEngine.registerExpectedActions(scenario.node_id, option.option_id, consequences.expected_actions);
+              mechanicEngine.registerExpectedActions(scenario.node_id, option.option_id, consequences.expected_actions, {
+                stakeholderId: scenario.stakeholderId,
+                day: gameState.day,
+                timeSlot: gameState.timeSlot,
+              });
               const toastText = characterInFocus?.name ? `${characterInFocus.name} recordará eso` : 'NPC recordará eso';
               showToast(toastText);
             }
@@ -1052,6 +1312,7 @@ export default function App(): React.ReactElement {
               node_id: scenario.node_id,
               option_id: option.option_id
             });
+            setRecentInternalResolution(resolveInternalEffectsPreview(consequences, characterInFocus.name));
 
             setGameState(prev => {
                 const newStakeholders = prev.stakeholders.map(sh => sh.name === characterInFocus.name ? { ...sh, trust: Math.max(0, Math.min(100, sh.trust + (consequences.trustChange ?? 0))), support: Math.max(sh.minSupport, Math.min(sh.maxSupport, sh.support + (consequences.supportChange ?? 0))) } : sh);
@@ -1066,6 +1327,7 @@ export default function App(): React.ReactElement {
                     nodeId: scenario.node_id,
                     choiceId: option.option_id,
                     choiceText: option.text,
+                    tags: option.tags,
                     consequences,
                     globalEffectsShown: globalEffects.ui,
                     globalEffectsApplied: globalEffects.real,
@@ -1100,7 +1362,6 @@ export default function App(): React.ReactElement {
                     setPlayerActions([{ label: "Concluir Reunion", cost: "Finalizar", action: "conclude_meeting" }]);
                 }
             }
-            setCountdown(PERIOD_DURATION);
         }
     }
     setIsLoading(false);
@@ -1115,10 +1376,15 @@ export default function App(): React.ReactElement {
   };
   const handleSidebarNavigate = (tab: any) => { setActiveTab(tab); };
   const handleReturnHome = () => {
+    if (appStep === 'game') {
+      saveSessionSnapshot(sessionExport);
+    }
     setIsSidebarOpen(false);
     setWarningPopupMessage(null);
     setGameStatus('playing');
     setEndGameMessage('');
+    setFinalPersistStatus('idle');
+    setFinalPersistError(null);
     setCurrentMeeting(null);
     setCharacterInFocus(null);
     setCurrentDialogue('');
@@ -1134,11 +1400,13 @@ export default function App(): React.ReactElement {
     setQuestionsBaseDialogue('');
     setContentPack(DEFAULT_CONTENT_PACK);
     setScenarioData(DEFAULT_CONTENT_PACK.scenarios);
+    pendingCase1EndingRef.current = null;
     setGameState(createInitialGameState(DEFAULT_CONTENT_PACK));
     prevStats.current = {
       budget: DEFAULT_INITIAL_STATE.budget,
       reputation: DEFAULT_INITIAL_STATE.reputation,
     };
+    finalPersistAttemptedRef.current = false;
     sessionStartRef.current = null;
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
@@ -1151,12 +1419,42 @@ export default function App(): React.ReactElement {
     config,
     sessionId: sessionIdRef.current,
     startedAt: sessionStartRef.current ?? undefined,
-    endedAt: sessionEndRef.current ?? undefined
+    endedAt: sessionEndRef.current ?? undefined,
+    roomDefinitions,
   });
+  const persistFinalSession = useCallback(async () => {
+    const exportPayload = buildSessionExport({
+      gameState,
+      config,
+      sessionId: sessionIdRef.current,
+      startedAt: sessionStartRef.current ?? undefined,
+      endedAt: sessionEndRef.current ?? Date.now(),
+      roomDefinitions,
+    });
+
+    setFinalPersistStatus('sending');
+    setFinalPersistError(null);
+    saveSessionSnapshot(exportPayload);
+
+    try {
+      await persistSessionExport(exportPayload, API_BASE_URL);
+      clearSessionSnapshot(exportPayload.session_metadata.session_id);
+      setFinalPersistStatus('success');
+      setFinalPersistError(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido al guardar la sesión';
+      setFinalPersistStatus('error');
+      setFinalPersistError(message);
+      console.error('[SessionPersistence] Final session export failed', error);
+    }
+  }, [gameState, config, roomDefinitions]);
   const handleStartGame = (name: string) => {
     sessionStartRef.current = Date.now();
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
+    finalPersistAttemptedRef.current = false;
+    setFinalPersistStatus('idle');
+    setFinalPersistError(null);
     setGameState(prev => ({...prev, playerName: name}));
     setQuestionsBaseDialogue('');
     setAppStep('game');
@@ -1165,6 +1463,10 @@ export default function App(): React.ReactElement {
     const nextConfig = SIMULATOR_CONFIGS[version];
     const nextMechanics = resolveMechanics(nextConfig);
     const nextPack = getVersionContentPack(version);
+    pendingCase1EndingRef.current = null;
+    finalPersistAttemptedRef.current = false;
+    setFinalPersistStatus('idle');
+    setFinalPersistError(null);
     setSelectedVersion(version);
     setConfig(nextConfig);
     setContentPack(nextPack);
@@ -1181,6 +1483,18 @@ export default function App(): React.ReactElement {
     }
     setAppStep('splash');
   };
+  useEffect(() => {
+    if (appStep !== 'game') return;
+    saveSessionSnapshot(sessionExport);
+  }, [appStep, sessionExport]);
+
+  useEffect(() => {
+    if (appStep !== 'game' || gameStatus === 'playing') return;
+    if (finalPersistAttemptedRef.current) return;
+    finalPersistAttemptedRef.current = true;
+    void persistFinalSession();
+  }, [appStep, gameStatus, persistFinalSession]);
+
   const handleUpdateScenarioSchedule = (id: string, day: number, slot: TimeSlotType) => { setGameState(prev => ({ ...prev, scenarioSchedule: { ...prev.scenarioSchedule, [id]: { day, slot } } })); };
   const dispatch = (action: MechanicDispatchAction) => {
     switch (action.type) {
@@ -1227,15 +1541,41 @@ export default function App(): React.ReactElement {
     onPlayerAction: handlePlayerAction,
     onNavigateTab: (tabId) => setActiveTab(tabId),
     onActionHover: handleActionHover,
-    onAskQuestion: handleAskQuestion
+    onAskQuestion: handleAskQuestion,
+    onDialogueTypingChange: setIsDialogueTyping
   };
+
+  const availableProactiveStakeholderIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    scenarioData.sequences
+      .filter(seq =>
+        !seq.isInevitable &&
+        !seq.isContingent &&
+        isSequenceWindowOpen(seq, gameState) &&
+        !gameState.completedSequences.includes(seq.sequence_id)
+      )
+      .forEach(seq => {
+        const stakeholder = resolveStakeholderByRef(gameState.stakeholders, {
+          stakeholderId: seq.stakeholderId,
+          stakeholderRole: seq.stakeholderRole,
+        });
+        if (stakeholder) {
+          ids.add(stakeholder.id);
+        }
+      });
+
+    return [...ids];
+  }, [scenarioData, gameState, isSequenceWindowOpen]);
 
   const mechanicContextValue = {
     gameState,
     engine: mechanicEngine,
     dispatch,
     sessionExport,
-    office: officeState
+    office: officeState,
+    availableProactiveStakeholderIds,
+    contentPack,
   };
 
   const renderMechanicTab = () => {
@@ -1280,7 +1620,24 @@ export default function App(): React.ReactElement {
          stages={stageTabs}
        />
       {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
-      {gameStatus !== 'playing' && <EndGameScreen status={gameStatus} message={endGameMessage} />}
+      {gameStatus !== 'playing' && (
+        <EndGameScreen
+          status={gameStatus}
+          message={endGameMessage}
+          saveStatus={finalPersistStatus}
+          saveError={finalPersistError}
+          onRetrySave={() => {
+            finalPersistAttemptedRef.current = true;
+            void persistFinalSession();
+          }}
+          onDownloadBackup={() =>
+            downloadSessionSnapshot(
+              sessionExport,
+              `session_export_${sessionExport.session_metadata.session_id}.json`
+            )
+          }
+        />
+      )}
       <div
         className="sticky z-40"
         style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
@@ -1288,11 +1645,13 @@ export default function App(): React.ReactElement {
         <Header
           gameState={gameState}
           countdown={countdown}
-          isTimerPaused={isTimerPaused}
+          isTimerPaused={effectiveTimerPaused}
           onTogglePause={() => setIsTimerPaused(prev => !prev)}
           onAdvanceTime={handleManualAdvance}
           onOpenSidebar={() => setIsSidebarOpen(true)}
           globalEffectsHighlight={hoveredGlobalEffects}
+          recentInternalResolution={recentInternalResolution}
+          dailySummary={dailySummary}
           title="COMPASS"
           subtitle={getVersionSubtitle(selectedVersion, config?.title)}
           logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
@@ -1311,15 +1670,6 @@ export default function App(): React.ReactElement {
           {audioEnabled ? 'Audio ON' : 'Audio OFF'}
         </button>
       </div>
-      <ObjectivesWidget
-        isOpen={isObjectivesOpen}
-        onToggle={handleToggleObjectives}
-        hasUnseenUpdates={hasUnseenObjectiveUpdates}
-        unseenCount={objectivesUnseenCount}
-        globalObjectives={globalObjectivesVisible}
-        npcObjectives={npcObjectivesVisible}
-        stakeholders={gameState.stakeholders}
-      />
       <HelpButton onClick={() => setIsHelpOpen(true)} />
       <HelpPanel
         isOpen={isHelpOpen}
@@ -1333,35 +1683,49 @@ export default function App(): React.ReactElement {
       />
       
       <div className="mt-4 flex gap-3">
-        {/* Lateral nav con colapsado */}
-        <div className={`flex flex-col items-start transition-all duration-400 ease-out ${isNavCollapsed ? 'w-12' : 'w-44 flex-shrink-0'}`}>
-          <button
-            onClick={() => setIsNavCollapsed(prev => !prev)}
-            className="mb-2 p-2 rounded-full bg-white/10 border border-white/15 hover:border-teal-300/60 text-gray-200 hover:text-white transition-all duration-300 shadow-sm hover:scale-105"
-            title={isNavCollapsed ? 'Mostrar navegación' : 'Ocultar navegación'}
-          >
-            <span className="text-lg">☰</span>
-          </button>
-          {!isNavCollapsed && (
-            <aside className="w-full transition-opacity duration-300 ease-out animate-slide-fade">
-              <nav className="flex flex-col gap-2" aria-label="Tabs">
-                {enabledMechanics.map((m) => (
+        <div
+          className={`relative flex-shrink-0 overflow-hidden transition-all duration-300 ease-out ${isLeftRailExpanded ? (isObjectivesOpen ? 'w-80' : 'w-52') : 'w-5'}`}
+          onMouseEnter={() => setIsLeftRailExpanded(true)}
+          onMouseLeave={() => setIsLeftRailExpanded(false)}
+        >
+          {!isLeftRailExpanded && (
+            <div className="flex h-full min-h-[32rem] w-5 items-center justify-center">
+              <div className="flex h-full min-h-[32rem] w-3 rounded-full border border-white/10 bg-slate-900/85 shadow-[0_12px_24px_rgba(0,0,0,0.28)]">
+                <div className={`mx-auto mt-3 h-8 w-1.5 rounded-full ${hasUnseenObjectiveUpdates ? 'bg-amber-300 shadow-[0_0_14px_rgba(252,211,77,0.75)]' : 'bg-white/25'}`} />
+              </div>
+            </div>
+          )}
+          {isLeftRailExpanded && (
+            <div className="flex flex-col items-start animate-slide-fade">
+              <CaseObjectivesPanel
+                isOpen={isObjectivesOpen}
+                onToggle={handleToggleObjectives}
+                hasUnseenUpdates={hasUnseenObjectiveUpdates}
+                unseenCount={objectivesUnseenCount}
+                activeCase={activeCase}
+                commitments={commitments}
+                className="mb-3"
+              />
+              <aside className="w-full transition-opacity duration-300 ease-out animate-slide-fade">
+                <nav className="flex flex-col gap-2" aria-label="Tabs">
+                  {enabledMechanics.map((m) => (
+                    <button
+                      key={m.mechanic_id}
+                      onClick={() => setActiveTab(m.tab_id)}
+                      className={`tab-button w-full text-left transition-transform duration-200 ease-out hover:translate-x-1 ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
                   <button
-                    key={m.mechanic_id}
-                    onClick={() => setActiveTab(m.tab_id)}
-                    className={`tab-button w-full text-left transition-transform duration-200 ease-out hover:translate-x-1 ${activeTab === m.tab_id ? 'tab-button--active' : ''}`}
+                    onClick={() => setShowLogPanel(prev => !prev)}
+                    className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 ease-out font-semibold hover:translate-x-1 ${showLogPanel ? 'bg-amber-400 text-gray-900 border-amber-500' : 'bg-amber-300/90 text-gray-900 border-amber-500 hover:bg-amber-400'}`}
                   >
-                    {m.label}
+                    Bitácora
                   </button>
-                ))}
-                <button
-                  onClick={() => setShowLogPanel(prev => !prev)}
-                  className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 ease-out font-semibold hover:translate-x-1 ${showLogPanel ? 'bg-amber-400 text-gray-900 border-amber-500' : 'bg-amber-300/90 text-gray-900 border-amber-500 hover:bg-amber-400'}`}
-                >
-                  Bitácora
-                </button>
-              </nav>
-            </aside>
+                </nav>
+              </aside>
+            </div>
           )}
         </div>
 
@@ -1401,29 +1765,6 @@ export default function App(): React.ReactElement {
               <li className="text-gray-400">Sin eventos aún.</li>
             )}
           </ul>
-        </div>
-      )}
-      {dailySummary && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 max-w-2xl panel p-6 text-white border border-white/10">
-          <div className="flex justify-between items-start gap-4">
-            <div>
-              <div className="text-sm uppercase tracking-wide text-gray-300">Resolución día {dailySummary.day}</div>
-              <div className="text-xl font-bold mt-1">{dailySummary.summary}</div>
-              {dailySummary.stakeholderDetails.length > 0 && (
-                <ul className="mt-2 text-sm text-gray-200 space-y-1">
-                  {dailySummary.stakeholderDetails.map((line, idx) => (
-                    <li key={idx}>• {line}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <button
-              className="text-gray-300 hover:text-white text-sm"
-              onClick={() => setDailySummary(null)}
-            >
-              Cerrar
-            </button>
-          </div>
         </div>
       )}
       {toastMessage && (

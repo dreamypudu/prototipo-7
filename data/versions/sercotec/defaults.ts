@@ -48,7 +48,9 @@ export const INITIAL_GAME_STATE: GameState = {
   mechanicEvents: [],
   canonicalActions: [],
   expectedActions: [],
-  comparisons: []
+  comparisons: [],
+  dailyResolutions: [],
+  resolvedExpectedActionIds: []
 };
 
 export const buildInitialGameState = (): GameState => structuredClone(INITIAL_GAME_STATE);

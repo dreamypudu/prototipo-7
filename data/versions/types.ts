@@ -1,9 +1,10 @@
 import {
+  CaseDefinition,
+  Document,
   DirectorObjectives,
   EmailTemplate,
   GameState,
-  GlobalObjectiveDefinition,
-  NpcObjectiveDefinition,
+  RoomDefinition,
   ScenarioFile,
   SimulatorVersion,
   Stakeholder,
@@ -15,6 +16,7 @@ export interface VersionDefaults {
   timeSlots: TimeSlotType[];
   secretaryRole: string;
   directorObjectives: DirectorObjectives;
+  roomDefinitions?: RoomDefinition[];
   buildInitialGameState: () => GameState;
 }
 
@@ -24,7 +26,7 @@ export interface VersionContentPack {
   scenarios: ScenarioFile;
   questions: Record<string, StakeholderQuestion[]>;
   emails: EmailTemplate[];
-  globalObjectives: GlobalObjectiveDefinition[];
-  npcObjectives: NpcObjectiveDefinition[];
+  documents: Document[];
+  cases: CaseDefinition[];
   defaults: VersionDefaults;
 }

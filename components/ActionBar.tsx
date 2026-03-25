@@ -1,5 +1,5 @@
 import React from 'react';
-import { GlobalEffectsUI, PlayerAction } from '../types';
+import { ActionEffectsPreview, PlayerAction } from '../types';
 import { logEvent } from '../services/Timelogger';
 import DecisionCardDeck from './DecisionCardDeck';
 
@@ -7,7 +7,7 @@ interface ActionBarProps {
   actions: PlayerAction[];
   onAction: (action: PlayerAction) => void;
   disabled: boolean;
-  onHoverEffects?: (effects: GlobalEffectsUI | null) => void;
+  onHoverEffects?: (effects: ActionEffectsPreview | null) => void;
 }
 
 const getRiskColor = (riskLevel: string) => {
@@ -27,13 +27,16 @@ const ActionCard: React.FC<{
   action: PlayerAction;
   onAction: (action: PlayerAction) => void;
   disabled: boolean;
-  onHoverEffects?: (effects: GlobalEffectsUI | null) => void;
+  onHoverEffects?: (effects: ActionEffectsPreview | null) => void;
 }> = ({ action, onAction, disabled, onHoverEffects }) => {
   const handleEnter = () => {
     logEvent('hover_enter', { option_id: action.action });
-    const effects = action.globalEffectsUI;
-    const hasEffects = effects && Object.keys(effects).length > 0;
-    onHoverEffects?.(hasEffects ? effects : null);
+    const hasGlobal = action.globalEffectsUI && Object.keys(action.globalEffectsUI).length > 0;
+    const hasInternal = !!action.internalEffectsPreview;
+    onHoverEffects?.(hasGlobal || hasInternal ? {
+      global: hasGlobal ? action.globalEffectsUI ?? null : null,
+      internal: action.internalEffectsPreview ?? null,
+    } : null);
   };
   const handleLeave = () => {
     logEvent('hover_leave', { option_id: action.action });
@@ -97,13 +100,16 @@ const SimpleButton: React.FC<{
   action: PlayerAction;
   onAction: (action: PlayerAction) => void;
   disabled: boolean;
-  onHoverEffects?: (effects: GlobalEffectsUI | null) => void;
+  onHoverEffects?: (effects: ActionEffectsPreview | null) => void;
 }> = ({ action, onAction, disabled, onHoverEffects }) => {
   const handleEnter = () => {
     logEvent('hover_enter', { option_id: action.action });
-    const effects = action.globalEffectsUI;
-    const hasEffects = effects && Object.keys(effects).length > 0;
-    onHoverEffects?.(hasEffects ? effects : null);
+    const hasGlobal = action.globalEffectsUI && Object.keys(action.globalEffectsUI).length > 0;
+    const hasInternal = !!action.internalEffectsPreview;
+    onHoverEffects?.(hasGlobal || hasInternal ? {
+      global: hasGlobal ? action.globalEffectsUI ?? null : null,
+      internal: action.internalEffectsPreview ?? null,
+    } : null);
   };
   const handleLeave = () => {
     logEvent('hover_leave', { option_id: action.action });

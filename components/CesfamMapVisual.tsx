@@ -2,7 +2,7 @@ import React from 'react';
 import { DayOfWeek, ScheduleAssignment, ScheduleBlock, StaffMember, Stakeholder } from '../types';
 import { CESFAM_ROOMS } from '../constants';
 
-export const MAP_BACKGROUND_URL = "https://i.imgur.com/WxYN5Nz.jpeg";
+export const MAP_BACKGROUND_URL = "https://i.imgur.com/WxYN5Nz.jpegava";
 
 interface CesfamMapVisualProps {
     weeklySchedule: ScheduleAssignment[];
@@ -17,6 +17,7 @@ interface CesfamMapVisualProps {
     className?: string;
     showNames?: boolean;
     compactOccupants?: boolean;
+    availableMeetingStaffIds?: string[];
 }
 
 const NON_CONFLICT_ROOMS = new Set(['TERRENO', 'AREA_COMUN', 'OFICINA_TECNICA']);
@@ -34,6 +35,7 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
     className = '',
     showNames = true,
     compactOccupants = false,
+    availableMeetingStaffIds = [],
 }) => {
     const getOccupants = (roomId: string) => {
         return staffRoster.filter(staff => {
@@ -66,7 +68,8 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
     };
 
     return (
-        <div className={`flex-grow grid grid-cols-3 grid-rows-5 gap-4 p-4 bg-gray-900 rounded-xl border border-gray-800 relative overflow-hidden shadow-inner ${className}`}>
+        <>
+        <div className={`flex-grow grid grid-cols-3 grid-rows-3 gap-4 p-4 bg-gray-900 rounded-xl border border-gray-800 relative overflow-hidden shadow-inner ${className}`}>
             {MAP_BACKGROUND_URL && (
                 <div
                     className="absolute inset-0 bg-cover bg-center opacity-50 pointer-events-none"
@@ -111,6 +114,7 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                             {occupants.map(staff => {
                                 const portrait = getPortraitProps(staff.id, staff.portraitUrl);
                                 const isHighlightedStaff = highlightStaffId === staff.id;
+                                const hasAvailableMeeting = availableMeetingStaffIds.includes(staff.id);
                                 const occupantClass = `group relative ${interactive ? 'cursor-pointer' : 'cursor-default'}`;
                                 const avatarSizeClass = compactOccupants
                                     ? compactCount <= 3
@@ -122,12 +126,20 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                 const highlightedAvatarClass = compactOccupants
                                     ? 'border-cyan-300 ring-1 ring-cyan-400/60'
                                     : 'border-cyan-300 ring-2 ring-cyan-400/70 scale-105';
+                                const availableMeetingAvatarClass = compactOccupants
+                                    ? 'border-yellow-300 ring-2 ring-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.35)]'
+                                    : 'border-yellow-300 ring-2 ring-yellow-400/80 shadow-[0_0_14px_rgba(250,204,21,0.4)]';
+                                const avatarStateClass = isHighlightedStaff
+                                    ? highlightedAvatarClass
+                                    : hasAvailableMeeting
+                                        ? availableMeetingAvatarClass
+                                        : 'border-white/80';
 
                                 const occupantBody = (
                                     <div className={`flex items-center ${showNames ? 'gap-2' : 'justify-center'}`}>
                                         <div className={`${avatarSizeClass} rounded-full overflow-hidden border-2 shadow-md bg-gray-800 transition ${
                                             interactive ? 'transform group-hover:scale-110 group-hover:border-yellow-400' : ''
-                                        } ${isHighlightedStaff ? highlightedAvatarClass : 'border-white/80'}`}>
+                                        } ${avatarStateClass}`}>
                                             <img
                                                 src={portrait.src}
                                                 alt={staff.name}
@@ -139,6 +151,8 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                             <span className={`text-xs font-semibold px-2 py-1 rounded border ${
                                                 isHighlightedStaff
                                                     ? 'text-cyan-100 bg-cyan-950/80 border-cyan-400/60'
+                                                    : hasAvailableMeeting
+                                                        ? 'text-yellow-100 bg-yellow-950/70 border-yellow-400/60'
                                                     : 'text-white bg-black/60 border-white/10'
                                             }`}>
                                                 {staff.name}
@@ -156,6 +170,11 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                             title={showNames ? `Ir a ver a: ${staff.name}` : staff.name}
                                         >
                                             {occupantBody}
+                                            {hasAvailableMeeting && (
+                                                <span className="absolute -top-2 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-black text-gray-950 shadow-[0_0_10px_rgba(250,204,21,0.55)] animate-meeting-float">
+                                                    !
+                                                </span>
+                                            )}
                                             {staff.burnout > 70 && (
                                                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
                                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -169,6 +188,11 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                 return (
                                     <div key={staff.id} className={occupantClass} title={showNames ? undefined : staff.name}>
                                         {occupantBody}
+                                        {hasAvailableMeeting && (
+                                            <span className="absolute -top-2 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-black text-gray-950 shadow-[0_0_10px_rgba(250,204,21,0.55)] animate-meeting-float">
+                                                !
+                                            </span>
+                                        )}
                                         {staff.burnout > 70 && (
                                             <span className="absolute -top-1 -right-1 flex h-3 w-3">
                                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -187,6 +211,16 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                 );
             })}
         </div>
+        <style>{`
+            @keyframes meeting-float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-3px); }
+            }
+            .animate-meeting-float {
+                animation: meeting-float 1.8s ease-in-out infinite;
+            }
+        `}</style>
+        </>
     );
 };
 

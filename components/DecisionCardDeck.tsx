@@ -1,12 +1,12 @@
 import React from 'react';
-import { GlobalEffectsUI, PlayerAction } from '../types';
+import { ActionEffectsPreview, PlayerAction } from '../types';
 import { logEvent } from '../services/Timelogger';
 
 interface DecisionCardDeckProps {
   options: PlayerAction[];
   disabled: boolean;
   onOptionSelected: (action: PlayerAction) => void;
-  onHoverEffects?: (effects: GlobalEffectsUI | null) => void;
+  onHoverEffects?: (effects: ActionEffectsPreview | null) => void;
 }
 
 type ThrowDirection = 'left' | 'right';
@@ -147,9 +147,12 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
 
   const handleHoverIn = (action: PlayerAction) => {
     logEvent('hover_enter', { option_id: action.action });
-    const effects = action.globalEffectsUI;
-    const hasEffects = effects && Object.keys(effects).length > 0;
-    onHoverEffects?.(hasEffects ? effects : null);
+    const hasGlobal = action.globalEffectsUI && Object.keys(action.globalEffectsUI).length > 0;
+    const hasInternal = !!action.internalEffectsPreview;
+    onHoverEffects?.(hasGlobal || hasInternal ? {
+      global: hasGlobal ? action.globalEffectsUI ?? null : null,
+      internal: action.internalEffectsPreview ?? null,
+    } : null);
   };
 
   const handleHoverOut = (action: PlayerAction) => {

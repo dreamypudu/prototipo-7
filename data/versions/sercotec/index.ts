@@ -2,16 +2,14 @@ import { scenarios } from './scenarios';
 import { SERCOTEC_STAKEHOLDERS } from './stakeholders';
 import { SERCOTEC_QUESTIONS } from './questions';
 import { SERCOTEC_EMAIL_TEMPLATES } from './emails';
+import { SERCOTEC_DOCUMENTS } from './documents';
 import {
   buildInitialGameState,
   DIRECTOR_OBJECTIVES,
   SECRETARY_ROLE,
   TIME_SLOTS,
 } from './defaults';
-import {
-  SERCOTEC_GLOBAL_OBJECTIVES,
-  SERCOTEC_NPC_OBJECTIVES,
-} from './objectives';
+import { SERCOTEC_CASES } from './cases';
 import type { VersionContentPack } from '../types';
 
 export const SERCOTEC_CONTENT: VersionContentPack = {
@@ -20,8 +18,8 @@ export const SERCOTEC_CONTENT: VersionContentPack = {
   scenarios,
   questions: SERCOTEC_QUESTIONS,
   emails: SERCOTEC_EMAIL_TEMPLATES,
-  globalObjectives: SERCOTEC_GLOBAL_OBJECTIVES,
-  npcObjectives: SERCOTEC_NPC_OBJECTIVES,
+  documents: SERCOTEC_DOCUMENTS,
+  cases: SERCOTEC_CASES,
   defaults: {
     timeSlots: TIME_SLOTS,
     secretaryRole: SECRETARY_ROLE,

@@ -133,9 +133,6 @@ const PhoneOverlay: React.FC<PhoneOverlayProps> = ({ stakeholders, onCall, onClo
                     </button>
                 ))}
                 <div className="border-t border-gray-800 my-2"></div>
-                    <button className="w-full text-left p-3 text-gray-500 text-sm hover:text-gray-300">
-                    Farmacia (Anexo 402)
-                </button>
                 <button className="w-full text-left p-3 text-gray-500 text-sm hover:text-gray-300">
                     Seguridad (Anexo 911)
                 </button>

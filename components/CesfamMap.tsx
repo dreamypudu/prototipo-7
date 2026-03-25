@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameState, ScheduleBlock, StaffMember } from '../types';
-import { DAYS_OF_WEEK } from '../constants';
+import { CESFAM_PRESENT_MAP_SCHEDULE, DAYS_OF_WEEK } from '../constants';
 import { useMechanicContext } from '../mechanics/MechanicContext';
 import CesfamMapVisual from './CesfamMapVisual';
 
@@ -10,9 +10,12 @@ interface CesfamMapProps {
 }
 
 const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
-    const { engine } = useMechanicContext();
+    const { engine, availableProactiveStakeholderIds } = useMechanicContext();
     const currentBlock: ScheduleBlock = gameState.timeSlot === 'mañana' ? 'AM' : 'PM';
     const dayOfWeek = DAYS_OF_WEEK[(gameState.day - 1) % 5];
+    const mapSchedule = gameState.day >= 3 && gameState.day <= 5
+        ? CESFAM_PRESENT_MAP_SCHEDULE
+        : gameState.weeklySchedule;
 
     const handleInteract = (staff: StaffMember, roomId: string) => {
         const shouldLog = onInteract(staff);
@@ -52,23 +55,21 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
                         <span className="text-yellow-400 font-bold">⚠ Costo de Movimiento: 6 segundos.</span> Haga clic en un funcionario para ir a verlo.
                     </p>
                 </div>
-                <div className="flex flex-col items-end gap-2 bg-gray-900/50 p-2 rounded-lg border border-gray-600">
-                    <span className="text-xs text-gray-400 uppercase">Momento presente</span>
-                    <div className="rounded-lg border border-cyan-500/30 bg-cyan-950/40 px-3 py-2 text-right">
-                        <div className="text-sm font-bold text-white">{dayOfWeek}</div>
-                        <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">{currentBlock}</div>
-                    </div>
+                <div className="rounded-lg border border-cyan-500/30 bg-cyan-950/40 px-3 py-2 text-right">
+                    <div className="text-sm font-bold text-white">{dayOfWeek}</div>
+                    <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">{currentBlock}</div>
                 </div>
             </div>
 
             <CesfamMapVisual
-                weeklySchedule={gameState.weeklySchedule}
+                weeklySchedule={mapSchedule}
                 staffRoster={gameState.staffRoster}
                 stakeholders={gameState.stakeholders}
                 viewDay={dayOfWeek}
                 viewBlock={currentBlock}
                 interactive
                 onInteract={handleInteract}
+                availableMeetingStaffIds={availableProactiveStakeholderIds}
             />
 
             <style>{`

@@ -7,6 +7,16 @@ export type EffectMagnitude = 'S' | 'M' | 'L';
 export type EffectDirection = '+' | '-';
 export type GlobalEffectsUI = Partial<Record<GlobalAttributeId, EffectMagnitude>>;
 export type GlobalEffectsReal = Partial<Record<GlobalAttributeId, { magnitude: EffectMagnitude; direction: EffectDirection }>>;
+export interface InternalEffectsPreview {
+  stakeholderName: string;
+  direction: 'up' | 'down' | 'neutral';
+  magnitude: EffectMagnitude | null;
+  rawDelta: number;
+}
+export interface ActionEffectsPreview {
+  global: GlobalEffectsUI | null;
+  internal: InternalEffectsPreview | null;
+}
 export type ConversationMode = 'idle' | 'pre_sequence' | 'in_sequence' | 'post_sequence' | 'questions' | 'questions_only';
 
 // --- PSYCHOMETRIC & ML LOGGING TYPES ---
@@ -42,6 +52,13 @@ export interface ExpectedAction {
   created_at: number;
   mechanic_id?: string;
   effects?: Record<string, any>;
+  stakeholder_id?: string;
+  created_day?: number;
+  created_time_slot?: TimeSlotType;
+  ui?: {
+    title: string;
+    description?: string;
+  };
 }
 
 export interface ComparisonResult {
@@ -49,6 +66,20 @@ export interface ComparisonResult {
   canonical_action_id: string | null;
   outcome: 'DONE_OK' | 'NOT_DONE' | 'DEVIATION';
   deviation?: any;
+  rule_id?: string;
+  resolved_day?: number;
+}
+
+export type ComparisonMode = 'frontend' | 'backend';
+
+export interface DailyResolution {
+  day: number;
+  comparisons: ComparisonResult[];
+  global_deltas: Record<string, number>;
+  stakeholder_deltas: Record<string, Record<string, number>>;
+  resolved_expected_action_ids: string[];
+  status?: string;
+  created_at?: string;
 }
 
 // --- SIMULATOR CONFIGURATION ---
@@ -145,6 +176,7 @@ export interface DecisionLogEntry {
     nodeId: string;
     choiceId: string;
     choiceText: string;
+    tags?: Record<string, any>;
     consequences: Consequences;
     globalEffectsShown?: GlobalEffectsUI;
     globalEffectsApplied?: GlobalEffectsReal;
@@ -278,6 +310,7 @@ export interface GameState {
   playerActionsLog: PlayerActionLogEntry[];
   playerNotes: string;
   scenarioSchedule: { [sequenceId: string]: { day: number; slot: TimeSlotType } };
+  lastScheduleSubmissionDay?: number | null;
   
   // Added strategy property to GameState
   strategy: StrategyState;
@@ -289,6 +322,8 @@ export interface GameState {
   canonicalActions: CanonicalAction[];
   expectedActions: ExpectedAction[];
   comparisons: ComparisonResult[];
+  dailyResolutions: DailyResolution[];
+  resolvedExpectedActionIds: string[];
 }
 
 export interface PlayerAction {
@@ -303,6 +338,7 @@ export interface PlayerAction {
   relationshipImpact?: string;
   informationDepth?: string;
   globalEffectsUI?: GlobalEffectsUI;
+  internalEffectsPreview?: InternalEffectsPreview | null;
   uiVariant?: 'default' | 'success' | 'danger' | 'muted';
   isLocked?: boolean;
 }
@@ -320,6 +356,7 @@ export interface ScenarioNode {
   node_id: string;
   stakeholderId: string;
   stakeholderRole: string;
+  participantIds?: string[];
   dialogue: string;
   options: ScenarioOption[];
 }
@@ -401,29 +438,25 @@ export interface ConditionGroup {
   any?: NarrativeCondition[];
 }
 
-export interface GlobalObjectiveDefinition {
-  objective_id: string;
+export interface CaseGoalDefinition {
+  goal_id: string;
   title: string;
   description: string;
-  revealedBySequenceIds: string[];
   success: ConditionGroup;
   failure?: ConditionGroup;
   weight?: number;
 }
 
-export interface NpcObjectiveDefinition {
-  objective_id: string;
-  stakeholderId: string;
+export interface CaseDefinition {
+  case_id: string;
   title: string;
   description: string;
   revealedBySequenceIds: string[];
-  success: ConditionGroup;
-  failure?: ConditionGroup;
-  weight?: number;
+  goals: CaseGoalDefinition[];
 }
 
-export interface ObjectiveSnapshot {
-  objective_id: string;
+export interface CaseGoalSnapshot {
+  goal_id: string;
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   progressLabel: string;
 }
@@ -438,20 +471,29 @@ export interface DirectorObjectives {
 }
 
 export interface EmailTemplate {
-    email_id: string;
-    trigger: {
+  email_id: string;
+  trigger:
+    | {
         type: 'ON_MEETING_COMPLETE';
         stakeholder_id: string;
-    };
-    from: string;
-    subject: string;
-    body: string;
-    grants_information?: string;
+      }
+    | {
+        type: 'ON_CASE_EVENT';
+        event_id: string;
+      };
+  from: string;
+  subject: string;
+  body: string;
+  grants_information?: string;
 }
 
 // Daily effects summary used in frontend UI when resolving day effects
 export type DailyEffectSummary = {
   day: number;
-  summary: string;
-  stakeholderDetails: string[];
+  global: {
+    budget: number;
+    reputation: number;
+  };
+  internalTrend: 'up' | 'down' | 'neutral';
+  internalMagnitude: number;
 };

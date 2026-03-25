@@ -10,6 +10,8 @@ interface NpcHoverProps {
   portraitScale?: number;
   /** Ajusta el desplazamiento vertical de la foto (px o %). */
   portraitOffsetY?: string | number;
+  /** Posicion de la burbuja respecto al nombre. */
+  placement?: 'top' | 'right';
 }
 
 const NpcHover: React.FC<NpcHoverProps> = ({
@@ -17,15 +19,20 @@ const NpcHover: React.FC<NpcHoverProps> = ({
   children,
   lineHeight = 1.25,
   portraitScale = 3,
-  portraitOffsetY = 70
+  portraitOffsetY = 70,
+  placement = 'top',
 }) => {
   const translateY =
     typeof portraitOffsetY === 'number' ? `${portraitOffsetY}px` : portraitOffsetY;
+  const bubbleClass =
+    placement === 'right'
+      ? 'absolute left-full top-1/2 ml-3 -translate-y-1/2 px-3 py-2 rounded-xl bg-gray-900/95 border border-gray-700 shadow-xl w-56 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition duration-150 z-50'
+      : 'absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-xl bg-gray-900/95 border border-gray-700 shadow-xl w-56 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition duration-150 z-50';
 
   return (
     <span className="relative inline-flex group cursor-help font-semibold text-amber-200">
       {children}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-xl bg-gray-900/95 border border-gray-700 shadow-xl w-56 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition duration-150 z-50">
+      <div className={bubbleClass}>
         <div className="flex items-center gap-2">
           <div className="w-20 h-20 rounded-full border border-white/20 overflow-hidden flex-shrink-0">
             <img

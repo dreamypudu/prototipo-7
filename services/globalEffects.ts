@@ -1,9 +1,11 @@
 import {
+  ActionEffectsPreview,
   Consequences,
   EffectMagnitude,
   GlobalAttributeId,
   GlobalEffectsReal,
-  GlobalEffectsUI
+  GlobalEffectsUI,
+  InternalEffectsPreview,
 } from '../types';
 
 const BUDGET_THRESHOLDS = {
@@ -68,6 +70,36 @@ const getDeltaFromReal = (
 
 export const clampReputation = (value: number): number => {
   return Math.max(0, Math.min(100, value));
+};
+
+export const resolveInternalEffectsPreview = (
+  consequences: Consequences,
+  stakeholderName: string
+): InternalEffectsPreview | null => {
+  const trustDelta = Number(consequences.trustChange ?? 0);
+  const supportDelta = Number(consequences.supportChange ?? 0);
+  const strongestDelta = Math.abs(supportDelta) > Math.abs(trustDelta) ? supportDelta : trustDelta;
+
+  if (strongestDelta === 0) return null;
+
+  return {
+    stakeholderName,
+    direction: strongestDelta > 0 ? 'up' : 'down',
+    magnitude: getMagnitudeForReputation(Math.abs(strongestDelta)),
+    rawDelta: Math.abs(strongestDelta),
+  };
+};
+
+export const resolveActionEffectsPreview = (
+  consequences: Consequences,
+  stakeholderName: string
+): ActionEffectsPreview => {
+  const global = resolveGlobalEffects(consequences).ui;
+  const hasGlobal = Object.keys(global).length > 0;
+  return {
+    global: hasGlobal ? global : null,
+    internal: resolveInternalEffectsPreview(consequences, stakeholderName),
+  };
 };
 
 export const resolveGlobalEffects = (consequences: Consequences): {

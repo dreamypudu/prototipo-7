@@ -44,6 +44,7 @@ export interface OfficeBaseState {
   onNavigateTab: (tabId: string) => void;
   onActionHover?: (effects: GlobalEffectsUI | null) => void;
   onAskQuestion?: (question: StakeholderQuestion) => void;
+  onDialogueTypingChange?: (isTyping: boolean) => void;
 }
 
 export interface DefaultOfficeState extends OfficeBaseState {

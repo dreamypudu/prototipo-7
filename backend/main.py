@@ -651,6 +651,7 @@ def _apply_effects(global_deltas: dict, stakeholder_deltas: dict, effect: dict, 
 
 def normalize_session(conn, session_id: str, session: dict, created_at: str):
     metadata = session.get("session_metadata", {})
+    comparison_mode = session.get("comparison_mode", "backend")
     version_id = metadata.get("simulator_version_id")
     user_id = metadata.get("user_id")
     start_time = metadata.get("start_time")
@@ -662,6 +663,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     canonical_actions = session.get("canonical_actions", [])
     mechanic_events = session.get("mechanic_events", [])
     comparisons = session.get("comparisons", [])
+    daily_resolutions = session.get("daily_resolutions", [])
     process_log = session.get("process_log", [])
     player_actions_log = session.get("player_actions_log", [])
     final_state = session.get("final_state", {})
@@ -838,6 +840,36 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
             ),
         )
 
+    for resolution in daily_resolutions:
+        resolution_day = resolution.get("day")
+        if resolution_day is None:
+            continue
+        resolution_created_at = resolution.get("created_at") or created_at
+        resolution_status = resolution.get("status") or ("frontend_applied" if comparison_mode == "frontend" else "applied")
+        conn.execute(
+            """
+            INSERT INTO daily_effects (session_id, day, comparisons, global_deltas, stakeholder_deltas, created_at, status, applied_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (session_id, day) DO UPDATE SET
+                comparisons = EXCLUDED.comparisons,
+                global_deltas = EXCLUDED.global_deltas,
+                stakeholder_deltas = EXCLUDED.stakeholder_deltas,
+                created_at = EXCLUDED.created_at,
+                status = EXCLUDED.status,
+                applied_at = EXCLUDED.applied_at
+            """,
+            (
+                session_id,
+                resolution_day,
+                _json_dump(resolution.get("comparisons")),
+                _json_dump(resolution.get("global_deltas")),
+                _json_dump(resolution.get("stakeholder_deltas")),
+                resolution_created_at,
+                resolution_status,
+                resolution_created_at,
+            ),
+        )
+
     for log in process_log:
         conn.execute(
             """
@@ -962,6 +994,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
         "canonical_actions": len(canonical_actions),
         "mechanic_events": len(mechanic_events),
         "comparisons": len(comparisons),
+        "daily_resolutions": len(daily_resolutions),
         "process_log": len(process_log),
         "player_actions_log": len(player_actions_log),
     }
@@ -1025,10 +1058,36 @@ def resolve_day_effects(session_id: str, day: int, payload: dict | None = Body(d
         raise HTTPException(status_code=400, detail="day is required")
 
     with get_conn() as conn:
-        # ensure session exists
-        exists = conn.execute("SELECT 1 FROM sessions WHERE session_id = %s", (session_id,)).fetchone()
-        if not exists:
+        session_row = conn.execute(
+            "SELECT payload FROM sessions WHERE session_id = %s",
+            (session_id,),
+        ).fetchone()
+        if not session_row:
             raise HTTPException(status_code=404, detail="session not found")
+
+        session_payload = _json_load(session_row.get("payload")) or {}
+        if session_payload.get("comparison_mode") == "frontend":
+            existing_effect = conn.execute(
+                "SELECT comparisons, global_deltas, stakeholder_deltas FROM daily_effects WHERE session_id = %s AND day = %s",
+                (session_id, day),
+            ).fetchone()
+            if existing_effect:
+                return {
+                    "ok": True,
+                    "session_id": session_id,
+                    "day": day,
+                    "comparisons": _json_load(existing_effect["comparisons"]) or [],
+                    "global_deltas": _json_load(existing_effect["global_deltas"]) or {},
+                    "stakeholder_deltas": _json_load(existing_effect["stakeholder_deltas"]) or {},
+                    "cached": True,
+                }
+            return {
+                "ok": False,
+                "reason": "frontend_managed",
+                "message": "daily effects are managed in frontend mode",
+                "session_id": session_id,
+                "day": day,
+            }
 
         existing_effect = conn.execute(
             "SELECT comparisons, global_deltas, stakeholder_deltas FROM daily_effects WHERE session_id = %s AND day = %s",

@@ -1,5 +1,4 @@
-
-import { MechanicEvent, CanonicalAction, ExpectedAction } from '../types';
+import { MechanicEvent, CanonicalAction, ExpectedAction, TimeSlotType } from '../types';
 
 /**
  * Service to bridge modular mechanics and the core psychometric engine.
@@ -58,7 +57,12 @@ class MechanicEngine {
   /**
    * Registers a list of actions expected from the user following a dialogue choice.
    */
-  public registerExpectedActions(nodeId: string, optionId: string, actions: Partial<ExpectedAction>[]): ExpectedAction[] {
+  public registerExpectedActions(
+    nodeId: string,
+    optionId: string,
+    actions: Partial<ExpectedAction>[],
+    context?: { stakeholderId?: string; day?: number; timeSlot?: TimeSlotType }
+  ): ExpectedAction[] {
     const normalized: ExpectedAction[] = actions.map(a => ({
       expected_action_id: crypto.randomUUID(),
       source: { node_id: nodeId, option_id: optionId },
@@ -68,7 +72,11 @@ class MechanicEngine {
       rule_id: a.rule_id || 'default_rule',
       created_at: Date.now(),
       mechanic_id: a.mechanic_id,
-      effects: a.effects || {}
+      effects: a.effects || {},
+      stakeholder_id: a.stakeholder_id ?? context?.stakeholderId,
+      created_day: a.created_day ?? context?.day,
+      created_time_slot: a.created_time_slot ?? context?.timeSlot,
+      ui: a.ui,
     }));
     this.expectedBuffer.push(...normalized);
     return normalized;

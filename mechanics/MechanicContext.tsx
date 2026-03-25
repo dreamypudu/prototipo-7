@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { GameState } from '../types';
+import type { VersionContentPack } from '../data/versions';
 import { mechanicEngine } from '../services/MechanicEngine';
 import { SessionExport } from '../services/sessionExport';
 import { MechanicDispatch, OfficeState } from './types';
@@ -10,6 +11,8 @@ export interface MechanicContextValue {
   dispatch: MechanicDispatch;
   sessionExport: SessionExport;
   office?: OfficeState;
+  availableProactiveStakeholderIds: string[];
+  contentPack: VersionContentPack;
 }
 
 const MechanicContext = createContext<MechanicContextValue | null>(null);

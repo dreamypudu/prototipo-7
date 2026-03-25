@@ -25,7 +25,8 @@ const InnovatecOfficeMechanic: React.FC = () => {
     onPlayerAction,
     onSlotSelect,
     onRequestMeeting,
-    onActionHover
+    onActionHover,
+    onDialogueTypingChange
   } = office;
 
   const renderCentralPanel = () => {
@@ -66,6 +67,7 @@ const InnovatecOfficeMechanic: React.FC = () => {
             allStakeholders={gameState.stakeholders}
             dialogue={currentDialogue}
             timeSlot={gameState.timeSlot}
+            onTypingStateChange={onDialogueTypingChange}
           />
         ) : null;
     }

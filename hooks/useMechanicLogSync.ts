@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { compareExpectedVsActual } from '../services/ComparisonEngine';
+import { isFrontendComparisonMode } from '../services/comparisonMode';
 import { mechanicEngine } from '../services/MechanicEngine';
 import { GameState } from '../types';
 
@@ -15,7 +16,7 @@ export const useMechanicLogSync = (setGameState: SetGameState) => {
         mechanicEvents: [...prev.mechanicEvents, ...flushed.events],
         canonicalActions: [...prev.canonicalActions, ...flushed.canonical],
         expectedActions: [...prev.expectedActions, ...flushed.expected],
-        comparisons: (() => {
+        comparisons: isFrontendComparisonMode ? prev.comparisons : (() => {
           const nextExpected = [...prev.expectedActions, ...flushed.expected];
           const nextCanonical = [...prev.canonicalActions, ...flushed.canonical];
           const newComparisons = compareExpectedVsActual(
