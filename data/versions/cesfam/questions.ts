@@ -9,9 +9,16 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
       tags: ['admin', 'priorities']
     },
     {
+      question_id: 'sc_family_tie',
+      text: 'Tienes algun vinculo personal con alguien del equipo?',
+      answer: 'Si. Javier Castro, el TENS del Sector Azul, es mi hermano. Por eso prefiero mantener distancia y no mezclar lo familiar con la agenda.',
+      requirements: { trust_min: 50 },
+      tags: ['personal', 'relationships']
+    },
+    {
       question_id: 'sc_pending_conflicts',
       text: 'Hay conflictos activos entre sectores?',
-      answer: 'Si, Azul y Amarillo discuten por espacios y recursos en box.',
+      answer: 'Si, el Sector Azul y el Sector Amarillo discuten por espacios y recursos en box.',
       requirements: { reputation_min: 50 },
       tags: ['conflict']
     },
@@ -54,7 +61,7 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
     },
     {
       question_id: 'ph_low_value_tasks',
-      text: 'Que tareas consideras impropias para el equipo Azul?',
+      text: 'Que tareas consideras impropias para el equipo del Sector Azul?',
       answer: 'Visitas basicas que deberian cubrir otros sectores.',
       tags: ['preferences']
     },
@@ -74,6 +81,13 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
       tags: ['workload']
     },
     {
+      question_id: 'jc_family_tie',
+      text: 'Tienes algun familiar trabajando aqui?',
+      answer: 'Si. Sofia Castro, la asistente administrativa, es mi hermana. Tratamos de no mezclar eso con lo que pasa en el Centro de Salud.',
+      requirements: { trust_min: 45 },
+      tags: ['personal', 'relationships']
+    },
+    {
       question_id: 'jc_hidden_errors',
       text: 'Hay errores que te preocupen?',
       answer: 'Algunos registros quedan incompletos por falta de tiempo.',
@@ -90,7 +104,7 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
   'marcela-soto': [
     {
       question_id: 'ms_non_negotiable',
-      text: 'Que protocolo es innegociable para el Rojo?',
+      text: 'Que protocolo es innegociable para el Sector Rojo?',
       answer: 'IAAS y descanso laboral, sin excepciones.',
       tags: ['compliance']
     },
@@ -133,7 +147,7 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
   'claudia-morales': [
     {
       question_id: 'cm_team_mood',
-      text: 'Como esta el clima del equipo Rojo?',
+      text: 'Como esta el clima del equipo del Sector Rojo?',
       answer: 'Cansado, pero comprometido con los protocolos.',
       tags: ['mood']
     },
@@ -160,14 +174,14 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
     },
     {
       question_id: 'dr_missing_resources',
-      text: 'Que recursos faltan en el Amarillo?',
+      text: 'Que recursos faltan en el Sector Amarillo?',
       answer: 'Boxes disponibles y personal extra en horarios criticos.',
       tags: ['resources']
     },
     {
       question_id: 'dr_conflict_person',
       text: 'Con quien chocas mas seguido?',
-      answer: 'Con el Azul por uso de boxes y horarios.',
+      answer: 'Con el Sector Azul por uso de boxes y horarios.',
       requirements: { trust_min: 60 },
       tags: ['conflict']
     }

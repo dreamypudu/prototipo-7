@@ -101,7 +101,15 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
     const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const stripAccents = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-    const aliasMap: { token: string; id: string }[] = [];
+    const tokenCandidates = new Map<string, Set<string>>();
+    const registerToken = (token: string, id: string) => {
+      const normalized = token.trim();
+      if (!normalized) return;
+      const current = tokenCandidates.get(normalized) ?? new Set<string>();
+      current.add(id);
+      tokenCandidates.set(normalized, current);
+    };
+
     roster.forEach((s) => {
       const full = s.name.trim();
       const noAcc = stripAccents(full);
@@ -113,17 +121,22 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
       const roleTokens = ['tens', 'dr.', 'dr', 'enf.', 'enf', 'sr.', 'sr', 'sra.', 'sra', 'srta.', 'srta', 'ing.', 'ing', 'lic.', 'lic'];
       const skipFirst = roleTokens.includes(first.toLowerCase());
 
-      const variants = new Set<string>([
-        full,
-        noAcc,
-        skipFirst ? '' : first,
-        skipFirst ? '' : stripAccents(first),
-        last,
-        stripAccents(last),
-        // NOTA: quitamos shortId para evitar falsos positivos con conectores cortos (ej. "en")
-      ].filter(Boolean) as string[]);
+      registerToken(full, s.id);
+      registerToken(noAcc, s.id);
+      if (!skipFirst) {
+        registerToken(first, s.id);
+        registerToken(stripAccents(first), s.id);
+      }
+      registerToken(last, s.id);
+      registerToken(stripAccents(last), s.id);
+    });
 
-      variants.forEach((token) => aliasMap.push({ token, id: s.id }));
+    const aliasMap: { token: string; id: string }[] = [];
+    tokenCandidates.forEach((ids, token) => {
+      // Los nombres completos siempre pueden enlazarse; apellidos o nombres ambiguos no.
+      const tokenLooksFullName = token.trim().includes(' ');
+      if (!tokenLooksFullName && ids.size > 1) return;
+      ids.forEach((id) => aliasMap.push({ token, id }));
     });
 
     if (aliasMap.length === 0) return text;

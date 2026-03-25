@@ -92,15 +92,14 @@ const fontByVersion: Record<SimulatorVersion, string> = {
       }}
     >
       <div className="max-w-6xl w-full relative">
-        <img
-          src={animatedLogoSrc}
-          alt="Logo Compass"
-          className="absolute top-0 left-0 m-2 object-contain drop-shadow-lg opacity-95"
-            style={{ width: '170px', height: '65px', margin: '12px 8px 0 8px' }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
-        />
         <div className="text-center mb-12 animate-fade-in pt-5">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 drop-shadow-md">Simulaciones</h1>
+          <img
+            src={animatedLogoSrc}
+            alt="Logo Compass"
+            className="mx-auto mb-4 object-contain drop-shadow-lg opacity-95"
+            style={{ width: '320px', maxWidth: '80%', height: 'auto' }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
+          />
           <p className="text-xl text-blue-100/90 drop-shadow-sm">Selecciona la versión de COMPASS para comenzar</p>
         </div>
 

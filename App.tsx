@@ -12,6 +12,7 @@ import { buildSessionExport } from './services/sessionExport';
 import { useMechanicLogSync } from './hooks/useMechanicLogSync';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
 import { isFrontendComparisonMode } from './services/comparisonMode';
+import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from './services/developerAccess';
 import { resolveDayEffectsLocally, resolutionHasChanges } from './services/localDayResolution';
 import { applyDailyResolutionToState } from './services/dailyResolutionState';
 import {
@@ -218,6 +219,7 @@ export default function App(): React.ReactElement {
   const [isLogDragging, setIsLogDragging] = useState(false);
   const [logDragOffset, setLogDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [isDeveloperUnlocked, setIsDeveloperUnlocked] = useState<boolean>(() => getInitialDeveloperAccess());
   const [finalPersistStatus, setFinalPersistStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [finalPersistError, setFinalPersistError] = useState<string | null>(null);
   const upSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -251,6 +253,10 @@ export default function App(): React.ReactElement {
   const objectivesUnseenCount = caseUnseenCount + commitmentUnseenCount;
   const hasUnseenObjectiveUpdates = hasUnseenCaseUpdates || hasUnseenCommitmentUpdates;
   const enabledMechanics = resolveMechanics(config);
+  const playerVisibleMechanics = useMemo(
+    () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
+    [enabledMechanics]
+  );
   const effectiveTimerPaused = isTimerPaused || isDialogueTyping;
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState);
@@ -343,6 +349,12 @@ export default function App(): React.ReactElement {
     syncLogs();
   }, [activeTab, syncLogs]);
 
+  useEffect(() => {
+    if (!isDeveloperUnlocked && showLogPanel) {
+      setShowLogPanel(false);
+    }
+  }, [isDeveloperUnlocked, showLogPanel]);
+
   const setPersonalizedDialogue = useCallback((dialogue: string) => {
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
   }, [gameState.playerName]);
@@ -354,6 +366,14 @@ export default function App(): React.ReactElement {
   const showToast = useCallback((msg: string, durationMs = 5000) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), durationMs);
+  }, []);
+
+  const handleDeveloperUnlock = useCallback((password: string) => {
+    const unlocked = tryUnlockDeveloperAccess(password);
+    if (unlocked) {
+      setIsDeveloperUnlocked(true);
+    }
+    return unlocked;
   }, []);
 
   const handleToggleObjectives = useCallback(() => {
@@ -1618,6 +1638,12 @@ export default function App(): React.ReactElement {
          onNavigate={handleSidebarNavigate}
          onReturnHome={handleReturnHome}
          stages={stageTabs}
+         developerUnlocked={isDeveloperUnlocked}
+         onUnlockDeveloper={handleDeveloperUnlock}
+         onTogglePause={() => setIsTimerPaused((prev) => !prev)}
+         isTimerPaused={isTimerPaused}
+         onToggleBitacora={() => setShowLogPanel((prev) => !prev)}
+         hasBitacora
        />
       {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
       {gameStatus !== 'playing' && (
@@ -1649,6 +1675,7 @@ export default function App(): React.ReactElement {
           onTogglePause={() => setIsTimerPaused(prev => !prev)}
           onAdvanceTime={handleManualAdvance}
           onOpenSidebar={() => setIsSidebarOpen(true)}
+          showPauseControl={false}
           globalEffectsHighlight={hoveredGlobalEffects}
           recentInternalResolution={recentInternalResolution}
           dailySummary={dailySummary}
@@ -1708,7 +1735,7 @@ export default function App(): React.ReactElement {
               />
               <aside className="w-full transition-opacity duration-300 ease-out animate-slide-fade">
                 <nav className="flex flex-col gap-2" aria-label="Tabs">
-                  {enabledMechanics.map((m) => (
+                  {playerVisibleMechanics.map((m) => (
                     <button
                       key={m.mechanic_id}
                       onClick={() => setActiveTab(m.tab_id)}
@@ -1717,12 +1744,6 @@ export default function App(): React.ReactElement {
                       {m.label}
                     </button>
                   ))}
-                  <button
-                    onClick={() => setShowLogPanel(prev => !prev)}
-                    className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 ease-out font-semibold hover:translate-x-1 ${showLogPanel ? 'bg-amber-400 text-gray-900 border-amber-500' : 'bg-amber-300/90 text-gray-900 border-amber-500 hover:bg-amber-400'}`}
-                  >
-                    Bitácora
-                  </button>
                 </nav>
               </aside>
             </div>

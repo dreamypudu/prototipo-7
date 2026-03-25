@@ -10,6 +10,7 @@ interface HeaderProps {
   onTogglePause: () => void;
   onAdvanceTime: () => void;
   onOpenSidebar: () => void;
+  showPauseControl?: boolean;
   periodDuration?: number;
   globalEffectsHighlight?: GlobalEffectsUI | null;
   recentInternalResolution?: InternalEffectsPreview | null;
@@ -19,7 +20,7 @@ interface HeaderProps {
   logoUrl?: string;
 }
 
-const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration }) => {
+const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true }) => {
     const progress = ((periodDuration - countdown) / periodDuration) * 100;
     const { week, dayName } = getGameDate(day);
     const slotLabel = slot === 'mañana' ? 'Mañana' : slot === 'tarde' ? 'Tarde' : 'Noche';
@@ -42,9 +43,11 @@ const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType;
                 </div>
             </div>
              <div className="flex items-center gap-2 pl-3 border-l border-gray-700/70">
-                <button onClick={onTogglePause} className="p-2 rounded-full bg-white/10 border border-white/10 hover:border-teal-300/60 text-teal-200 transition-colors" title={isPaused ? 'Reanudar' : 'Pausar'}>
-                    {isPaused ? <PlayIcon /> : <PauseIcon />}
-                </button>
+                {showPauseControl && (
+                  <button onClick={onTogglePause} className="p-2 rounded-full bg-white/10 border border-white/10 hover:border-teal-300/60 text-teal-200 transition-colors" title={isPaused ? 'Reanudar' : 'Pausar'}>
+                      {isPaused ? <PlayIcon /> : <PauseIcon />}
+                  </button>
+                )}
                 <button onClick={onAdvance} className="p-2 rounded-full bg-white/10 border border-white/10 hover:border-teal-300/60 text-teal-200 transition-colors" title="Avanzar al Siguiente Bloque">
                    <ForwardIcon />
                 </button>
@@ -401,7 +404,7 @@ const ResolutionStat: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl }) => {
+const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl }) => {
   const reputationHighlight = globalEffectsHighlight?.reputation;
   const displayTitle = title || 'Compass';
   const displaySubtitle = subtitle || 'Simulador de decisiones';
@@ -443,6 +446,7 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
                     onTogglePause={onTogglePause}
                     onAdvance={onAdvanceTime}
                     periodDuration={periodDuration}
+                    showPauseControl={showPauseControl}
                  />
             </div>
         </div>

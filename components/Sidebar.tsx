@@ -9,15 +9,60 @@ interface StageTab {
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate: (tab: 'data_export' | 'experimental_map') => void;
+  onNavigate: (tab: string) => void;
   onReturnHome?: () => void;
   stages?: StageTab[];
   onSelectStage?: (stageId: string) => void;
+  developerUnlocked: boolean;
+  onUnlockDeveloper: (password: string) => boolean;
+  onTogglePause?: () => void;
+  isTimerPaused?: boolean;
+  onToggleBitacora?: () => void;
+  hasBitacora?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onNavigate, onReturnHome, stages = [], onSelectStage }) => {
-  const handleNavigation = (tab: 'data_export' | 'experimental_map') => {
+const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  onClose,
+  onNavigate,
+  onReturnHome,
+  stages = [],
+  onSelectStage,
+  developerUnlocked,
+  onUnlockDeveloper,
+  onTogglePause,
+  isTimerPaused = false,
+  onToggleBitacora,
+  hasBitacora = false,
+}) => {
+  const [showDeveloperView, setShowDeveloperView] = React.useState(false);
+  const [passwordInput, setPasswordInput] = React.useState('');
+  const [passwordError, setPasswordError] = React.useState('');
+
+  const handleNavigation = (tab: string) => {
     onNavigate(tab);
+    onClose();
+  };
+
+  const handleDeveloperToggle = () => {
+    setShowDeveloperView((prev) => !prev);
+    setPasswordError('');
+  };
+
+  const handleDeveloperSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const unlocked = onUnlockDeveloper(passwordInput);
+    if (unlocked) {
+      setPasswordInput('');
+      setPasswordError('');
+      return;
+    }
+    setPasswordError('Contraseña incorrecta.');
+  };
+
+  const handleBitacoraToggle = () => {
+    if (!onToggleBitacora) return;
+    onToggleBitacora();
     onClose();
   };
 
@@ -104,13 +149,77 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onNavigate, onReturn
               </li>
               <li>
                 <button
-                  onClick={() => handleNavigation('experimental_map')}
+                  onClick={handleDeveloperToggle}
                   className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-lg text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
                 >
-                  <MapIcon />
-                  <span>Mapa Experimental</span>
+                  <DeveloperIcon />
+                  <span>Vista de desarrollador</span>
                 </button>
               </li>
+              {showDeveloperView && (
+                <li className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                  {!developerUnlocked ? (
+                    <form onSubmit={handleDeveloperSubmit} className="space-y-3">
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Acceso restringido</div>
+                        <p className="mt-1 text-sm text-gray-300">Ingresa la contraseña para habilitar herramientas de desarrollador.</p>
+                      </div>
+                      <input
+                        type="password"
+                        value={passwordInput}
+                        onChange={(event) => setPasswordInput(event.target.value)}
+                        className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-teal-300/60"
+                        placeholder="Contraseña"
+                      />
+                      {passwordError && <p className="text-xs text-rose-300">{passwordError}</p>}
+                      <button
+                        type="submit"
+                        className="w-full rounded-lg border border-teal-300/40 bg-teal-500/10 px-3 py-2 text-sm font-semibold text-teal-100 transition-colors hover:border-teal-200/60 hover:bg-teal-500/20"
+                      >
+                        Desbloquear vista
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="mb-1">
+                        <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Herramientas de desarrollador</div>
+                      </div>
+                      {onTogglePause && (
+                        <button
+                          onClick={onTogglePause}
+                          className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-base text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                        >
+                          <PauseButtonIcon />
+                          <span>{isTimerPaused ? 'Reanudar tiempo' : 'Pausar tiempo'}</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleNavigation('summary')}
+                        className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-base text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                      >
+                        <RelationsIcon />
+                        <span>Relaciones</span>
+                      </button>
+                      <button
+                        onClick={() => handleNavigation('experimental_map')}
+                        className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-base text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                      >
+                        <MapIcon />
+                        <span>Mapa Experimental</span>
+                      </button>
+                      {hasBitacora && onToggleBitacora && (
+                        <button
+                          onClick={handleBitacoraToggle}
+                          className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-base text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                        >
+                          <NotebookIcon />
+                          <span>Bitácora</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </li>
+              )}
             </ul>
           </nav>
         </div>
@@ -129,6 +238,31 @@ const DataExportIcon = () => (
 const MapIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13v-6m0-6v6m0-6h6m-6 6h6m6-3l-5.447 2.724A1 1 0 0115 16.382V5.618a1 1 0 011.447-.894L21 7m0 0v6" />
+    </svg>
+);
+
+const DeveloperIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.868v4.264a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5V3m0 18v-2m6.364-11.364l1.414-1.414M4.222 19.778l1.414-1.414M19 12h2M3 12H1m17.364 6.364l1.414 1.414M4.222 4.222l1.414 1.414" />
+    </svg>
+);
+
+const PauseButtonIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+    </svg>
+);
+
+const RelationsIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5V9H2v11h5m10 0v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4m10 0H7m5-12a3 3 0 110 6 3 3 0 010-6z" />
+    </svg>
+);
+
+const NotebookIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 4h11a2 2 0 012 2v14H7a2 2 0 01-2-2V4zm0 0H4m3 4h8m-8 4h8m-8 4h5" />
     </svg>
 );
 

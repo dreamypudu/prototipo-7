@@ -240,6 +240,19 @@ const matchesScheduleConstraints = (
   return true;
 };
 
+const matchesScheduleSlot = (
+  assignment: Record<string, any>,
+  constraints: Record<string, any>
+) => {
+  if (constraints.day_name && assignment.day !== constraints.day_name) return false;
+  if (constraints.room_id && assignment.room_id !== constraints.room_id) return false;
+
+  const timeWindowBlock = normalizeTimeWindowBlock(constraints.time_window);
+  if (timeWindowBlock && assignment.block !== timeWindowBlock) return false;
+
+  return true;
+};
+
 const evaluateExecuteWeekMatch = (
   expected: ExpectedAction,
   actual: CanonicalAction,
@@ -249,6 +262,18 @@ const evaluateExecuteWeekMatch = (
   const constraints = expected.constraints ?? {};
   const weekSchedule = getWeekSchedule(actual);
   if (weekSchedule.length === 0) return false;
+
+  if (expected.rule_id === 'reserve_room_for_sector_rule_v1') {
+    const slotAssignments = weekSchedule.filter((assignment) =>
+      matchesScheduleSlot(assignment, constraints)
+    );
+
+    if (slotAssignments.length === 0) return false;
+
+    return slotAssignments.every((assignment) =>
+      matchesScheduleConstraints(assignment, constraints, staffRoster, roomDefinitions)
+    );
+  }
 
   const matchingAssignments = weekSchedule.filter((assignment) =>
     matchesScheduleConstraints(assignment, constraints, staffRoster, roomDefinitions)

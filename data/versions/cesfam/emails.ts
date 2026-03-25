@@ -55,7 +55,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     trigger: { type: 'ON_CASE_EVENT', event_id: 'case1-monday-daniel' },
     from: 'Sr. Daniel Rios',
     subject: 'Cobertura del lunes sigue insuficiente',
-    body: `Director/a:\n\nRevise el borrador final y sigo sin ver una salida clara para cubrir la demanda prioritaria del lunes en Amarillo.\n\nSi no hacemos un ajuste temprano, voy a tener que reagendar usuarios que ya vienen esperando hace rato.\n\nDaniel Rios\nJefe Sector Amarillo`,
+    body: `Director/a:\n\nRevise el borrador final y sigo sin ver una salida clara para cubrir la demanda prioritaria del lunes en el Sector Amarillo.\n\nSi no hacemos un ajuste temprano, voy a tener que reagendar usuarios que ya vienen esperando hace rato.\n\nDaniel Rios\nJefe Sector Amarillo`,
   },
   {
     email_id: 'email-case1-monday-guzman',

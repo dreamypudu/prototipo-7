@@ -6,6 +6,7 @@ import { mechanicEngine } from '../services/MechanicEngine';
 import { buildSessionExport } from '../services/sessionExport';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from '../services/globalEffects';
 import { isFrontendComparisonMode } from '../services/comparisonMode';
+import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../services/developerAccess';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../services/localDayResolution';
 import { applyDailyResolutionToState } from '../services/dailyResolutionState';
 import {
@@ -141,6 +142,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   const [questionsBaseDialogue, setQuestionsBaseDialogue] = useState<string>('');
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isDeveloperUnlocked, setIsDeveloperUnlocked] = useState<boolean>(() => getInitialDeveloperAccess());
   const [finalPersistStatus, setFinalPersistStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [finalPersistError, setFinalPersistError] = useState<string | null>(null);
   const roomDefinitions = INNOVATEC_CONTENT.defaults.roomDefinitions ?? [];
@@ -163,6 +165,10 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   const objectivesUnseenCount = caseUnseenCount + commitmentUnseenCount;
   const hasUnseenObjectiveUpdates = hasUnseenCaseUpdates || hasUnseenCommitmentUpdates;
   const enabledMechanics = resolveMechanics(config);
+  const playerVisibleMechanics = React.useMemo(
+    () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
+    [enabledMechanics]
+  );
   const syncLogs = useMechanicLogSync(setGameState);
   const effectiveTimerPaused = isTimerPaused || isDialogueTyping;
   const stageTabs = [
@@ -195,6 +201,14 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
   const showToast = useCallback((msg: string, durationMs = 5000) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), durationMs);
+  }, []);
+
+  const handleDeveloperUnlock = useCallback((password: string) => {
+    const unlocked = tryUnlockDeveloperAccess(password);
+    if (unlocked) {
+      setIsDeveloperUnlocked(true);
+    }
+    return unlocked;
   }, []);
 
   const handleToggleObjectives = useCallback(() => {
@@ -1328,6 +1342,10 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
           onNavigate={handleSidebarNavigate}
           onReturnHome={handleReturnHome}
           stages={stageTabs}
+          developerUnlocked={isDeveloperUnlocked}
+          onUnlockDeveloper={handleDeveloperUnlock}
+          onTogglePause={() => setIsTimerPaused((prev) => !prev)}
+          isTimerPaused={isTimerPaused}
         />
         {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
         {gameStatus !== 'playing' && (
@@ -1355,6 +1373,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
           onTogglePause={() => setIsTimerPaused(prev => !prev)}
           onAdvanceTime={handleManualAdvance}
           onOpenSidebar={() => setIsSidebarOpen(true)}
+          showPauseControl={false}
           periodDuration={PERIOD_DURATION}
           globalEffectsHighlight={hoveredGlobalEffects}
           recentInternalResolution={recentInternalResolution}
@@ -1377,7 +1396,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
 
         <div className="border-b border-gray-700 mt-4 overflow-x-auto">
           <nav className="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
-            {enabledMechanics.map((mechanic) => (
+            {playerVisibleMechanics.map((mechanic) => (
               <button
                 key={mechanic.mechanic_id}
                 onClick={() => setActiveTab(mechanic.tab_id)}

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 
 interface SplashScreenProps {
   onStartGame: (name: string) => void;
@@ -16,6 +16,19 @@ const DEFAULT_LOGO_URL = '/avatars/icono-compass.svg'; // placeholder
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPASS', subtitle = 'Simulador de Decisión', logoUrl }) => {
   const [playerName, setPlayerName] = useState('');
+  const [logoRefreshKey, setLogoRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setLogoRefreshKey((prev) => prev + 1);
+    }, 5000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  const animatedLogoSrc = useMemo(
+    () => `/avatars/logo-animado-compass.svg?loop=${logoRefreshKey}`,
+    [logoRefreshKey]
+  );
   
   const handleStart = () => {
     if (playerName.trim()) {
@@ -32,7 +45,17 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
             style={{ width: '5000px', height: '300px', margin: '8px' }}/>
         </div>
         
-        <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
+        {title === 'COMPASS' ? (
+          <img
+            src={animatedLogoSrc}
+            alt="COMPASS"
+            className="mx-auto mb-2 object-contain"
+            style={{ width: '240px', maxWidth: '80%', height: 'auto' }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
+          />
+        ) : (
+          <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
+        )}
         <p className="text-lg text-blue-300 mb-8">{subtitle}</p>
         
         {/* Registro directo */}

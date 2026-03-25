@@ -10,7 +10,7 @@ export const CESFAM_DOCUMENTS: Document[] = [
 - Box 5: Dr. Andres Guzman agrego un bloque de observacion docente con interno.
 - Box 6: Enf. Marcela Soto reservo curaciones y control IAAS de primera hora.
 - Box 6: Sr. Daniel Rios ingreso seis pacientes vulnerables para acogida y filtro clinico.
-- Box 6: Enf. Francisca Solis mantiene ocho controles reagendados de Amarillo.
+- Box 6: Enf. Francisca Solis mantiene ocho controles reagendados del Sector Amarillo.
 - Box 6: TENS Claudia Morales fue movida como apoyo para sostener ese flujo.
 
 Observacion:
@@ -23,8 +23,8 @@ El borrador resuelve la escasez superponiendo tres choques en el mismo bloque y 
 
 - Dr. Andres Guzman solicita resguardar 4 horas administrativas el viernes PM en Oficinas Administrativas para actividad academica y gestion docente.
 - Dr. Eduardo Naranjo ya tiene el lunes AM completo con 12 controles cardiovasculares.
-- Enf. Marcela Soto informa que el lunes AM necesita a Claudia Morales disponible para sostener Box 5 y Box 6 en Rojo.
-- Sector Amarillo informa seis ingresos comunitarios prioritarios el lunes AM, ademas de ocho controles reagendados con Enf. Francisca Solis.
+- Enf. Marcela Soto informa que el lunes AM necesita a Claudia Morales disponible para sostener Box 5 y Box 6 en el Sector Rojo.
+- El Sector Amarillo informa seis ingresos comunitarios prioritarios el lunes AM, ademas de ocho controles reagendados con Enf. Francisca Solis.
 
 Conclusion:
 La tension no es solo por espacio fisico. Tambien cruza horas protegidas, continuidad asistencial y uso reiterado de la misma funcionaria como solucion rapida.`,
@@ -34,7 +34,7 @@ La tension no es solo por espacio fisico. Tambien cruza horas protegidas, contin
     title: 'Nota de Marcela Soto sobre sobrecarga de Claudia',
     content: `Dejo constancia de que la TENS Claudia Morales fue movida nuevamente fuera del Sector Rojo en el borrador del lunes AM.
 
-La planificacion actual la instala en Box 6 junto a la demanda de Amarillo entre 08:00 y 12:00, dejando al Sector Rojo sin apoyo TENS para los controles del Dr. Eduardo Naranjo en Box 5 y las curaciones programadas en Box 6.
+La planificacion actual la instala en Box 6 junto a la demanda del Sector Amarillo entre 08:00 y 12:00, dejando al Sector Rojo sin apoyo TENS para los controles del Dr. Eduardo Naranjo en Box 5 y las curaciones programadas en Box 6.
 
 Esto no corresponde a un ajuste menor. Es una reasignacion reiterada que concentra el costo operativo sobre la misma funcionaria.
 
@@ -46,7 +46,7 @@ Jefa Sector Rojo`,
   {
     id: 'case1-demanda-amarillo',
     title: 'Minuta de demanda prioritaria del Sector Amarillo',
-    content: `Sector Amarillo - prioridades del lunes AM
+    content: `Prioridades del Sector Amarillo del lunes AM
 
 - Enf. Francisca Solis mantiene ocho controles reagendados en Box 6 entre 08:00 y 12:00.
 - Sr. Daniel Rios solicita un box adicional para seis ingresos comunitarios que ya fueron reagendados dos veces.
