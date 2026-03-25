@@ -206,6 +206,7 @@ const resolveMechanics = (config: SimulatorConfig | null): ResolvedMechanicConfi
 
 export default function App(): React.ReactElement {
   const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const anonymousUserIdRef = useRef<string>(crypto.randomUUID());
   const sessionStartRef = useRef<number | null>(null);
   const sessionEndRef = useRef<number | null>(null);
   const pendingCase1EndingRef = useRef<{ sequenceId: string; emailIds: string[] } | null>(null);
@@ -811,6 +812,7 @@ export default function App(): React.ReactElement {
           gameState: snapshot,
           config,
           sessionId: sessionIdRef.current,
+          anonymousUserId: anonymousUserIdRef.current,
           startedAt: sessionStartRef.current ?? Date.now(),
           endedAt: Date.now(),
           roomDefinitions,
@@ -958,6 +960,7 @@ export default function App(): React.ReactElement {
           gameState: snapshot,
           config,
           sessionId: sessionIdRef.current,
+          anonymousUserId: anonymousUserIdRef.current,
           startedAt: sessionStartRef.current ?? Date.now(),
           endedAt: Date.now(),
           roomDefinitions,
@@ -1733,6 +1736,7 @@ export default function App(): React.ReactElement {
     sessionStartRef.current = null;
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
+    anonymousUserIdRef.current = crypto.randomUUID();
     setConfig(null);
     setSelectedVersion(null);
     setAppStep('version_selection');
@@ -1741,6 +1745,7 @@ export default function App(): React.ReactElement {
     gameState,
     config,
     sessionId: sessionIdRef.current,
+    anonymousUserId: anonymousUserIdRef.current,
     startedAt: sessionStartRef.current ?? undefined,
     endedAt: sessionEndRef.current ?? undefined,
     roomDefinitions,
@@ -1750,6 +1755,7 @@ export default function App(): React.ReactElement {
       gameState,
       config,
       sessionId: sessionIdRef.current,
+      anonymousUserId: anonymousUserIdRef.current,
       startedAt: sessionStartRef.current ?? undefined,
       endedAt: sessionEndRef.current ?? Date.now(),
       roomDefinitions,
@@ -1775,6 +1781,7 @@ export default function App(): React.ReactElement {
     sessionStartRef.current = Date.now();
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
+    anonymousUserIdRef.current = crypto.randomUUID();
     finalPersistAttemptedRef.current = false;
     setFinalPersistStatus('idle');
     setFinalPersistError(null);

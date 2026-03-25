@@ -109,6 +109,7 @@ const getInitialSecretaryActions = (): PlayerAction[] => [
 
 export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): React.ReactElement {
   const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const anonymousUserIdRef = useRef<string>(crypto.randomUUID());
   const sessionStartRef = useRef<number | null>(null);
   const sessionEndRef = useRef<number | null>(null);
   const config = SIMULATOR_CONFIGS.INNOVATEC;
@@ -483,6 +484,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
           gameState: snapshot,
           config,
           sessionId: sessionIdRef.current,
+          anonymousUserId: anonymousUserIdRef.current,
           startedAt: sessionStartRef.current ?? Date.now(),
           endedAt: Date.now(),
           roomDefinitions,
@@ -1192,6 +1194,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     sessionStartRef.current = null;
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
+    anonymousUserIdRef.current = crypto.randomUUID();
     setIsGameStarted(false);
   };
 
@@ -1199,6 +1202,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     sessionStartRef.current = Date.now();
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
+    anonymousUserIdRef.current = crypto.randomUUID();
     finalPersistAttemptedRef.current = false;
     setFinalPersistStatus('idle');
     setFinalPersistError(null);
@@ -1217,6 +1221,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
     gameState,
     config,
     sessionId: sessionIdRef.current,
+    anonymousUserId: anonymousUserIdRef.current,
     startedAt: sessionStartRef.current ?? undefined,
     endedAt: sessionEndRef.current ?? undefined,
     roomDefinitions,
@@ -1227,6 +1232,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
       gameState,
       config,
       sessionId: sessionIdRef.current,
+      anonymousUserId: anonymousUserIdRef.current,
       startedAt: sessionStartRef.current ?? undefined,
       endedAt: sessionEndRef.current ?? Date.now(),
       roomDefinitions,

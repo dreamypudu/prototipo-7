@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
+from uuid import UUID
 
 import psycopg
 from dotenv import load_dotenv
@@ -448,6 +450,17 @@ def _json_load(value):
         return value
 
 
+def _resolve_anonymous_user_id(session_id, raw_user_id):
+    for candidate in (raw_user_id, session_id):
+        if not candidate:
+            continue
+        try:
+            return str(UUID(str(candidate)))
+        except (ValueError, TypeError, AttributeError):
+            continue
+    return str(UUID(int=0))
+
+
 # ---- Helpers for comparison rules ----
 import unicodedata
 from typing import Any
@@ -653,10 +666,14 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     metadata = session.get("session_metadata", {})
     comparison_mode = session.get("comparison_mode", "backend")
     version_id = metadata.get("simulator_version_id")
-    user_id = metadata.get("user_id")
+    user_id = _resolve_anonymous_user_id(session_id, metadata.get("user_id"))
     start_time = metadata.get("start_time")
     end_time = metadata.get("end_time")
-    payload = json.dumps(session, ensure_ascii=False)
+    sanitized_session = deepcopy(session)
+    sanitized_metadata = sanitized_session.setdefault("session_metadata", {})
+    sanitized_metadata["session_id"] = session_id
+    sanitized_metadata["user_id"] = user_id
+    payload = json.dumps(sanitized_session, ensure_ascii=False)
 
     explicit_decisions = session.get("explicit_decisions", [])
     expected_actions = session.get("expected_actions", [])
@@ -680,7 +697,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     if user_id:
         conn.execute(
             "INSERT INTO users (user_id, name) VALUES (%s, %s) ON CONFLICT (user_id) DO NOTHING",
-            (user_id, user_id),
+            (user_id, None),
         )
 
     if version_id:

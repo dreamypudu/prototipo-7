@@ -51,6 +51,7 @@ interface SessionExportParams {
   gameState: GameState;
   config: SimulatorConfig | null;
   sessionId: string;
+  anonymousUserId: string;
   startedAt?: number | null;
   endedAt?: number | null;
   roomDefinitions?: RoomDefinition[];
@@ -60,6 +61,7 @@ export const buildSessionExport = ({
   gameState,
   config,
   sessionId,
+  anonymousUserId,
   startedAt,
   endedAt,
   roomDefinitions = []
@@ -83,7 +85,7 @@ export const buildSessionExport = ({
     session_metadata: {
       session_id: sessionId,
       simulator_version_id: config?.version_id ?? 'UNKNOWN',
-      user_id: gameState.playerName || undefined,
+      user_id: anonymousUserId,
       start_time: startTime,
       end_time: endTime
     },
