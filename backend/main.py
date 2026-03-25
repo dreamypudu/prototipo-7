@@ -791,7 +791,11 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
             ),
         )
 
+    canonical_ids = set()
     for action in canonical_actions:
+        canonical_action_id = action.get("canonical_action_id")
+        if canonical_action_id:
+            canonical_ids.add(canonical_action_id)
         conn.execute(
             """
             INSERT INTO canonical_actions (canonical_action_id, session_id, mechanic_id, action_type, target_ref, value_final, committed_at, context)
@@ -806,7 +810,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
                 context = EXCLUDED.context
             """,
             (
-                action.get("canonical_action_id"),
+                canonical_action_id,
                 session_id,
                 action.get("mechanic_id"),
                 action.get("action_type"),
@@ -842,6 +846,8 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     for comparison in comparisons:
         exp_id = comparison.get("expected_action_id")
         safe_expected_id = exp_id if exp_id in expected_ids else None
+        canonical_id = comparison.get("canonical_action_id")
+        safe_canonical_id = canonical_id if canonical_id in canonical_ids else None
         conn.execute(
             """
             INSERT INTO comparisons (session_id, expected_action_id, canonical_action_id, outcome, deviation, rule_id)
@@ -850,7 +856,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
             (
                 session_id,
                 safe_expected_id,
-                comparison.get("canonical_action_id"),
+                safe_canonical_id,
                 comparison.get("outcome"),
                 _json_dump(comparison.get("deviation")),
                 comparison.get("rule_id"),

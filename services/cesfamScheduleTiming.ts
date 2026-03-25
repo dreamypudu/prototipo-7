@@ -35,7 +35,7 @@ export const getCesfamScheduleEditDisabledReason = (day: number): string | null 
   const { week } = getCesfamWeekInfo(day);
   return week === 1
     ? 'La planificación se habilita después del detonante del jueves.'
-    : 'La planificación de la nueva semana se reactiva el miércoles.';
+    : 'La planificación está bloqueada por mantención externa hasta el miércoles.';
 };
 
 export const canSubmitCesfamSchedule = (
@@ -62,7 +62,7 @@ export const getCesfamScheduleExecuteDisabledReason = (
     return 'El borrador inicial solo puede enviarse el viernes.';
   }
   if (week > 1 && dayIndex < 2) {
-    return 'La nueva semana puede modificarse y enviarse desde el miércoles.';
+    return 'La planificación está bloqueada por mantención externa hasta el miércoles.';
   }
   return null;
 };
