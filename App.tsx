@@ -644,6 +644,16 @@ export default function App(): React.ReactElement {
     return match ? Number(match[1]) : 0;
   };
 
+  const getSequenceTriggerPriority = (sequence: MeetingSequence) => {
+    if (!sequence.triggerMap) {
+      return { day: Number.NEGATIVE_INFINITY, slot: Number.NEGATIVE_INFINITY };
+    }
+    return {
+      day: sequence.triggerMap.day,
+      slot: timeSlots.indexOf(sequence.triggerMap.slot),
+    };
+  };
+
   const isSequenceWindowOpen = useCallback((sequence: MeetingSequence, state: GameState) => {
     if (!sequence.triggerMap) return true;
     if (state.day > sequence.triggerMap.day) return true;
@@ -1312,7 +1322,13 @@ export default function App(): React.ReactElement {
                   !seq.isContingent &&
                   isSequenceWindowOpen(seq, gameState)
               )
-              .sort((a, b) => getSequenceOrder(a.sequence_id) - getSequenceOrder(b.sequence_id))
+              .sort((a, b) => {
+                  const aPriority = getSequenceTriggerPriority(a);
+                  const bPriority = getSequenceTriggerPriority(b);
+                  if (aPriority.day !== bPriority.day) return bPriority.day - aPriority.day;
+                  if (aPriority.slot !== bPriority.slot) return bPriority.slot - aPriority.slot;
+                  return getSequenceOrder(a.sequence_id) - getSequenceOrder(b.sequence_id);
+              })
               .find(seq => !gameState.completedSequences.includes(seq.sequence_id));
           if (proactiveSequence) {
                startSequence(proactiveSequence, stakeholder, { pauseTimer: false });
@@ -1575,12 +1591,16 @@ export default function App(): React.ReactElement {
           return;
         }
         const shouldForceAdvanceBlock = countdown <= 0;
+        const shouldAdvanceForConsumedSequence = currentMeeting?.sequence?.consumesTime === true;
         const shouldAdvanceAfterInitialChiefsSequence =
           selectedVersion === 'CESFAM' &&
           gameState.day === 3 &&
           gameState.timeSlot === morningSlot &&
           currentMeeting?.sequence?.sequence_id === 'SCHEDULE_WAR_SEQ';
-        const skipTimeAdvance = !shouldForceAdvanceBlock && !shouldAdvanceAfterInitialChiefsSequence;
+        const skipTimeAdvance =
+          !shouldForceAdvanceBlock &&
+          !shouldAdvanceAfterInitialChiefsSequence &&
+          !shouldAdvanceForConsumedSequence;
         setCurrentMeeting(null);
         setConversationMode('idle');
         setQuestionsOrigin(null);
