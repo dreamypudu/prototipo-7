@@ -59,6 +59,7 @@ export const comparisonRules: Record<string, ComparisonRule> = {
   meeting_time_rule_v1: passThroughRule,
   visit_stakeholder_rule_v1: passThroughRule,
   research_hours_rule_v1: passThroughRule,
+  admin_decision_rule_v1: passThroughRule,
   training_commitment_rule_v1: passThroughRule,
   cross_sector_help_rule_v1: passThroughRule,
   scheduler_war_rule_v1: passThroughRule,

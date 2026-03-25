@@ -615,6 +615,7 @@ RULE_HANDLERS = {
     "meeting_time_rule_v1": _rule_time_and_day,
     "visit_stakeholder_rule_v1": _rule_time_and_day,
     "research_hours_rule_v1": _rule_time_and_day,
+    "admin_decision_rule_v1": _rule_time_and_day,
 }
 
 RULE_EFFECTS = {
@@ -630,6 +631,10 @@ RULE_EFFECTS = {
     "research_hours_rule_v1": {
         "TRUE": {"global": {"reputation": 10}},
         "FALSE": {"global": {"reputation": -10}},
+    },
+    "admin_decision_rule_v1": {
+        "TRUE": {},
+        "FALSE": {},
     },
     "default_rule": {
         "TRUE": {},

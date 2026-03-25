@@ -52,6 +52,10 @@ const DEFAULT_RULE_EFFECTS: Record<string, Record<'TRUE' | 'FALSE', Record<strin
     TRUE: { global: { reputation: 10 } },
     FALSE: { global: { reputation: -10 } },
   },
+  admin_decision_rule_v1: {
+    TRUE: {},
+    FALSE: {},
+  },
   reserve_room_for_sector_rule_v1: {
     TRUE: {},
     FALSE: { global: { reputation: -10 } },

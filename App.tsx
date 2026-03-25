@@ -1558,6 +1558,33 @@ export default function App(): React.ReactElement {
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
         if (
           selectedVersion === 'CESFAM' &&
+          justCompletedSequenceId === 'CASO2_ROBO_VEREDICTO_SEQ'
+        ) {
+          setGameState(prev => ({
+            ...prev,
+            completedSequences:
+              justCompletedSequenceId && !prev.completedSequences.includes(justCompletedSequenceId)
+                ? [...prev.completedSequences, justCompletedSequenceId]
+                : prev.completedSequences,
+          }));
+          registerSequenceCompleted(justCompletedSequenceId);
+          sessionEndRef.current = Date.now();
+          setCurrentMeeting(null);
+          setConversationMode('idle');
+          setQuestionsOrigin(null);
+          setQuestionsBaseDialogue('');
+          setCharacterInFocus(null);
+          setIsTimerPaused(true);
+          setCountdown(0);
+          setEndGameMessage(
+            'La simulacion termino.\n\nEl veredicto administrativo del Caso 2 ya fue ingresado y el Centro de Salud queda a la espera de sus consecuencias.\n\n Gracias por participar.'
+          );
+          setGameStatus('won');
+          setIsLoading(false);
+          return;
+        }
+        if (
+          selectedVersion === 'CESFAM' &&
           justCompletedSequenceId === 'AGENDA_CRISIS_RESOLUTION_SEQ'
         ) {
           setGameState(prev => ({
@@ -1620,6 +1647,28 @@ export default function App(): React.ReactElement {
         const option = scenario.options.find(o => o.option_id === action.action);
         if (option) {
             const { consequences } = option;
+            const adminDecision =
+              selectedVersion === 'CESFAM' && scenario.node_id === 'CASO2_ROBO_VEREDICTO_3'
+                ? action.action === 'A'
+                  ? {
+                      actionType: 'issue_summary',
+                      targetRef: 'stakeholder:daniel-rios',
+                      resolution: 'issue_summary',
+                    }
+                  : action.action === 'B'
+                    ? {
+                        actionType: 'reject_summary',
+                        targetRef: 'stakeholder:marcela-soto',
+                        resolution: 'reject_summary',
+                      }
+                    : action.action === 'C'
+                      ? {
+                          actionType: 'reject_summary',
+                          targetRef: 'stakeholder:marcela-soto',
+                          resolution: 'internal_reprimand',
+                        }
+                      : null
+                : null;
             const globalEffects = resolveGlobalEffects(consequences);
             setHoveredGlobalEffects(null);
             
@@ -1632,6 +1681,22 @@ export default function App(): React.ReactElement {
               });
               const toastText = characterInFocus?.name ? `${characterInFocus.name} recordará eso` : 'NPC recordará eso';
               showToast(toastText);
+            }
+            if (adminDecision) {
+              mechanicEngine.emitCanonicalAction(
+                'admin',
+                adminDecision.actionType,
+                adminDecision.targetRef,
+                {
+                  day: gameState.day,
+                  time_slot: gameState.timeSlot,
+                  resolution: adminDecision.resolution,
+                },
+                {
+                  day: gameState.day,
+                  time_slot: gameState.timeSlot,
+                }
+              );
             }
             mechanicEngine.emitEvent('dialogue', 'decision_made', {
               node_id: scenario.node_id,
@@ -1659,7 +1724,7 @@ export default function App(): React.ReactElement {
                     globalEffectsBefore,
                     globalEffectsAfter
                 };
-                return {
+                const nextState = {
                     ...prev,
                     budget: nextBudget,
                     reputation: nextReputation,
@@ -1670,6 +1735,7 @@ export default function App(): React.ReactElement {
                     processLog: processLog ? [...prev.processLog, processLog] : prev.processLog,
                     decisionLog: [...prev.decisionLog, decisionEntry]
                 };
+                return adminDecision ? mergeMechanicFlushIntoState(nextState) : nextState;
             });
             
             setPersonalizedDialogue(consequences.dialogueResponse);
