@@ -1,10 +1,7 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const projectRoot = process.cwd();
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -20,14 +17,14 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(projectRoot, '.'),
       },
     },
     build: {
       rollupOptions: {
         input: {
-          login: path.resolve(__dirname, 'index.html'),
-          app: path.resolve(__dirname, 'app.html'),
+          login: path.resolve(projectRoot, 'index.html'),
+          app: path.resolve(projectRoot, 'app.html'),
         },
       },
     },
