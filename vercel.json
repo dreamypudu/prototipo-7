@@ -7,11 +7,11 @@
       "destination": "/"
     },
     {
-      "source": "/app",
+      "source": "/simulator",
       "destination": "/app.html"
     },
     {
-      "source": "/app/",
+      "source": "/simulator/",
       "destination": "/app.html"
     }
   ]
