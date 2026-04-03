@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTokenFromCookieHeader, verifySessionToken } from './api/_lib/auth';
+import { getTokenFromCookieHeader, verifySessionToken } from './api/_lib/auth.js';
 
 const unauthorizedResponse = (request: NextRequest) => {
   const { pathname } = request.nextUrl;

@@ -3,7 +3,7 @@ import {
   clearAuthCookie,
   getTokenFromCookieHeader,
   verifySessionToken,
-} from '../_lib/auth';
+} from '../_lib/auth.js';
 
 const parseResponseText = (value: string) => {
   if (!value) return {};

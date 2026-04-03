@@ -3,7 +3,7 @@ import {
   buildBackendUrl,
   clearAuthCookie,
   jsonHeaders,
-} from '../_lib/auth';
+} from '../_lib/auth.js';
 
 const parseBody = (body: any) => {
   if (!body) return {};
