@@ -118,7 +118,7 @@
           <input id="username" name="username" type="text" autocomplete="username" required />
         </label>
         <label>
-          Contraseña
+          ContraseÃ±a
           <input id="password" name="password" type="password" autocomplete="current-password" required />
         </label>
         <button id="submit" type="submit">Entrar</button>
@@ -167,7 +167,7 @@
 
           if (!response.ok) {
             const data = await response.json().catch(() => ({}));
-            setStatus(data.error || 'Credenciales inválidas.', 'error');
+            setStatus(data.error || 'Credenciales invï¿½lidas.', 'error');
             return;
           }
 
