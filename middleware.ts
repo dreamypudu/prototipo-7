@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTokenFromCookieHeader, verifySessionToken } from './api/_lib/auth.js';
+
+const AUTH_COOKIE_NAME = 'compass_auth';
 
 const unauthorizedResponse = (request: NextRequest) => {
   const { pathname } = request.nextUrl;
@@ -18,17 +19,12 @@ const unauthorizedResponse = (request: NextRequest) => {
 };
 
 export async function middleware(request: NextRequest) {
-  const token = getTokenFromCookieHeader(request.headers.get('cookie'));
+  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   if (!token) {
     return unauthorizedResponse(request);
   }
 
-  try {
-    await verifySessionToken(token);
-    return NextResponse.next();
-  } catch {
-    return unauthorizedResponse(request);
-  }
+  return NextResponse.next();
 }
 
 export const config = {
