@@ -4,10 +4,14 @@ import json
 import os
 from pathlib import Path
 from uuid import UUID
+from typing import Any
 
 import psycopg
+import jwt
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from psycopg.rows import dict_row
 
@@ -18,6 +22,18 @@ load_dotenv(BASE_DIR / ".env")
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is required. Set it to your Postgres connection string.")
+
+AUTH_JWT_SECRET = os.getenv("AUTH_JWT_SECRET", "")
+
+AUTH_JWT_ISSUER = os.getenv("AUTH_JWT_ISSUER", "compass-auth")
+AUTH_TOKEN_HOURS = max(1, int(os.getenv("AUTH_TOKEN_HOURS", "12")))
+PASSWORD_HASHER = PasswordHasher()
+
+
+def require_auth_secret() -> str:
+    if not AUTH_JWT_SECRET:
+        raise RuntimeError("AUTH_JWT_SECRET is required.")
+    return AUTH_JWT_SECRET
 
 
 def get_conn():
@@ -41,6 +57,32 @@ def create_schema(conn):
         ADD COLUMN IF NOT EXISTS tipo_usuario TEXT,
         ADD COLUMN IF NOT EXISTS edad_usuario INTEGER,
         ADD COLUMN IF NOT EXISTS carrera_usuario TEXT
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_users (
+            user_id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            display_name TEXT,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_audit_log (
+            audit_id BIGSERIAL PRIMARY KEY,
+            user_id TEXT,
+            username TEXT,
+            event_type TEXT NOT NULL,
+            success BOOLEAN NOT NULL DEFAULT TRUE,
+            metadata TEXT,
+            created_at TEXT NOT NULL
+        )
         """
     )
     conn.execute(
@@ -406,6 +448,8 @@ def create_schema(conn):
     conn.execute("CREATE INDEX IF NOT EXISTS idx_decision_nodes_escenario ON decision_nodes(escenario_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_scenarios_version ON scenarios(version_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_daily_effects_session_day ON daily_effects(session_id, day)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_auth_users_username ON auth_users(username)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_auth_audit_created_at ON auth_audit_log(created_at)")
     conn.commit()
 
 
@@ -431,13 +475,209 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def auth_guard(request: Request, call_next):
+    path = request.url.path
+    if (
+        path == "/health"
+        or path.startswith("/auth/")
+        or not path.startswith("/sessions")
+    ):
+        return await call_next(request)
+
+    auth_context = require_auth_header(request.headers.get("authorization"))
+    request.state.auth_user = auth_context["user"]
+    request.state.auth_claims = auth_context["claims"]
+    return await call_next(request)
+
+
 @app.on_event("startup")
 def startup_event():
+    require_auth_secret()
     init_db()
 
 
 @app.get("/health")
 def health():
+    return {"ok": True}
+
+
+def _utcnow_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def hash_password(password: str) -> str:
+    return PASSWORD_HASHER.hash(password)
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    try:
+        return PASSWORD_HASHER.verify(password_hash, password)
+    except (VerifyMismatchError, InvalidHashError):
+        return False
+
+
+def _issue_auth_token(user_row: dict) -> str:
+    issued_at = datetime.now(timezone.utc)
+    payload = {
+        "sub": user_row["user_id"],
+        "username": user_row["username"],
+        "display_name": user_row.get("display_name"),
+        "iat": int(issued_at.timestamp()),
+        "exp": int((issued_at.timestamp()) + AUTH_TOKEN_HOURS * 3600),
+        "iss": AUTH_JWT_ISSUER,
+    }
+    return jwt.encode(payload, require_auth_secret(), algorithm="HS256")
+
+
+def decode_auth_token(token: str) -> dict:
+    try:
+        return jwt.decode(
+            token,
+            require_auth_secret(),
+            algorithms=["HS256"],
+            issuer=AUTH_JWT_ISSUER,
+        )
+    except jwt.InvalidTokenError as exc:
+        raise HTTPException(status_code=401, detail="invalid_token") from exc
+
+
+def _extract_bearer_token(header_value: str | None) -> str:
+    if not header_value:
+        raise HTTPException(status_code=401, detail="missing_authorization")
+    scheme, _, token = header_value.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="invalid_authorization")
+    return token.strip()
+
+
+def _fetch_auth_user(conn, user_id: str):
+    return conn.execute(
+        """
+        SELECT user_id, username, display_name, is_active, created_at, updated_at
+        FROM auth_users
+        WHERE user_id = %s
+        """,
+        (user_id,),
+    ).fetchone()
+
+
+def require_auth_header(authorization: str | None) -> dict:
+    token = _extract_bearer_token(authorization)
+    claims = decode_auth_token(token)
+    with get_conn() as conn:
+        user_row = _fetch_auth_user(conn, claims["sub"])
+    if not user_row or not user_row.get("is_active"):
+        raise HTTPException(status_code=401, detail="inactive_user")
+    return {
+        "token": token,
+        "claims": claims,
+        "user": dict(user_row),
+    }
+
+
+def log_auth_event(
+    conn,
+    event_type: str,
+    *,
+    user_id: str | None = None,
+    username: str | None = None,
+    success: bool = True,
+    metadata: dict | None = None,
+) -> None:
+    conn.execute(
+        """
+        INSERT INTO auth_audit_log (user_id, username, event_type, success, metadata, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """,
+        (
+            user_id,
+            username,
+            event_type,
+            success,
+            _json_dump(metadata or {}),
+            _utcnow_iso(),
+        ),
+    )
+
+
+@app.post("/auth/login")
+def auth_login(payload: dict = Body(...)):
+    username = str(payload.get("username") or "").strip().lower()
+    password = str(payload.get("password") or "")
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="username_and_password_required")
+
+    with get_conn() as conn:
+        user_row = conn.execute(
+            """
+            SELECT user_id, username, display_name, password_hash, is_active, created_at, updated_at
+            FROM auth_users
+            WHERE username = %s
+            """,
+            (username,),
+        ).fetchone()
+
+        if not user_row or not user_row.get("is_active") or not verify_password(password, user_row["password_hash"]):
+            log_auth_event(
+                conn,
+                "login_failed",
+                username=username,
+                success=False,
+                metadata={"reason": "invalid_credentials"},
+            )
+            conn.commit()
+            raise HTTPException(status_code=401, detail="invalid_credentials")
+
+        token = _issue_auth_token(dict(user_row))
+        log_auth_event(
+            conn,
+            "login_succeeded",
+            user_id=user_row["user_id"],
+            username=user_row["username"],
+            success=True,
+        )
+        conn.commit()
+
+    return {
+        "ok": True,
+        "token": token,
+        "user": {
+            "user_id": user_row["user_id"],
+            "username": user_row["username"],
+            "display_name": user_row.get("display_name"),
+        },
+    }
+
+
+@app.post("/auth/verify")
+def auth_verify(request: Request):
+    auth_context = require_auth_header(request.headers.get("authorization"))
+    user = auth_context["user"]
+    return {
+        "ok": True,
+        "user": {
+            "user_id": user["user_id"],
+            "username": user["username"],
+            "display_name": user.get("display_name"),
+        },
+        "claims": auth_context["claims"],
+    }
+
+
+@app.post("/auth/logout")
+def auth_logout(request: Request):
+    auth_context = require_auth_header(request.headers.get("authorization"))
+    user = auth_context["user"]
+    with get_conn() as conn:
+        log_auth_event(
+            conn,
+            "logout",
+            user_id=user["user_id"],
+            username=user["username"],
+            success=True,
+        )
+        conn.commit()
     return {"ok": True}
 
 
@@ -469,7 +709,6 @@ def _resolve_anonymous_user_id(session_id, raw_user_id):
 
 # ---- Helpers for comparison rules ----
 import unicodedata
-from typing import Any
 
 def _normalize_text(value) -> str:
     if value is None:

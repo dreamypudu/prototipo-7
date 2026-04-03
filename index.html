@@ -1,30 +1,297 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <!-- Favicons -->
-    <link rel="icon" type="image/svg+xml" sizes="any" href="/avatars/icono-compass.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/avatars/icono-compass.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/avatars/icono-compass.png" />
-    <link rel="apple-touch-icon" href="/avatars/icono-compass.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>COMPASS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.17.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.1.2"
-  }
-}
-</script>
-</head>
-  <body class="app-body">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <title>COMPASS | Acceso</title>
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/avatars/icono-compass.svg" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050812;
+        --panel: rgba(12, 18, 31, 0.92);
+        --panel-2: rgba(18, 27, 44, 0.88);
+        --border: rgba(84, 101, 135, 0.35);
+        --text: #e7edf8;
+        --muted: #96a6bf;
+        --accent: #f4b75c;
+        --accent-2: #4dd4ff;
+        --danger: #f07a8c;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(110% 90% at 18% 18%, rgba(77, 212, 255, 0.14), transparent 40%),
+          radial-gradient(90% 80% at 82% 0%, rgba(244, 183, 92, 0.16), transparent 45%),
+          linear-gradient(180deg, #0b1325 0%, var(--bg) 65%, #03060e 100%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .shell {
+        width: min(960px, 100%);
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        background: linear-gradient(180deg, rgba(12, 18, 31, 0.95), rgba(7, 12, 22, 0.97));
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .intro, .auth {
+        padding: 40px;
+      }
+
+      .intro {
+        background:
+          linear-gradient(160deg, rgba(77, 212, 255, 0.08), rgba(77, 212, 255, 0.02)),
+          radial-gradient(120% 80% at 0% 0%, rgba(77, 212, 255, 0.12), transparent 50%);
+        border-right: 1px solid var(--border);
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .logo {
+        width: 68px;
+        height: 68px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: grid;
+        place-items: center;
+        margin-bottom: 28px;
+      }
+
+      .logo img {
+        width: 42px;
+        height: 42px;
+      }
+
+      h1 {
+        margin: 18px 0 14px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .points {
+        margin-top: 26px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .point {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .point strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+
+      .auth {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: linear-gradient(180deg, rgba(13, 20, 35, 0.96), rgba(8, 13, 23, 0.98));
+      }
+
+      form {
+        display: grid;
+        gap: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 14px 15px;
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: rgba(77, 212, 255, 0.6);
+        box-shadow: 0 0 0 3px rgba(77, 212, 255, 0.14);
+      }
+
+      button {
+        margin-top: 10px;
+        border: 0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, var(--accent), #ffcf7e);
+        color: #1b1407;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      button[disabled] {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      .status {
+        min-height: 22px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .status.success {
+        color: #77d6a9;
+      }
+
+      @media (max-width: 840px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .intro {
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .intro, .auth {
+          padding: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="intro">
+        <div class="logo">
+          <img src="/avatars/icono-compass.svg" alt="Compass" />
+        </div>
+        <div class="eyebrow">Acceso protegido</div>
+        <h1>COMPASS</h1>
+        <p>
+          El simulador requiere credenciales autorizadas. El acceso valida identidad antes de cargar el
+          contenido, las rutas del simulador y los servicios de persistencia.
+        </p>
+        <div class="points">
+          <div class="point">
+            <strong>Contenido restringido</strong>
+            El simulador solo se entrega a usuarios autenticados.
+          </div>
+          <div class="point">
+            <strong>Sesion segura</strong>
+            El acceso se mantiene mediante cookie segura y verificacion en backend.
+          </div>
+          <div class="point">
+            <strong>Control de usuarios</strong>
+            Las credenciales se administran desde la base de datos del proyecto.
+          </div>
+        </div>
+      </section>
+      <section class="auth">
+        <div class="eyebrow">Ingreso</div>
+        <h2 style="margin: 14px 0 8px; font-size: 1.8rem;">Inicia sesion</h2>
+        <p style="margin-bottom: 24px;">Ingresa tu usuario y contrasena para habilitar el simulador.</p>
+        <form id="login-form">
+          <label>
+            Usuario
+            <input id="username" name="username" type="text" autocomplete="username" required />
+          </label>
+          <label>
+            Contrasena
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button id="submit" type="submit">Entrar al simulador</button>
+          <div id="status" class="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </div>
+
+    <script>
+      const form = document.getElementById('login-form');
+      const status = document.getElementById('status');
+      const submit = document.getElementById('submit');
+
+      const setStatus = (message, tone) => {
+        status.textContent = message || '';
+        status.className = 'status' + (tone ? ' ' + tone : '');
+      };
+
+      const checkExistingSession = async () => {
+        try {
+          const resp = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+          if (resp.ok) {
+            window.location.replace('/app');
+          }
+        } catch {
+          // Ignore.
+        }
+      };
+
+      checkExistingSession();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setStatus('');
+        submit.disabled = true;
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            setStatus(data.error || 'Credenciales invalidas.', 'error');
+            return;
+          }
+
+          setStatus('Acceso concedido. Redirigiendo...', 'success');
+          window.location.replace('/app');
+        } catch {
+          setStatus('No se pudo conectar con el servicio de autenticacion.', 'error');
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>
