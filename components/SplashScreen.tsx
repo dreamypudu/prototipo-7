@@ -12,7 +12,9 @@ interface SplashScreenProps {
 // Se recomienda una imagen cuadrada (ej: 200x200 px) con fondo transparente.
 // Ejemplo: 'https://i.imgur.com/69J15vd.png'
 // ==============================================================================
-const DEFAULT_LOGO_URL = '/avatars/icono-compass.svg'; // placeholder
+import { protectedPublicAsset } from '../services/protectedAssets';
+
+const DEFAULT_LOGO_URL = protectedPublicAsset('/avatars/icono-compass.svg'); // placeholder
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPASS', subtitle = 'Simulador de Decisión', logoUrl }) => {
   const [playerName, setPlayerName] = useState('');
@@ -26,7 +28,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
   }, []);
 
   const animatedLogoSrc = useMemo(
-    () => `/avatars/logo-animado-compass.svg?loop=${logoRefreshKey}`,
+    () => `${protectedPublicAsset('/avatars/logo-animado-compass.svg')}?loop=${logoRefreshKey}`,
     [logoRefreshKey]
   );
   
@@ -55,7 +57,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
             alt="COMPASS"
             className="mx-auto mb-1 object-contain"
             style={{ width: '240px', maxWidth: '80%', height: 'auto' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = protectedPublicAsset('/avatars/logo-compass.svg'); }}
           />
         ) : (
           <h1 className="text-4xl font-bold text-white mb-1">{title}</h1>

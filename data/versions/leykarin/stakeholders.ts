@@ -1,4 +1,5 @@
 import { Stakeholder } from '../../../types';
+import { protectedPublicAsset } from '../../../services/protectedAssets';
 
 export const LEYKARIN_STAKEHOLDERS: Stakeholder[] = [
   {
@@ -14,7 +15,7 @@ export const LEYKARIN_STAKEHOLDERS: Stakeholder[] = [
     maxSupport: 90,
     mood: 'neutral',
     personality: 'Perfil base para plantilla Ley Karin.',
-    portraitUrl: '/avatars/sofia-castro.png',
+    portraitUrl: protectedPublicAsset('/avatars/sofia-castro.png'),
     agenda: ['Levantar casos de convivencia laboral.'],
     commitments: [],
     informationTiers: [],
@@ -36,7 +37,7 @@ export const LEYKARIN_STAKEHOLDERS: Stakeholder[] = [
     maxSupport: 90,
     mood: 'neutral',
     personality: 'Perfil base para plantilla Ley Karin.',
-    portraitUrl: '/avatars/andres-guzman.png',
+    portraitUrl: protectedPublicAsset('/avatars/andres-guzman.png'),
     agenda: ['Resolver conflictos entre equipos.'],
     commitments: [],
     informationTiers: [],
@@ -58,7 +59,7 @@ export const LEYKARIN_STAKEHOLDERS: Stakeholder[] = [
     maxSupport: 90,
     mood: 'neutral',
     personality: 'Perfil base para plantilla Ley Karin.',
-    portraitUrl: '/avatars/claudia-morales.png',
+    portraitUrl: protectedPublicAsset('/avatars/claudia-morales.png'),
     agenda: ['Canalizar denuncias y prevenci?n.'],
     commitments: [],
     informationTiers: [],

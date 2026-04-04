@@ -9,7 +9,8 @@ PROJECT_ROOT = BACKEND_DIR.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from backend.main import create_schema, get_conn, hash_password, log_auth_event, _utcnow_iso
+from backend.auth.service import hash_password, log_auth_event, utcnow_iso
+from backend.db import create_schema, get_conn
 
 
 def _resolve_password(value: str | None) -> str:
@@ -36,7 +37,7 @@ def create_user(username: str, password: str, display_name: str | None = None) -
             raise SystemExit(f"User '{normalized}' already exists.")
 
         user_id = str(uuid4())
-        now = _utcnow_iso()
+        now = utcnow_iso()
         conn.execute(
             """
             INSERT INTO auth_users (user_id, username, password_hash, display_name, is_active, created_at, updated_at)
@@ -73,7 +74,7 @@ def set_password(username: str, password: str) -> None:
             SET password_hash = %s, updated_at = %s
             WHERE username = %s
             """,
-            (hash_password(password), _utcnow_iso(), normalized),
+            (hash_password(password), utcnow_iso(), normalized),
         )
         log_auth_event(
             conn,
@@ -99,7 +100,7 @@ def set_active(username: str, is_active: bool) -> None:
 
         conn.execute(
             "UPDATE auth_users SET is_active = %s, updated_at = %s WHERE username = %s",
-            (is_active, _utcnow_iso(), normalized),
+            (is_active, utcnow_iso(), normalized),
         )
         log_auth_event(
             conn,

@@ -68,6 +68,7 @@ import { useCaseTracker } from '../hooks/useCaseTracker';
 
 import { useCommitmentsTracker } from '../hooks/useCommitmentsTracker';
 import { API_BASE_URL } from '../services/apiBase';
+import { protectedPublicAsset } from '../services/protectedAssets';
 
 
 
@@ -2586,7 +2587,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
 
         subtitle="Innovatec (Proyecto Quantum Leap)"
 
-        logoUrl="/avatars/icono-compass.svg"
+        logoUrl={protectedPublicAsset('/avatars/icono-compass.svg')}
 
       />
 
@@ -2668,7 +2669,7 @@ export default function InnovatecGame({ onExitToHome }: InnovatecGameProps): Rea
 
           subtitle="Innovatec (Proyecto Quantum Leap)"
 
-          logoUrl="/avatars/icono-compass.svg"
+          logoUrl={protectedPublicAsset('/avatars/icono-compass.svg')}
 
         />
 

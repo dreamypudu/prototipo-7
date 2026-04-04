@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "buildCommand": "npm run build:public",
+  "outputDirectory": "public-dist",
   "redirects": [
     {
       "source": "/app",
@@ -20,11 +20,15 @@
     },
     {
       "source": "/simulator",
-      "destination": "/app.html"
+      "destination": "/api/simulator"
     },
     {
       "source": "/simulator/",
-      "destination": "/app.html"
+      "destination": "/api/simulator"
+    },
+    {
+      "source": "/_protected/:path*",
+      "destination": "/api/protected/:path*"
     }
   ]
 }
