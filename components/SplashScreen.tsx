@@ -12,7 +12,6 @@ interface SplashScreenProps {
 // Se recomienda una imagen cuadrada (ej: 200x200 px) con fondo transparente.
 // Ejemplo: 'https://i.imgur.com/69J15vd.png'
 // ==============================================================================
-
 const DEFAULT_LOGO_URL = '/avatars/icono-compass.svg'; // placeholder
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPASS', subtitle = 'Simulador de Decisión', logoUrl }) => {

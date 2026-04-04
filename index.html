@@ -1,184 +1,30 @@
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>COMPASS | Acceso</title>
+    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" sizes="any" href="/avatars/icono-compass.svg" />
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg: #050812;
-        --panel: rgba(12, 18, 31, 0.95);
-        --border: rgba(84, 101, 135, 0.28);
-        --text: #e7edf8;
-        --muted: #96a6bf;
-        --accent: #f4b75c;
-        --danger: #f07a8c;
-      }
-
-      * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        font-family: Inter, "Segoe UI", sans-serif;
-        background: linear-gradient(180deg, #0b1325 0%, var(--bg) 65%, #03060e 100%);
-        color: var(--text);
-      }
-
-      .shell {
-        width: min(360px, 100%);
-        padding: 32px 28px;
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        background: var(--panel);
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
-      }
-
-      h1 {
-        margin: 0 0 20px;
-        text-align: center;
-        font-size: 2rem;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-
-      form {
-        display: grid;
-        gap: 12px;
-      }
-
-      label {
-        display: grid;
-        gap: 6px;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-
-      input {
-        width: 100%;
-        padding: 13px 14px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--text);
-        font-size: 15px;
-      }
-
-      input:focus {
-        outline: none;
-        border-color: rgba(77, 212, 255, 0.6);
-        box-shadow: 0 0 0 3px rgba(77, 212, 255, 0.14);
-      }
-
-      button {
-        margin-top: 4px;
-        padding: 13px 14px;
-        border: 0;
-        border-radius: 12px;
-        background: var(--accent);
-        color: #111827;
-        font-weight: 700;
-        cursor: pointer;
-      }
-
-      button[disabled] {
-        opacity: 0.7;
-        cursor: wait;
-      }
-
-      .status {
-        min-height: 20px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-
-      .status.error {
-        color: var(--danger);
-      }
-
-      .status.success {
-        color: #77d6a9;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="shell">
-      <h1>COMPASS</h1>
-      <form id="login-form">
-        <label>
-          Usuario
-          <input id="username" name="username" type="text" autocomplete="username" required />
-        </label>
-        <label>
-          Contraseña
-          <input id="password" name="password" type="password" autocomplete="current-password" required />
-        </label>
-        <button id="submit" type="submit">Entrar</button>
-        <div id="status" class="status" aria-live="polite"></div>
-      </form>
-    </div>
-
-    <script>
-      const form = document.getElementById('login-form');
-      const status = document.getElementById('status');
-      const submit = document.getElementById('submit');
-
-      const setStatus = (message, tone) => {
-        status.textContent = message || '';
-        status.className = 'status' + (tone ? ' ' + tone : '');
-      };
-
-      const checkExistingSession = async () => {
-        try {
-          const resp = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
-          if (resp.ok) {
-            window.location.replace('/simulator');
-          }
-        } catch {
-          // Ignore.
-        }
-      };
-
-      checkExistingSession();
-
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        setStatus('');
-        submit.disabled = true;
-
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-
-        try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ username, password }),
-          });
-
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            setStatus(data.error || 'Credenciales inv�lidas.', 'error');
-            return;
-          }
-
-          setStatus('Acceso concedido.', 'success');
-          window.location.replace('/simulator');
-        } catch {
-          setStatus('No se pudo conectar.', 'error');
-        } finally {
-          submit.disabled = false;
-        }
-      });
-    </script>
+    <link rel="icon" type="image/png" sizes="32x32" href="/avatars/icono-compass.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/avatars/icono-compass.png" />
+    <link rel="apple-touch-icon" href="/avatars/icono-compass.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COMPASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.17.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.1.2"
+  }
+}
+</script>
+</head>
+  <body class="app-body">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
