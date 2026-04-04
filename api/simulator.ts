@@ -41,6 +41,7 @@ export default async function handler(req: any, res: any) {
     }
 
     res.setHeader('Content-Type', response.headers.get('content-type') || 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', response.headers.get('cache-control') || 'private, no-store');
     return res.status(200).send(html);
   } catch (error) {
     console.error('[simulator] failed', error);
