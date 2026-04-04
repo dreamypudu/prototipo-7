@@ -641,19 +641,19 @@ export default function App(): React.ReactElement {
 
   const mechanicIconByTab: Record<string, string> = {
 
-    interaction: '??',
+    interaction: 'DIA',
 
-    map: '???',
+    map: 'MAP',
 
-    schedule: '??',
+    schedule: 'SCH',
 
-    emails: '??',
+    emails: 'EML',
 
-    documents: '??',
+    documents: 'DOC',
 
-    calendar: '??',
+    calendar: 'CAL',
 
-    data_export: '??',
+    data_export: 'EXP',
 
   };
 
@@ -4416,7 +4416,7 @@ export default function App(): React.ReactElement {
 
                 <span className="text-[11px] uppercase tracking-[0.24em] text-amber-200/90">Objetivos</span>
 
-                <span className="pr-1 text-lg text-amber-300">{isObjectivesOpen ? '?' : '?'}</span>
+                <span className="pr-1 text-lg text-amber-300">{isObjectivesOpen ? '-' : '+'}</span>
 
               </div>
 
@@ -4548,7 +4548,7 @@ export default function App(): React.ReactElement {
 
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-cyan-200/25 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.18)]">
 
-                    ??
+                    i
 
                   </div>
 
