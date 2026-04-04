@@ -3,7 +3,7 @@ import {
   clearAuthCookie,
   getTokenFromCookieHeader,
   verifySessionToken,
-} from '../../_lib/auth.js';
+} from '../_lib/auth.js';
 
 const getPathParts = (value: string[] | string | undefined) => {
   if (Array.isArray(value)) return value;
@@ -71,7 +71,7 @@ export default async function handler(req: any, res: any) {
 
     return res.send(body);
   } catch (error) {
-    console.error('[protected/public proxy] failed', error);
+    console.error('[protected-public proxy] failed', error);
     return res.status(502).send('protected_proxy_failed');
   }
 }

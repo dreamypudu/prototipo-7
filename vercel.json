@@ -32,7 +32,7 @@
     },
     {
       "source": "/_protected/public/:path*",
-      "destination": "/api/protected/public/:path*"
+      "destination": "/api/protected-public/:path*"
     }
   ]
 }
