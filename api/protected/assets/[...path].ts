@@ -3,17 +3,12 @@ import {
   clearAuthCookie,
   getTokenFromCookieHeader,
   verifySessionToken,
-} from '../_lib/auth.js';
+} from '../../_lib/auth.js';
 
-const getProtectedBackendPath = (pathParts: string[]) => {
-  const [scope, ...rest] = pathParts;
-  if (scope === 'assets') {
-    return `/protected-assets/${rest.join('/')}`;
-  }
-  if (scope === 'public') {
-    return `/protected-public/${rest.join('/')}`;
-  }
-  return null;
+const getPathParts = (value: string[] | string | undefined) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') return [value];
+  return [];
 };
 
 export default async function handler(req: any, res: any) {
@@ -29,25 +24,22 @@ export default async function handler(req: any, res: any) {
     return res.status(401).send('invalid_session');
   }
 
-  const pathParts = Array.isArray(req.query.path)
-    ? req.query.path
-    : typeof req.query.path === 'string'
-      ? [req.query.path]
-      : [];
-
-  const protectedPath = getProtectedBackendPath(pathParts);
-  if (!protectedPath) {
+  const pathParts = getPathParts(req.query.path);
+  if (pathParts.length === 0) {
     return res.status(404).send('not_found');
   }
 
   try {
     const incomingUrl = new URL(req.url, 'http://local-proxy');
-    const response = await fetch(buildBackendUrl(protectedPath, incomingUrl.search), {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await fetch(
+      buildBackendUrl(`/protected-assets/${pathParts.join('/')}`, incomingUrl.search),
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const body = Buffer.from(await response.arrayBuffer());
     res.status(response.status);
@@ -64,7 +56,7 @@ export default async function handler(req: any, res: any) {
 
     return res.send(body);
   } catch (error) {
-    console.error('[protected proxy] failed', error);
+    console.error('[protected/assets proxy] failed', error);
     return res.status(502).send('protected_proxy_failed');
   }
 }

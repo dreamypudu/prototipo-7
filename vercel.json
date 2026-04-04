@@ -27,8 +27,12 @@
       "destination": "/api/simulator"
     },
     {
-      "source": "/_protected/:path*",
-      "destination": "/api/protected/:path*"
+      "source": "/_protected/assets/:path*",
+      "destination": "/api/protected/assets/:path*"
+    },
+    {
+      "source": "/_protected/public/:path*",
+      "destination": "/api/protected/public/:path*"
     }
   ]
 }
