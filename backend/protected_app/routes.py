@@ -19,10 +19,6 @@ def _read_protected_shell() -> str:
     return (
         html.replace('src="/assets/', 'src="/_protected/assets/')
         .replace('href="/assets/', 'href="/_protected/assets/')
-        .replace('src="/avatars/', 'src="/_protected/public/avatars/')
-        .replace('href="/avatars/', 'href="/_protected/public/avatars/')
-        .replace('src="/sounds/', 'src="/_protected/public/sounds/')
-        .replace('href="/sounds/', 'href="/_protected/public/sounds/')
     )
 
 
