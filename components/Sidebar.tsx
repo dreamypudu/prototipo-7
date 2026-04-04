@@ -11,6 +11,7 @@ interface SidebarProps {
   onClose: () => void;
   onNavigate: (tab: string) => void;
   onReturnHome?: () => void;
+  onLogout?: () => void;
   stages?: StageTab[];
   onSelectStage?: (stageId: string) => void;
   developerUnlocked: boolean;
@@ -26,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onNavigate,
   onReturnHome,
+  onLogout,
   stages = [],
   onSelectStage,
   developerUnlocked,
@@ -135,6 +137,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                   >
                     <HomeIcon />
                     <span>Volver al inicio</span>
+                  </button>
+                </li>
+              )}
+              {onLogout && (
+                <li>
+                  <button
+                    onClick={() => { onLogout(); onClose(); }}
+                    className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-lg text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                  >
+                    <LogoutIcon />
+                    <span>Cerrar sesión</span>
                   </button>
                 </li>
               )}
@@ -269,6 +282,13 @@ const NotebookIcon = () => (
 const HomeIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10.5l9-7 9 7V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" />
+    </svg>
+);
+
+const LogoutIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H9" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 20H6a2 2 0 01-2-2V6a2 2 0 012-2h7" />
     </svg>
 );
 

@@ -86,7 +86,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
       style={{
         paddingTop: 'max(150px, calc(env(safe-area-inset-top, 0px) + 70px))',
         backgroundImage:
-          "linear-gradient(135deg, rgba(8,17,35,0.9), rgba(8,17,35,0.78)), url('/avatars/cesfam-portada.png')",
+          `linear-gradient(135deg, rgba(8,17,35,0.9), rgba(8,17,35,0.78)), url('/avatars/cesfam-portada.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
@@ -112,7 +112,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
               version.id === 'CESFAM'
                 ? {
                     backgroundImage:
-                      "linear-gradient(180deg, rgba(12,22,38,0.82), rgba(12,23,40,0.62)), url('/avatars/fondo cesfam portada.png')",
+                      `linear-gradient(180deg, rgba(12,22,38,0.82), rgba(12,23,40,0.62)), url('/avatars/fondo cesfam portada.png')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     boxShadow: '0 20px 60px rgba(27, 78, 137, 0.65)',

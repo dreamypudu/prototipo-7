@@ -121,7 +121,7 @@ const CaseObjectivesPanel: React.FC<CaseObjectivesPanelProps> = ({
         aria-label="Abrir objetivos"
         className={`relative w-10 h-10 rounded-2xl border border-amber-300/70 bg-amber-400 text-slate-900 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition hover:bg-amber-300 ${hasUnseenUpdates ? 'animate-pulse' : ''} ${className}`}
       >
-        <span className="text-lg">??</span>
+        <span className="text-xs font-semibold tracking-[0.16em]">OBJ</span>
         {unseenCount > 0 && (
           <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
             {unseenCount}
@@ -157,7 +157,7 @@ const CaseObjectivesPanel: React.FC<CaseObjectivesPanelProps> = ({
               {unseenCount}
             </span>
           )}
-          <span className="text-lg text-amber-300">{isOpen ? '?' : '?'}</span>
+          <span className="text-lg text-amber-300">{isOpen ? '-' : '+'}</span>
         </div>
       </button>
 

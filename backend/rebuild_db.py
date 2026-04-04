@@ -2,7 +2,8 @@ import argparse
 import json
 from typing import Optional
 
-from backend.main import create_schema, get_conn, normalize_session
+from backend.db import create_schema, get_conn
+from backend.sessions.routes import normalize_session
 
 
 def normalize_sessions(session_id: Optional[str]) -> int:

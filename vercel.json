@@ -1,0 +1,34 @@
+{
+  "buildCommand": "npm run build:public",
+  "outputDirectory": "public-dist",
+  "redirects": [
+    {
+      "source": "/app",
+      "destination": "/simulator",
+      "permanent": false
+    },
+    {
+      "source": "/app/",
+      "destination": "/simulator",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/login",
+      "destination": "/"
+    },
+    {
+      "source": "/simulator",
+      "destination": "/api/simulator"
+    },
+    {
+      "source": "/simulator/",
+      "destination": "/api/simulator"
+    },
+    {
+      "source": "/_protected/assets/:path*",
+      "destination": "/api/protected/assets/:path*"
+    }
+  ]
+}
