@@ -11,6 +11,21 @@ const getPathParts = (value: string[] | string | undefined) => {
   return [];
 };
 
+const getPathPartsFromRequest = (req: any) => {
+  const queryParts = getPathParts(req.query?.path);
+  if (queryParts.length > 0) {
+    return queryParts;
+  }
+
+  const pathname = new URL(req.url, 'http://local-proxy').pathname;
+  const prefix = '/_protected/assets/';
+  if (!pathname.startsWith(prefix)) {
+    return [];
+  }
+
+  return pathname.slice(prefix.length).split('/').filter(Boolean);
+};
+
 export default async function handler(req: any, res: any) {
   const token = getTokenFromCookieHeader(req.headers.cookie);
   if (!token) {
@@ -24,7 +39,7 @@ export default async function handler(req: any, res: any) {
     return res.status(401).send('invalid_session');
   }
 
-  const pathParts = getPathParts(req.query.path);
+  const pathParts = getPathPartsFromRequest(req);
   if (pathParts.length === 0) {
     return res.status(404).send('not_found');
   }
