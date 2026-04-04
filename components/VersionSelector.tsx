@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SimulatorVersion } from '../types';
-import { protectedPublicAsset } from '../services/protectedAssets';
 
 interface VersionSelectorProps {
   onSelect: (version: SimulatorVersion) => void;
@@ -63,7 +62,7 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
   }, []);
 
   const animatedLogoSrc = useMemo(
-    () => `${protectedPublicAsset('/avatars/logo-animado-compass.svg')}?loop=${logoRefreshKey}`,
+    () => `/avatars/logo-animado-compass.svg?loop=${logoRefreshKey}`,
     [logoRefreshKey]
   );
   const accentByVersion: Record<SimulatorVersion, string> = {
@@ -87,7 +86,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
       style={{
         paddingTop: 'max(150px, calc(env(safe-area-inset-top, 0px) + 70px))',
         backgroundImage:
-          `linear-gradient(135deg, rgba(8,17,35,0.9), rgba(8,17,35,0.78)), url('${protectedPublicAsset('/avatars/cesfam-portada.png')}')`,
+          `linear-gradient(135deg, rgba(8,17,35,0.9), rgba(8,17,35,0.78)), url('/avatars/cesfam-portada.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
@@ -99,7 +98,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
             alt="Logo Compass"
             className="mx-auto mb-4 object-contain drop-shadow-lg opacity-95"
             style={{ width: '320px', maxWidth: '80%', height: 'auto' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = protectedPublicAsset('/avatars/logo-compass.svg'); }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
           />
           <p className="text-xl text-blue-100/90 drop-shadow-sm">Selecciona la versión de COMPASS para comenzar</p>
         </div>
@@ -113,7 +112,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
               version.id === 'CESFAM'
                 ? {
                     backgroundImage:
-                      `linear-gradient(180deg, rgba(12,22,38,0.82), rgba(12,23,40,0.62)), url('${protectedPublicAsset('/avatars/fondo cesfam portada.png')}')`,
+                      `linear-gradient(180deg, rgba(12,22,38,0.82), rgba(12,23,40,0.62)), url('/avatars/fondo cesfam portada.png')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     boxShadow: '0 20px 60px rgba(27, 78, 137, 0.65)',

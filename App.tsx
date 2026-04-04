@@ -120,7 +120,6 @@ import { buildCesfamDayReviewData, type CesfamDayReviewData } from './services/d
 
 import { evaluateConditionGroup } from './services/commitments';
 import { API_BASE_URL } from './services/apiBase';
-import { protectedPublicAsset } from './services/protectedAssets';
 
 
 
@@ -158,15 +157,15 @@ const DEFAULT_INITIAL_STATE = DEFAULT_CONTENT_PACK.defaults.buildInitialGameStat
 
 const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
 
-  INNOVATEC: protectedPublicAsset('/avatars/icono-compass.svg'),
+  INNOVATEC: '/avatars/icono-compass.svg',
 
-  CESFAM: protectedPublicAsset('/avatars/icono-compass.svg'),
+  CESFAM: '/avatars/icono-compass.svg',
 
-  LEY_KARIN: protectedPublicAsset('/avatars/icono-compass.svg'),
+  LEY_KARIN: '/avatars/icono-compass.svg',
 
-  SERCOTEC: protectedPublicAsset('/avatars/icono-compass.svg'),
+  SERCOTEC: '/avatars/icono-compass.svg',
 
-  MUNICIPAL: protectedPublicAsset('/avatars/icono-compass.svg')
+  MUNICIPAL: '/avatars/icono-compass.svg'
 
 };
 
@@ -680,9 +679,9 @@ export default function App(): React.ReactElement {
 
   useEffect(() => {
 
-    upSoundRef.current = new Audio(protectedPublicAsset('/sounds/indicator-up.mp3'));
+    upSoundRef.current = new Audio('/sounds/indicator-up.mp3');
 
-    downSoundRef.current = new Audio(protectedPublicAsset('/sounds/indicator-down.mp3'));
+    downSoundRef.current = new Audio('/sounds/indicator-down.mp3');
 
     if (upSoundRef.current) upSoundRef.current.volume = 0.85;
 
