@@ -39,99 +39,99 @@ export const CESFAM_ROOMS: RoomDefinition[] = [
 
 export const INITIAL_STAFF: StaffMember[] = [
     // --- SECTOR AZUL (Elite, Academia) ---
-    { 
-        id: 'andres-guzman', 
-        name: 'Dr. Andrés Guzmán', 
-        role: 'Medico', 
-        sectorId: 'AZUL', 
-        burnout: 10, 
-        morale: 90, 
+    {
+        id: 'andres-guzman',
+        name: 'Dr. Andrés Guzmán',
+        role: 'Medico',
+        sectorId: 'AZUL',
+        burnout: 10,
+        morale: 90,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/haTtDtC.png" 
+        portraitUrl: "https://i.imgur.com/haTtDtC.png"
     },
-    { 
-        id: 'paz-herrera', 
-        name: 'Enf. Paz Herrera', 
-        role: 'Enfermera', 
-        sectorId: 'AZUL', 
-        burnout: 30, 
-        morale: 85, 
+    {
+        id: 'paz-herrera',
+        name: 'Enf. Paz Herrera',
+        role: 'Enfermera',
+        sectorId: 'AZUL',
+        burnout: 30,
+        morale: 85,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/JLlAfIm.png" 
+        portraitUrl: "https://i.imgur.com/JLlAfIm.png"
     },
-    { 
-        id: 'javier-castro', 
-        name: 'TENS Javier Castro', 
-        role: 'TENS', 
-        sectorId: 'AZUL', 
+    {
+        id: 'javier-castro',
+        name: 'TENS Javier Castro',
+        role: 'TENS',
+        sectorId: 'AZUL',
         burnout: 60, // Riesgo Oculto inicial alto
-        morale: 50, 
+        morale: 50,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/egOSYNj.png" 
+        portraitUrl: "https://i.imgur.com/egOSYNj.png"
     },
 
     // --- SECTOR ROJO (Normativa, Derechos) ---
-    { 
-        id: 'marcela-soto', 
-        name: 'Enf. Marcela Soto', 
-        role: 'Enfermera', 
-        sectorId: 'ROJO', 
-        burnout: 20, 
-        morale: 80, 
+    {
+        id: 'marcela-soto',
+        name: 'Enf. Marcela Soto',
+        role: 'Enfermera',
+        sectorId: 'ROJO',
+        burnout: 20,
+        morale: 80,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/JLlAfIm.png" 
+        portraitUrl: "https://i.imgur.com/JLlAfIm.png"
     },
-    { 
-        id: 'eduardo-naranjo', 
-        name: 'Dr. Eduardo Naranjo', 
-        role: 'Medico', 
-        sectorId: 'ROJO', 
-        burnout: 40, 
-        morale: 60, 
+    {
+        id: 'eduardo-naranjo',
+        name: 'Dr. Eduardo Naranjo',
+        role: 'Medico',
+        sectorId: 'ROJO',
+        burnout: 40,
+        morale: 60,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/haTtDtC.png" 
+        portraitUrl: "https://i.imgur.com/haTtDtC.png"
     },
-    { 
-        id: 'claudia-morales', 
-        name: 'TENS Claudia Morales', 
-        role: 'TENS', 
-        sectorId: 'ROJO', 
-        burnout: 30, 
-        morale: 70, 
+    {
+        id: 'claudia-morales',
+        name: 'TENS Claudía Morales',
+        role: 'TENS',
+        sectorId: 'ROJO',
+        burnout: 30,
+        morale: 70,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/egOSYNj.png" 
+        portraitUrl: "https://i.imgur.com/egOSYNj.png"
     },
 
     // --- SECTOR AMARILLO (Comunidad, Calle) ---
-    { 
-        id: 'daniel-rios', 
-        name: 'Sr. Daniel Ríos', 
-        role: 'TENS', 
-        sectorId: 'AMARILLO', 
-        burnout: 50, 
-        morale: 90, 
+    {
+        id: 'daniel-rios',
+        name: 'Sr. Daniel Ríos',
+        role: 'TENS',
+        sectorId: 'AMARILLO',
+        burnout: 50,
+        morale: 90,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/egOSYNj.png" 
+        portraitUrl: "https://i.imgur.com/egOSYNj.png"
     },
-    { 
-        id: 'francisca-solis', 
-        name: 'Enf. Francisca Solís', 
-        role: 'Enfermera', 
-        sectorId: 'AMARILLO', 
-        burnout: 60, 
+    {
+        id: 'francisca-solis',
+        name: 'Enf. Francisca Solís',
+        role: 'Enfermera',
+        sectorId: 'AMARILLO',
+        burnout: 60,
         morale: 40, // Moral baja por empatía/sufrimiento
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/JLlAfIm.png" 
+        portraitUrl: "https://i.imgur.com/JLlAfIm.png"
     },
-    { 
-        id: 'ricardo-meza', 
-        name: 'Dr. Ricardo Meza', 
-        role: 'Medico', 
-        sectorId: 'AMARILLO', 
+    {
+        id: 'ricardo-meza',
+        name: 'Dr. Ricardo Meza',
+        role: 'Medico',
+        sectorId: 'AMARILLO',
         burnout: 70, // Riesgo de renuncia
-        morale: 30, 
+        morale: 30,
         contractHours: 44,
-        portraitUrl: "https://i.imgur.com/haTtDtC.png" 
+        portraitUrl: "https://i.imgur.com/haTtDtC.png"
     },
 ];
 
@@ -141,16 +141,16 @@ const getDefaultRoom = (staff: StaffMember): string => {
     if (staff.id === 'andres-guzman') return 'BOX_1'; // Box Principal Azul
     if (staff.id === 'paz-herrera') return 'BOX_2';
     if (staff.id === 'javier-castro') return 'BOX_3';
-    
+
     // ROJO
     if (staff.id === 'marcela-soto') return 'OFICINA_TECNICA'; // Suele estar gestionando
     if (staff.id === 'eduardo-naranjo') return 'BOX_5';
     if (staff.id === 'claudia-morales') return 'OFICINA_TECNICA';
-    
+
     // AMARILLO
     if (staff.id === 'daniel-rios') return 'TERRENO'; // Siempre en la calle
     if (staff.id === 'francisca-solis') return 'BOX_6';
-    if (staff.id === 'ricardo-meza') return 'BOX_4'; 
+    if (staff.id === 'ricardo-meza') return 'BOX_4';
 
     return 'AREA_COMUN';
 };
@@ -195,7 +195,7 @@ export const buildDefaultWeeklySchedule = (): ScheduleAssignment[] => {
                     staffId: staff.id,
                     day,
                     block,
-                    activity, 
+                    activity,
                     roomId
                 });
             });

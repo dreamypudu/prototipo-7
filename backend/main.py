@@ -11,6 +11,19 @@ from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from psycopg.rows import dict_row
 
+try:
+    from .mechanic_action_exports import (
+        DETAIL_TABLE_NAMES,
+        create_mechanic_export_schema,
+        upsert_canonical_action_detail,
+    )
+except ImportError:
+    from mechanic_action_exports import (
+        DETAIL_TABLE_NAMES,
+        create_mechanic_export_schema,
+        upsert_canonical_action_detail,
+    )
+
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env.local")
 load_dotenv(BASE_DIR / ".env")
@@ -208,6 +221,16 @@ def create_schema(conn):
             mechanic_id TEXT,
             action_type TEXT,
             target_ref TEXT,
+            target_type TEXT,
+            target_id TEXT,
+            target_label TEXT,
+            day INTEGER,
+            time_slot TEXT,
+            committed_day INTEGER,
+            committed_time_slot TEXT,
+            source_node_id TEXT,
+            source_option_id TEXT,
+            summary TEXT,
             value_final TEXT,
             committed_at BIGINT,
             context TEXT,
@@ -215,6 +238,22 @@ def create_schema(conn):
         )
         """
     )
+    conn.execute(
+        """
+        ALTER TABLE canonical_actions
+        ADD COLUMN IF NOT EXISTS target_type TEXT,
+        ADD COLUMN IF NOT EXISTS target_id TEXT,
+        ADD COLUMN IF NOT EXISTS target_label TEXT,
+        ADD COLUMN IF NOT EXISTS day INTEGER,
+        ADD COLUMN IF NOT EXISTS time_slot TEXT,
+        ADD COLUMN IF NOT EXISTS committed_day INTEGER,
+        ADD COLUMN IF NOT EXISTS committed_time_slot TEXT,
+        ADD COLUMN IF NOT EXISTS source_node_id TEXT,
+        ADD COLUMN IF NOT EXISTS source_option_id TEXT,
+        ADD COLUMN IF NOT EXISTS summary TEXT
+        """
+    )
+    create_mechanic_export_schema(conn)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS mechanic_events (
@@ -554,8 +593,9 @@ def _parse_datetime(value):
 def _extract_actual_time_info(actual: dict):
     vf = _json_load(actual.get("value_final")) or {}
     ctx = _json_load(actual.get("context")) or {}
-    day_value = vf.get("day") or ctx.get("day")
-    slot_value = vf.get("time_slot") or vf.get("slot") or ctx.get("time_slot")
+    merged = {**ctx, **actual, **vf}
+    day_value = merged.get("day") or merged.get("committed_day")
+    slot_value = merged.get("time_slot") or merged.get("slot") or merged.get("committed_time_slot")
     dt_value = vf.get("datetime") or vf.get("scheduled_at") or vf.get("arrived_at")
     parsed_dt = _parse_datetime(dt_value)
 
@@ -578,7 +618,7 @@ def _default_rule(expected: dict, actual: dict):
         return {"outcome": "TRUE"}
     vf = _json_load(actual.get("value_final")) or {}
     ctx = _json_load(actual.get("context")) or {}
-    merged = {**ctx, **vf}
+    merged = {**ctx, **actual, **vf}
     for k, v in constraints.items():
         if merged.get(k) != v:
             return {"outcome": "FALSE"}
@@ -671,6 +711,43 @@ def _apply_effects(global_deltas: dict, stakeholder_deltas: dict, effect: dict, 
             for k, v in stakeholder_effects.items():
                 curr[k] = curr.get(k, 0) + v
             stakeholder_deltas[sid] = curr
+
+
+def _as_record(value):
+    parsed = _json_load(value)
+    return parsed if isinstance(parsed, dict) else {}
+
+
+COMMON_CANONICAL_KEYS = {
+    "target_type",
+    "target_id",
+    "target_label",
+    "day",
+    "time_slot",
+    "committed_day",
+    "committed_time_slot",
+    "source_node_id",
+    "source_option_id",
+    "summary",
+}
+
+
+def _extract_canonical_common_and_payload(action: dict):
+    value_final = _as_record(action.get("value_final"))
+    common = {
+        key: action.get(key) if action.get(key) is not None else value_final.get(key)
+        for key in COMMON_CANONICAL_KEYS
+    }
+    mechanic_payload = value_final.get("mechanic_payload")
+    if isinstance(mechanic_payload, dict):
+        return common, mechanic_payload
+    if isinstance(action.get("value_final"), dict):
+        return common, {
+            key: value
+            for key, value in value_final.items()
+            if key not in COMMON_CANONICAL_KEYS
+        }
+    return common, action.get("value_final")
 
 
 def normalize_session(conn, session_id: str, session: dict, created_at: str):
@@ -807,15 +884,30 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
         canonical_action_id = action.get("canonical_action_id")
         if canonical_action_id:
             canonical_ids.add(canonical_action_id)
+        common, specific_value_final = _extract_canonical_common_and_payload(action)
         conn.execute(
             """
-            INSERT INTO canonical_actions (canonical_action_id, session_id, mechanic_id, action_type, target_ref, value_final, committed_at, context)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO canonical_actions (
+                canonical_action_id, session_id, mechanic_id, action_type, target_ref,
+                target_type, target_id, target_label, day, time_slot, committed_day, committed_time_slot,
+                source_node_id, source_option_id, summary, value_final, committed_at, context
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (canonical_action_id) DO UPDATE SET
                 session_id = EXCLUDED.session_id,
                 mechanic_id = EXCLUDED.mechanic_id,
                 action_type = EXCLUDED.action_type,
                 target_ref = EXCLUDED.target_ref,
+                target_type = EXCLUDED.target_type,
+                target_id = EXCLUDED.target_id,
+                target_label = EXCLUDED.target_label,
+                day = EXCLUDED.day,
+                time_slot = EXCLUDED.time_slot,
+                committed_day = EXCLUDED.committed_day,
+                committed_time_slot = EXCLUDED.committed_time_slot,
+                source_node_id = EXCLUDED.source_node_id,
+                source_option_id = EXCLUDED.source_option_id,
+                summary = EXCLUDED.summary,
                 value_final = EXCLUDED.value_final,
                 committed_at = EXCLUDED.committed_at,
                 context = EXCLUDED.context
@@ -826,10 +918,25 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
                 action.get("mechanic_id"),
                 action.get("action_type"),
                 action.get("target_ref"),
-                _json_dump(action.get("value_final")),
+                common.get("target_type"),
+                common.get("target_id"),
+                common.get("target_label"),
+                common.get("day"),
+                common.get("time_slot"),
+                common.get("committed_day"),
+                common.get("committed_time_slot"),
+                common.get("source_node_id"),
+                common.get("source_option_id"),
+                common.get("summary"),
+                _json_dump(specific_value_final),
                 action.get("committed_at"),
                 _json_dump(action.get("context")),
             ),
+        )
+        upsert_canonical_action_detail(
+            conn,
+            session_id,
+            {**action, **common, "value_final": specific_value_final},
         )
 
     for event in mechanic_events:
@@ -1177,15 +1284,30 @@ def resolve_day_effects(session_id: str, day: int, payload: dict | None = Body(d
                 )
             # Upsert canonical actions sent for this day
             for action in canonical_payload:
+                common, specific_value_final = _extract_canonical_common_and_payload(action)
                 conn.execute(
                     """
-                    INSERT INTO canonical_actions (canonical_action_id, session_id, mechanic_id, action_type, target_ref, value_final, committed_at, context)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO canonical_actions (
+                        canonical_action_id, session_id, mechanic_id, action_type, target_ref,
+                        target_type, target_id, target_label, day, time_slot, committed_day, committed_time_slot,
+                        source_node_id, source_option_id, summary, value_final, committed_at, context
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (canonical_action_id) DO UPDATE SET
                         session_id = EXCLUDED.session_id,
                         mechanic_id = EXCLUDED.mechanic_id,
                         action_type = EXCLUDED.action_type,
                         target_ref = EXCLUDED.target_ref,
+                        target_type = EXCLUDED.target_type,
+                        target_id = EXCLUDED.target_id,
+                        target_label = EXCLUDED.target_label,
+                        day = EXCLUDED.day,
+                        time_slot = EXCLUDED.time_slot,
+                        committed_day = EXCLUDED.committed_day,
+                        committed_time_slot = EXCLUDED.committed_time_slot,
+                        source_node_id = EXCLUDED.source_node_id,
+                        source_option_id = EXCLUDED.source_option_id,
+                        summary = EXCLUDED.summary,
                         value_final = EXCLUDED.value_final,
                         committed_at = EXCLUDED.committed_at,
                         context = EXCLUDED.context
@@ -1196,10 +1318,25 @@ def resolve_day_effects(session_id: str, day: int, payload: dict | None = Body(d
                         action.get("mechanic_id"),
                         action.get("action_type"),
                         action.get("target_ref"),
-                        _json_dump(action.get("value_final")),
+                        common.get("target_type"),
+                        common.get("target_id"),
+                        common.get("target_label"),
+                        common.get("day"),
+                        common.get("time_slot"),
+                        common.get("committed_day"),
+                        common.get("committed_time_slot"),
+                        common.get("source_node_id"),
+                        common.get("source_option_id"),
+                        common.get("summary"),
+                        _json_dump(specific_value_final),
                         action.get("committed_at"),
                         _json_dump(action.get("context")),
                     ),
+                )
+                upsert_canonical_action_detail(
+                    conn,
+                    session_id,
+                    {**action, **common, "value_final": specific_value_final},
                 )
             conn.commit()
 
@@ -1214,7 +1351,9 @@ def resolve_day_effects(session_id: str, day: int, payload: dict | None = Body(d
         ).fetchall()
         canonical_rows = conn.execute(
             """
-            SELECT canonical_action_id, mechanic_id, action_type, target_ref, value_final, committed_at, context
+            SELECT canonical_action_id, mechanic_id, action_type, target_ref,
+                   target_type, target_id, target_label, day, time_slot, committed_day, committed_time_slot,
+                   source_node_id, source_option_id, summary, value_final, committed_at, context
             FROM canonical_actions
             WHERE session_id = %s
             """,
@@ -1251,6 +1390,16 @@ def resolve_day_effects(session_id: str, day: int, payload: dict | None = Body(d
                 "mechanic_id": r["mechanic_id"],
                 "action_type": r["action_type"],
                 "target_ref": r["target_ref"],
+                "target_type": r["target_type"],
+                "target_id": r["target_id"],
+                "target_label": r["target_label"],
+                "day": r["day"],
+                "time_slot": r["time_slot"],
+                "committed_day": r["committed_day"],
+                "committed_time_slot": r["committed_time_slot"],
+                "source_node_id": r["source_node_id"],
+                "source_option_id": r["source_option_id"],
+                "summary": r["summary"],
                 "value_final": _json_load(r["value_final"]),
                 "committed_at": r["committed_at"] or 0,
                 "context": _json_load(r["context"]),
@@ -1416,6 +1565,11 @@ def get_session_normalized(session_id: str):
         data["explicit_decisions"] = [dict(r) for r in conn.execute("SELECT * FROM explicit_decisions WHERE session_id = %s", (session_id,)).fetchall()]
         data["expected_actions"] = [dict(r) for r in conn.execute("SELECT * FROM expected_actions WHERE session_id = %s", (session_id,)).fetchall()]
         data["canonical_actions"] = [dict(r) for r in conn.execute("SELECT * FROM canonical_actions WHERE session_id = %s", (session_id,)).fetchall()]
+        for table_name in DETAIL_TABLE_NAMES:
+            data[table_name] = [
+                dict(r)
+                for r in conn.execute(f"SELECT * FROM {table_name} WHERE session_id = %s", (session_id,)).fetchall()
+            ]
         data["mechanic_events"] = [dict(r) for r in conn.execute("SELECT * FROM mechanic_events WHERE session_id = %s", (session_id,)).fetchall()]
         data["comparisons"] = [dict(r) for r in conn.execute("SELECT * FROM comparisons WHERE session_id = %s", (session_id,)).fetchall()]
         data["process_logs"] = [dict(r) for r in conn.execute("SELECT * FROM process_logs WHERE session_id = %s", (session_id,)).fetchall()]

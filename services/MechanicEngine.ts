@@ -1,4 +1,60 @@
+// Buffer central de datos crudos: eventos de mecánicas, acciones canónicas y acciones esperadas.
 import { MechanicEvent, CanonicalAction, ExpectedAction, TimeSlotType } from '../types';
+
+const COMMON_CANONICAL_KEYS = [
+  'target_type',
+  'target_id',
+  'target_label',
+  'day',
+  'time_slot',
+  'committed_day',
+  'committed_time_slot',
+  'source_node_id',
+  'source_option_id',
+  'summary',
+] as const;
+
+type CanonicalCommonFields = Pick<
+  CanonicalAction,
+  | 'target_type'
+  | 'target_id'
+  | 'target_label'
+  | 'day'
+  | 'time_slot'
+  | 'committed_day'
+  | 'committed_time_slot'
+  | 'source_node_id'
+  | 'source_option_id'
+  | 'summary'
+>;
+
+const isRecord = (value: unknown): value is Record<string, any> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
+export const splitCanonicalActionValueFinal = (rawValueFinal: any): {
+  common: CanonicalCommonFields;
+  valueFinal: any;
+} => {
+  if (!isRecord(rawValueFinal)) {
+    return { common: {}, valueFinal: rawValueFinal };
+  }
+
+  const common: CanonicalCommonFields = {};
+  COMMON_CANONICAL_KEYS.forEach((key) => {
+    if (key in rawValueFinal) {
+      (common as Record<string, any>)[key] = rawValueFinal[key];
+    }
+  });
+
+  if (isRecord(rawValueFinal.mechanic_payload)) {
+    return { common, valueFinal: rawValueFinal.mechanic_payload };
+  }
+
+  const valueFinal = Object.fromEntries(
+    Object.entries(rawValueFinal).filter(([key]) => !COMMON_CANONICAL_KEYS.includes(key as any))
+  );
+  return { common, valueFinal };
+};
 
 /**
  * Service to bridge modular mechanics and the core psychometric engine.
@@ -40,17 +96,19 @@ class MechanicEngine {
    * Commits a standardized action that can be compared with scenario expectations.
    */
   public emitCanonicalAction(mechanicId: string, actionType: string, targetRef: string, valueFinal: any, context?: Record<string, any>): CanonicalAction {
+    const split = splitCanonicalActionValueFinal(valueFinal);
     const action: CanonicalAction = {
       canonical_action_id: crypto.randomUUID(),
       mechanic_id: mechanicId,
       action_type: actionType,
       target_ref: targetRef,
-      value_final: valueFinal,
+      ...split.common,
+      value_final: split.valueFinal,
       committed_at: Date.now(),
       context
     };
     this.canonicalBuffer.push(action);
-    console.debug(`[CanonicalAction] ${actionType} on ${targetRef}`, valueFinal);
+    console.debug(`[CanonicalAction] ${actionType} on ${targetRef}`, action);
     return action;
   }
 

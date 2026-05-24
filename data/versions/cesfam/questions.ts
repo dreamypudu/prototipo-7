@@ -5,7 +5,7 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
     {
       question_id: 'sc_priority_today',
       text: 'Cual es la prioridad administrativa de hoy?',
-      answer: 'Ordenar agenda, evitar atrasos y mantener los informes al dia.',
+      answer: 'Ordenar agenda, evitar atrasos y mantener los informes al día.',
       tags: ['admin', 'priorities']
     },
     {
@@ -47,7 +47,7 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
     {
       question_id: 'ag_support_for_change',
       text: 'Que necesitas para apoyar decisiones impopulares?',
-      answer: 'Garantias de recursos y autonomia tecnica para mi sector.',
+      answer: 'Garantias de recursos y autonomia técnica para mi sector.',
       requirements: { reputation_min: 55 },
       tags: ['negotiation']
     }
@@ -211,7 +211,7 @@ export const CESFAM_QUESTIONS: Record<string, StakeholderQuestion[]> = {
     {
       question_id: 'rm_ecografo_impact',
       text: 'Que impacto tiene no contar con ecografo?',
-      answer: 'Aumentan derivaciones y se retrasan diagnosticos.',
+      answer: 'Aumentan derivaciones y se retrasan diagnósticos.',
       tags: ['resources']
     },
     {

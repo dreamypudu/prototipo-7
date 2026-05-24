@@ -1,5 +1,5 @@
 import React from 'react';
-import ExperimentalMap from '../../components/ExperimentalMap';
+import ExperimentalMap from '../experimental_map/components/ExperimentalMap';
 import { useMechanicContext } from '../MechanicContext';
 
 const ExperimentalMapMechanic: React.FC = () => {

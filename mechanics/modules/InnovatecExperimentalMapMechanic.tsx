@@ -1,5 +1,5 @@
 import React from 'react';
-import ExperimentalMap from '../../components/innovatec/ExperimentalMap';
+import ExperimentalMap from '../experimental_map/components/InnovatecExperimentalMap';
 import { useMechanicContext } from '../MechanicContext';
 
 const InnovatecExperimentalMapMechanic: React.FC = () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import CalendarView from '../../components/CalendarView';
+import CalendarView from '../calendar/components/CalendarView';
 import { TIME_SLOTS } from '../../data/versions/innovatec/defaults';
 import { useMechanicContext } from '../MechanicContext';
 

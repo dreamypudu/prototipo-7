@@ -1,5 +1,7 @@
+// Aplica una resolución diaria ya calculada sobre GameState y evita duplicar comparaciones/resoluciones.
 import type { ComparisonResult, DailyResolution, GameState } from '../types';
-import { clampReputation } from './globalEffects';
+
+const clampReputation = (value: number): number => Math.max(0, Math.min(100, value));
 
 const buildComparisonKey = (comparison: ComparisonResult) =>
   [

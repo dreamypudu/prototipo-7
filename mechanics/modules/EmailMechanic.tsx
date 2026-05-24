@@ -1,5 +1,5 @@
 import React from 'react';
-import EmailClient from '../../components/EmailClient';
+import EmailClient from '../inbox/components/EmailClient';
 import { useMechanicContext } from '../MechanicContext';
 
 const EmailMechanic: React.FC = () => {

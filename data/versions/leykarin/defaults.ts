@@ -1,7 +1,7 @@
 import { DirectorObjectives, GameState, TimeSlotType } from '../../../types';
 import { LEYKARIN_STAKEHOLDERS } from './stakeholders';
 
-export const TIME_SLOTS: TimeSlotType[] = ['ma?ana', 'tarde'];
+export const TIME_SLOTS: TimeSlotType[] = ['mañana', 'tarde'];
 export const SECRETARY_ROLE = 'Encargada de Convivencia';
 export const DIRECTOR_OBJECTIVES: DirectorObjectives = {
   maxDeadline: 20,
@@ -17,7 +17,7 @@ export const INITIAL_GAME_STATE: GameState = {
   projectTitle: 'Compass: Ley Karin',
   budget: 600000,
   day: 1,
-  timeSlot: 'ma?ana',
+  timeSlot: 'mañana',
   projectDeadline: 20,
   reputation: 60,
   projectProgress: 0,

@@ -1,5 +1,5 @@
 import React from 'react';
-import StakeholderSummaryDashboard from '../../components/StakeholderSummaryDashboard';
+import StakeholderSummaryDashboard from '../stakeholders/components/StakeholderSummaryDashboard';
 import { useMechanicContext } from '../MechanicContext';
 
 const SummaryMechanic: React.FC = () => {

@@ -13,7 +13,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
       email_id: "E002_RV_AVAIL_PROFESSIONAL",
       trigger: {
         type: "ON_MEETING_COMPLETE",
-        stakeholder_id: "ricardo-vargas" 
+        stakeholder_id: "ricardo-vargas"
       },
       from: "Laura Fernandez, Asistente Ejecutiva",
       subject: "Ventana de disponibilidad para Ricardo Vargas",

@@ -62,7 +62,7 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
   }, []);
 
   const animatedLogoSrc = useMemo(
-    () => `/avatars/logo-animado-compass.svg?loop=${logoRefreshKey}`,
+    () => `/assets/common/logos/logo-animado-compass.svg?loop=${logoRefreshKey}`,
     [logoRefreshKey]
   );
   const accentByVersion: Record<SimulatorVersion, string> = {
@@ -72,7 +72,7 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
     SERCOTEC: '#6f7d8c',
     MUNICIPAL: '#9aa5b1'
   };
-const fontByVersion: Record<SimulatorVersion, string> = {
+  const fontByVersion: Record<SimulatorVersion, string> = {
     LEY_KARIN: "'Inter', 'Segoe UI', sans-serif",
     CESFAM: "'Space Grotesk', 'Inter', 'Segoe UI', sans-serif",
     INNOVATEC: "'Poppins', 'Inter', 'Segoe UI', sans-serif",
@@ -86,9 +86,8 @@ const fontByVersion: Record<SimulatorVersion, string> = {
       style={{
         paddingTop: 'max(150px, calc(env(safe-area-inset-top, 0px) + 70px))',
         backgroundImage:
-          "linear-gradient(135deg, rgba(8,17,35,0.9), rgba(8,17,35,0.78)), url('/avatars/cesfam-portada.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
+          'radial-gradient(circle at 18% 15%, rgba(56,189,248,0.16), transparent 32%), radial-gradient(circle at 82% 20%, rgba(30,64,175,0.26), transparent 34%), linear-gradient(135deg, #06111f 0%, #0b1f3a 48%, #050b16 100%)',
+        backgroundSize: 'cover'
       }}
     >
       <div className="max-w-6xl w-full relative">
@@ -98,7 +97,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
             alt="Logo Compass"
             className="mx-auto mb-4 object-contain drop-shadow-lg opacity-95"
             style={{ width: '320px', maxWidth: '80%', height: 'auto' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/common/logos/logo-compass.svg'; }}
           />
           <p className="text-xl text-blue-100/90 drop-shadow-sm">Selecciona la versión de COMPASS para comenzar</p>
         </div>
@@ -112,7 +111,7 @@ const fontByVersion: Record<SimulatorVersion, string> = {
               version.id === 'CESFAM'
                 ? {
                     backgroundImage:
-                      "linear-gradient(180deg, rgba(12,22,38,0.82), rgba(12,23,40,0.62)), url('/avatars/fondo cesfam portada.png')",
+                      "linear-gradient(180deg, rgba(12,22,38,0.82), rgba(12,23,40,0.62)), url('/data/versions/cesfam/assets/fondo cesfam portada.png')",
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     boxShadow: '0 20px 60px rgba(27, 78, 137, 0.65)',

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CaseDefinition, CaseGoalSnapshot, GameState } from '../types';
-import { buildCaseGoalSnapshot, shouldRevealCaseForSequence } from '../services/commitments';
+import { buildCaseGoalSnapshot, shouldRevealCaseForSequence } from '../services/commitments_text_generator';
 
 export interface CaseGoalDisplayItem extends CaseGoalSnapshot {
   title: string;

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useMechanicContext } from '../MechanicContext';
-import DialogueArea from '../../components/DialogueArea';
-import DirectorDesk from '../../components/DirectorDesk';
-import ActionBar from '../../components/ActionBar';
-import Spinner from '../../components/ui/Spinner';
+import DialogueArea from '../office/components/DialogueArea';
+import DirectorDesk from '../office/components/DirectorDesk';
+import ActionBar from '../office/components/ActionBar';
+import Spinner from '../shared/components/Spinner';
 import { Stakeholder } from '../../types';
 
 const OfficeMechanic: React.FC = () => {

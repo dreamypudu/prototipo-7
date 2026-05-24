@@ -4,18 +4,20 @@ PROTOTIPO-7 - COMPASS
 Resumen
 -------
 Este proyecto es un simulador modular para capturar decisiones explicitas
-y acciones implicitas (mecanicas), con export de sesion para analisis
+y acciones implícitas (mecánicas), con export de sesión para análisis
 psicometrico, estadistico y ML. La comparacion "dijo vs hizo" se resuelve
-con ExpectedAction (desde escenarios) y CanonicalAction (desde mecanicas).
+con ExpectedAction (desde escenarios) y CanonicalAction (desde mecánicas).
 
 
 Estructura general (frontend)
 -----------------------------
 Raiz del front:
 - App.tsx
-  Orquestador principal de CESFAM (estado, tiempo, flujo narrativo, tabs).
-- games/InnovatecGame.tsx
-  Orquestador de la version Innovatec (agenda, secretaria, reuniones).
+  Launcher inicial: seleccion de version y render del simulador elegido.
+- versions/cesfam/GestionEnSalud_App.tsx
+  Orquestador de Gestion en Salud/CESFAM.
+- versions/innovatec/Innovatec_App.tsx
+  Orquestador de la version Innovatec.
 - types.ts
   Tipos base del simulador (GameState, Scenario, Expected/Canonical, etc).
 - constants.ts
@@ -25,27 +27,33 @@ Raiz del front:
 
 Mecanicas (modularidad):
 - mechanics/registry.ts
-  Registro de mecanicas para CESFAM (tab_id, label, Module).
-- mechanics/innovatecRegistry.ts
-  Registro de mecanicas para Innovatec.
+  Catálogo global de mecánicas disponibles (tab_id, label, Module y reglas asociadas).
 - mechanics/MechanicContext.tsx
   Contexto para compartir gameState, engine, dispatch y office state.
 - mechanics/modules/*
-  Implementaciones de mecanicas (Office, Map, Email, Schedule, Documents,
+  Implementaciones de mecánicas (Office, Map, Email, Schedule, Documents,
   ExperimentalMap, DataExport, etc). Cada una es un modulo enchufable.
+- mechanics/<mechanic_id>/components/*
+  Componentes visuales propios de cada mecanica. Si un visual se comparte
+  entre mecánicas, vive en mechanics/shared/components.
+- mechanics/<mechanic_id>/services/*
+  Servicios propios de cada mecanica, como triggers de inbox, conflictos del
+  scheduler o reglas auxiliares del mapa.
 
 Componentes UI:
 - components/*
-  UI reutilizable (Header, Sidebar, DirectorDesk, CesfamMap, etc).
-  Aqui viven las pantallas visuales y elementos de interfaz.
+  UI global de la aplicacion (Header, Sidebar, SplashScreen, modales y
+  controles compartidos fuera de las mecánicas).
 
 Datos y escenarios:
-- data/scenarios.ts
-  Escenarios y secuencias CESFAM.
-- data/innovatec/*
-  Escenarios y assets de Innovatec.
-- data/simulatorConfigs.ts
-  Configuracion por version (mecanicas activas, reglas de comparacion).
+- data/versions/*
+  Contenido versionado por simulador: escenarios, stakeholders, preguntas, correos, documentos, casos y defaults.
+- versions/*/configuration.ts
+  Configuración por version (mecánicas activas y metadata del simulador).
+- versions/*/services/*
+  Reglas y resoluciones propias de una version concreta. Por ejemplo,
+  CESFAM guarda aqui timing de agenda, resolución del caso 1, efectos globales
+  y day review.
 
 Servicios del simulador:
 - services/MechanicEngine.ts
@@ -53,9 +61,12 @@ Servicios del simulador:
 - services/ComparisonEngine.ts
   Motor de comparacion expected vs canonical.
 - services/sessionExport.ts
-  Construye el paquete de sesion para export y backend.
+  Construye el paquete de sesión para export y backend.
 - services/Timelogger.ts
   Log de tiempos de decision (procesos).
+- services/commitments_text_generator.ts
+  Genera textos de compromisos desde ExpectedAction. Puede recibir templates
+  externos para que las mecánicas sobreescriban textos sin tocar el motor.
 
 
 Arquitectura de datos (psicometria)
@@ -64,17 +75,17 @@ Arquitectura de datos (psicometria)
    Se registra desde un nodo de escenario.
 
 2) Accion implicita -> CanonicalAction
-   Se emite desde la mecanica cuando el usuario realiza la accion.
+   Se emite desde la mecanica cuando el usuario realiza la acción.
 
 3) Comparacion
-   Se hace en backend con action_type + target_ref + mechanic_id.
+   Se hace en frontend con ComparisonEngine, usando action_type + target_ref + mechanic_id y reglas asociadas a la mecanica.
 
 4) Export
    Se genera session_export.json con:
    - decisiones explicitas
    - expected actions
    - canonical actions
-   - events log (mecanicas)
+   - events log (mecánicas)
    - comparaciones
 
 
@@ -86,15 +97,15 @@ Carpeta: backend/
 - requirements.txt
   Dependencias del backend.
 - rebuild_db.py
-  Utilidad de mantenimiento/normalizacion.
+  Utilidad de mantenimiento/normalización.
 
 
 Notas de modularidad
 --------------------
-- Las mecanicas se activan por config (data/simulatorConfigs.ts).
-- El front renderiza solo mecanicas registradas en el registry.
+- Las mecánicas se activan por config en versions/*/configuration.ts.
+- El front renderiza solo mecánicas registradas en el registry.
 - Cada mecanica es un modulo independiente, con su propio UI y eventos.
-- La comparacion no vive en la UI: se centraliza en backend.
+- La comparacion frontend vive en services/ComparisonEngine.ts, que orquesta reglas registradas por mecanica.
 
 
 Salida de datos (archivos locales de ejemplo)
@@ -145,4 +156,4 @@ Sugerencias de extension
 ------------------------
 - Agregar una mecanica: crear modulo, registrar en registry, activar en config.
 - Agregar expected actions: definirlas en escenarios con mechanic_id.
-- Agregar reglas de comparacion: extender ComparisonEngine en backend.
+- Agregar reglas de comparacion: definirlas dentro de la mecanica correspondiente y registrarlas en mechanics/registry.ts.

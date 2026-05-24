@@ -69,13 +69,13 @@ export const INNOVATEC_QUESTIONS: Record<string, StakeholderQuestion[]> = {
     {
       question_id: 'dr_tech_risks',
       text: 'Cual es el mayor riesgo tecnico hoy?',
-      answer: 'Integracion de datos y deuda tecnica acumulada.',
+      answer: 'Integracion de datos y deuda técnica acumulada.',
       tags: ['engineering']
     },
     {
       question_id: 'dr_needed_resources',
       text: 'Que recursos son mas urgentes?',
-      answer: 'Tiempo de QA y refuerzo en analisis de datos.',
+      answer: 'Tiempo de QA y refuerzo en análisis de datos.',
       tags: ['resources']
     },
     {

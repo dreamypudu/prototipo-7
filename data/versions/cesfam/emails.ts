@@ -76,14 +76,14 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     trigger: { type: 'ON_TIME_BLOCK', day: 5, slot: 'mañana' },
     from: 'Enf. Marcela Soto',
     subject: 'Recordatorio: Auditoria del Box 6',
-    body: `Director/a:\n\nLe escribo para dejar constancia administrativa. El proximo miercoles en la tarde el Box 6 debe quedar bloqueado exclusivamente para nuestro sector, ya que realizaremos la Auditoria Interna de Infecciones (IAAS).\n\nCualquier uso alternativo de ese box clinico, incluyendo triajes improvisados del Sector Amarillo, sera reportado de inmediato como una infraccion sanitaria grave ante la Seremi de Salud. Nosotros no arriesgaremos nuestras licencias por el desorden de otros.\n\nAtentamente.`,
+    body: `Director/a:\n\nLe escribo para dejar constancia administrativa. El proximo miercoles en la tarde el Box 6 debe quedar bloqueado exclusivamente para nuestro sector, ya que realizaremos la Auditoria Interna de Infecciones (IAAS).\n\nCualquier uso alternativo de ese box clinico, incluyendo triajes improvisados del Sector Amarillo, sera reportado de inmediato como una infracción sanitaria grave ante la Seremi de Salud. Nosotros no arriesgaremos nuestras licencias por el desorden de otros.\n\nAtentamente.`,
   },
   {
     email_id: 'email-herrera-tens-monday',
     trigger: { type: 'ON_TIME_BLOCK', day: 5, slot: 'tarde' },
     from: 'Enf. Paz Herrera',
     subject: 'Insumos curaciones - Proximo lunes',
-    body: `Director/a:\n\nEstoy solicitando a bodega los insumos de curacion avanzada para los pacientes diabeticos del proximo lunes a primera hora.\n\nAsumo que la agenda final que enviara hoy confirmara al TENS Javier Castro en mi box asistiendome, como corresponde. De lo contrario, tendre que suspender atenciones de riesgo, ya que es imposible realizar estos procedimientos a cuatro manos estando sola.\n\nQuedo atenta a la publicacion de la agenda.`,
+    body: `Director/a:\n\nEstoy solicitando a bodega los insumos de curacion avanzada para los pacientes diabéticos del proximo lunes a primera hora.\n\nAsumo que la agenda final que enviara hoy confirmara al TENS Javier Castro en mi box asistiendome, como corresponde. De lo contrario, tendre que suspender atenciones de riesgo, ya que es imposible realizar estos procedimientos a cuatro manos estando sola.\n\nQuedo atenta a la publicacion de la agenda.`,
   },
   {
     email_id: 'email-rios-terreno-monday',

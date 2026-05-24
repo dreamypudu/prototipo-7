@@ -1,3 +1,4 @@
+// Persiste, descarga y recupera snapshots de sesión desde backend/localStorage.
 import type { SessionExport } from './sessionExport';
 
 const SESSION_SNAPSHOT_PREFIX = 'compass_session_snapshot_';

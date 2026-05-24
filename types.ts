@@ -34,6 +34,16 @@ export interface CanonicalAction {
   mechanic_id: string;
   action_type: string;
   target_ref: string;
+  target_type?: string | null;
+  target_id?: string | null;
+  target_label?: string | null;
+  day?: number | null;
+  time_slot?: TimeSlotType | null;
+  committed_day?: number | null;
+  committed_time_slot?: TimeSlotType | null;
+  source_node_id?: string | null;
+  source_option_id?: string | null;
+  summary?: string | null;
   value_final: any;
   committed_at: number;
   context?: Record<string, any>;
@@ -62,12 +72,17 @@ export interface ExpectedAction {
 }
 
 export interface ComparisonResult {
+  comparison_id: string;
+  session_id: string;
   expected_action_id: string;
   canonical_action_id: string | null;
-  outcome: 'DONE_OK' | 'NOT_DONE' | 'DEVIATION';
+  outcome: boolean;
+  reason?: string | null;
+  rule_id: string;
+  resolved_day?: number | null;
+  resolved_at_ms?: number | null;
+  raw_deviation?: any;
   deviation?: any;
-  rule_id?: string;
-  resolved_day?: number;
 }
 
 export type ComparisonMode = 'frontend' | 'backend';
@@ -86,6 +101,7 @@ export interface DailyResolution {
 
 export interface MechanicConfig {
   mechanic_id: string;
+  component_id?: string;
   label?: string;
   tab_id?: string;
   params?: Record<string, any>;
@@ -311,7 +327,7 @@ export interface GameState {
   playerNotes: string;
   scenarioSchedule: { [sequenceId: string]: { day: number; slot: TimeSlotType } };
   lastScheduleSubmissionDay?: number | null;
-  
+
   // Added strategy property to GameState
   strategy: StrategyState;
 

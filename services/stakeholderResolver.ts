@@ -1,3 +1,4 @@
+// Resuelve referencias narrativas entre nodos, secuencias y NPCs/stakeholders.
 import type { MeetingSequence, ScenarioNode, Stakeholder } from '../types';
 
 type StakeholderRef = {

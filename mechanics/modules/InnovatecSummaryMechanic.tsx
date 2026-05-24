@@ -1,5 +1,5 @@
 import React from 'react';
-import StakeholderSummaryDashboard from '../../components/StakeholderSummaryDashboard';
+import StakeholderSummaryDashboard from '../stakeholders/components/StakeholderSummaryDashboard';
 import { SECRETARY_ROLE } from '../../data/versions/innovatec/defaults';
 import { useMechanicContext } from '../MechanicContext';
 

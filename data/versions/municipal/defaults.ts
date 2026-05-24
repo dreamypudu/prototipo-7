@@ -1,8 +1,8 @@
 import { DirectorObjectives, GameState, TimeSlotType } from '../../../types';
 import { MUNICIPAL_STAKEHOLDERS } from './stakeholders';
 
-export const TIME_SLOTS: TimeSlotType[] = ['ma?ana', 'tarde'];
-export const SECRETARY_ROLE = 'Secretar?a Municipal';
+export const TIME_SLOTS: TimeSlotType[] = ['mañana', 'tarde'];
+export const SECRETARY_ROLE = 'Secretaría Municipal';
 export const DIRECTOR_OBJECTIVES: DirectorObjectives = {
   maxDeadline: 20,
   minBudget: 0,
@@ -14,10 +14,10 @@ export const DIRECTOR_OBJECTIVES: DirectorObjectives = {
 
 export const INITIAL_GAME_STATE: GameState = {
   playerName: '',
-  projectTitle: 'Gesti?n Municipal',
+  projectTitle: 'Gestión Municipal',
   budget: 500000,
   day: 1,
-  timeSlot: 'ma?ana',
+  timeSlot: 'mañana',
   projectDeadline: 20,
   reputation: 60,
   projectProgress: 0,

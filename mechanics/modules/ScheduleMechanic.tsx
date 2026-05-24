@@ -1,33 +1,38 @@
 import React from 'react';
-import SchedulerInterface from '../../components/SchedulerInterface';
+import SchedulerInterface from '../scheduler/components/SchedulerInterface';
 import { useMechanicContext } from '../MechanicContext';
-import {
-  canEditCesfamSchedule,
-  canSubmitCesfamSchedule,
-  getCesfamScheduleEditDisabledReason,
-  getCesfamScheduleExecuteDisabledReason,
-  wasCesfamScheduleSubmittedThisWeek,
-} from '../../services/cesfamScheduleTiming';
+import type { MechanicModuleProps } from '../types';
 
-const ScheduleMechanic: React.FC = () => {
-  const { gameState, dispatch, contentPack } = useMechanicContext();
-  const isCesfam = contentPack.version === 'CESFAM';
-  const submittedThisWeek = isCesfam
-    ? wasCesfamScheduleSubmittedThisWeek(gameState.day, gameState.lastScheduleSubmissionDay)
-    : false;
-  const canEditSchedule = isCesfam ? canEditCesfamSchedule(gameState.day) : true;
-  const canExecuteWeek = isCesfam
-    ? canSubmitCesfamSchedule(gameState.day, gameState.lastScheduleSubmissionDay)
-    : true;
-  const executeLabel = isCesfam
-    ? submittedThisWeek
-      ? 'Planificación enviada'
-      : 'Enviar planificación semanal'
-    : 'Ejecutar semana';
-  const executeDisabledReason = isCesfam
-    ? getCesfamScheduleExecuteDisabledReason(gameState.day, gameState.lastScheduleSubmissionDay)
-    : null;
-  const editDisabledReason = isCesfam ? getCesfamScheduleEditDisabledReason(gameState.day) : null;
+interface ScheduleTimingPolicy {
+  canEdit?: (day: number) => boolean;
+  canSubmit?: (day: number, lastScheduleSubmissionDay?: number | null) => boolean;
+  getEditDisabledReason?: (day: number) => string | null;
+  getExecuteDisabledReason?: (day: number, lastScheduleSubmissionDay?: number | null) => string | null;
+  wasSubmittedThisWeek?: (day: number, lastScheduleSubmissionDay?: number | null) => boolean;
+  executeLabel?: string;
+  submittedLabel?: string;
+}
+
+const ScheduleMechanic: React.FC<MechanicModuleProps> = ({ params }) => {
+  const { gameState, dispatch } = useMechanicContext();
+  const scheduleTiming = params?.scheduleTiming as ScheduleTimingPolicy | undefined;
+  const submittedThisWeek = scheduleTiming?.wasSubmittedThisWeek?.(
+    gameState.day,
+    gameState.lastScheduleSubmissionDay
+  ) ?? false;
+  const canEditSchedule = scheduleTiming?.canEdit?.(gameState.day) ?? true;
+  const canExecuteWeek = scheduleTiming?.canSubmit?.(
+    gameState.day,
+    gameState.lastScheduleSubmissionDay
+  ) ?? true;
+  const executeLabel = submittedThisWeek
+    ? scheduleTiming?.submittedLabel ?? 'Planificacion enviada'
+    : scheduleTiming?.executeLabel ?? 'Ejecutar semana';
+  const executeDisabledReason = scheduleTiming?.getExecuteDisabledReason?.(
+    gameState.day,
+    gameState.lastScheduleSubmissionDay
+  ) ?? null;
+  const editDisabledReason = scheduleTiming?.getEditDisabledReason?.(gameState.day) ?? null;
 
   return (
     <SchedulerInterface

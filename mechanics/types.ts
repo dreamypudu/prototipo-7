@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import type { CommitmentTemplate } from '../services/commitments_text_generator';
 import type {
   ConversationMode,
   GameStatus,
@@ -6,6 +7,9 @@ import type {
   MeetingSequence,
   PlayerAction,
   ScheduleAssignment,
+  CanonicalAction,
+  ExpectedAction,
+  RoomDefinition,
   StakeholderQuestion,
   StaffMember,
   Stakeholder,
@@ -61,11 +65,41 @@ export interface InnovatecOfficeState extends OfficeBaseState {
 
 export type OfficeState = DefaultOfficeState | InnovatecOfficeState;
 
+export interface MechanicRuleEvaluation {
+  outcome: boolean;
+  reason?: string | null;
+  rawDeviation?: any;
+}
+
+export interface MechanicRuleResolution {
+  canonicalAction: CanonicalAction | null;
+  evaluation: MechanicRuleEvaluation;
+}
+
+export interface MechanicRuleContext {
+  canonicalActions: CanonicalAction[];
+  currentDay?: number;
+  currentTimeSlot?: TimeSlotType;
+  staffRoster: StaffMember[];
+  roomDefinitions: RoomDefinition[];
+  includeNotDone: boolean;
+  finalize: boolean;
+}
+
+export interface MechanicComparisonRule {
+  rule_id: string;
+  mechanic_id: string;
+  action_type: string;
+  resolve: (expected: ExpectedAction, context: MechanicRuleContext) => MechanicRuleResolution | null;
+  commitmentText?: CommitmentTemplate;
+}
+
 export interface MechanicRegistryEntry {
   mechanic_id: string;
   label: string;
   tab_id: string;
   Module?: ComponentType<MechanicModuleProps>;
+  rules?: Record<string, MechanicComparisonRule>;
 }
 
 export type MechanicRegistry = Record<string, MechanicRegistryEntry>;

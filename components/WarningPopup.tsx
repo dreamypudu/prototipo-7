@@ -26,7 +26,7 @@ const WarningPopup: React.FC<WarningPopupProps> = ({ message, onClose }) => {
         <p className="text-md text-gray-300 mb-6 whitespace-pre-line">
           {message}
         </p>
-        <button 
+        <button
           onClick={onClose}
           className="px-8 py-3 rounded-lg font-bold text-white transition-transform transform hover:scale-105 bg-yellow-600 hover:bg-yellow-500"
         >

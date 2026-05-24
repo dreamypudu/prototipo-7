@@ -1,4 +1,4 @@
-﻿
+
 import React, { useMemo, useState } from 'react';
 import { DailyEffectSummary, DecisionLogEntry, EffectMagnitude, GameState, GlobalEffectsUI, InternalEffectsPreview, TimeSlotType } from '../types';
 import { getGameDate } from '../constants';
@@ -423,9 +423,9 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
                 <h1 className="text-lg font-semibold text-white/80 tracking-tight">{displayTitle}</h1>
                 <p className="text-xs text-gray-300 leading-tight">{displaySubtitle}</p>
             </div>
-            <button 
-                onClick={onOpenSidebar} 
-                className="p-2 rounded-full bg-white/8 border border-white/10 hover:border-teal-200/60 text-gray-200 hover:text-white transition-colors" 
+            <button
+                onClick={onOpenSidebar}
+                className="p-2 rounded-full bg-white/8 border border-white/10 hover:border-teal-200/60 text-gray-200 hover:text-white transition-colors"
                 title="Herramientas y Opciones"
             >
                 <SettingsIcon />
@@ -437,10 +437,10 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
                 <GlobalStat label="Reputación" value={gameState.reputation} highlight={reputationHighlight} accentClass="bg-amber-300" barMax={100} />
             </div>
             <div className="min-w-[260px] w-full lg:w-auto">
-                <TimeDisplay 
-                    day={gameState.day} 
-                    deadline={gameState.projectDeadline} 
-                    slot={gameState.timeSlot} 
+                <TimeDisplay
+                    day={gameState.day}
+                    deadline={gameState.projectDeadline}
+                    slot={gameState.timeSlot}
                     countdown={countdown}
                     isPaused={isTimerPaused}
                     onTogglePause={onTogglePause}

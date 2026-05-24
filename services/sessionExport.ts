@@ -1,3 +1,4 @@
+// Construye el payload completo de sesión que se descarga o persiste en backend.
 import {
   CanonicalAction,
   DailyResolution,
@@ -13,9 +14,8 @@ import {
   RoomDefinition,
   SimulatorConfig
 } from '../types';
-import { compareExpectedVsActual } from './ComparisonEngine';
+import { compareExpectedVsActual, finalizePendingComparisonsLocally } from './ComparisonEngine';
 import { COMPARISON_MODE, isFrontendComparisonMode } from './comparisonMode';
-import { finalizePendingComparisonsLocally } from './localDayResolution';
 
 export interface SessionExport {
   comparison_mode: ComparisonMode;
@@ -69,12 +69,21 @@ export const buildSessionExport = ({
   const startTime = new Date(startedAt ?? Date.now()).toISOString();
   const endTime = new Date(endedAt ?? Date.now()).toISOString();
   const newComparisons = isFrontendComparisonMode
-    ? finalizePendingComparisonsLocally(gameState, roomDefinitions)
+    ? finalizePendingComparisonsLocally(gameState, roomDefinitions, { sessionId })
     : compareExpectedVsActual(
         gameState.expectedActions,
         gameState.canonicalActions,
         gameState.comparisons,
-        { includeNotDone: true }
+        {
+          includeNotDone: true,
+          finalize: true,
+          sessionId,
+          resolvedDay: gameState.day,
+          currentDay: gameState.day,
+          currentTimeSlot: gameState.timeSlot,
+          staffRoster: gameState.staffRoster,
+          roomDefinitions,
+        }
       );
   const comparisons = newComparisons.length > 0
     ? [...gameState.comparisons, ...newComparisons]

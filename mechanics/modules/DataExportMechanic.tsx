@@ -1,5 +1,5 @@
 import React from 'react';
-import DataExport from '../../components/DataExport';
+import DataExport from '../data_export/components/DataExport';
 import { useMechanicContext } from '../MechanicContext';
 
 const DataExportMechanic: React.FC = () => {

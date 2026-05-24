@@ -1,7 +1,7 @@
 import { DirectorObjectives, GameState, TimeSlotType } from '../../../types';
 import { SERCOTEC_STAKEHOLDERS } from './stakeholders';
 
-export const TIME_SLOTS: TimeSlotType[] = ['ma?ana', 'tarde'];
+export const TIME_SLOTS: TimeSlotType[] = ['mañana', 'tarde'];
 export const SECRETARY_ROLE = 'Asistente de Programa';
 export const DIRECTOR_OBJECTIVES: DirectorObjectives = {
   maxDeadline: 20,
@@ -14,10 +14,10 @@ export const DIRECTOR_OBJECTIVES: DirectorObjectives = {
 
 export const INITIAL_GAME_STATE: GameState = {
   playerName: '',
-  projectTitle: 'Gesti?n PyME (SERCOTEC)',
+  projectTitle: 'Gestión PyME (SERCOTEC)',
   budget: 500000,
   day: 1,
-  timeSlot: 'ma?ana',
+  timeSlot: 'mañana',
   projectDeadline: 20,
   reputation: 60,
   projectProgress: 0,

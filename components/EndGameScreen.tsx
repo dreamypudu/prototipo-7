@@ -33,7 +33,7 @@ const EndGameScreen: React.FC<EndGameScreenProps> = ({
         <div className="mb-6 space-y-2 text-sm text-gray-300">
           {saveStatus === 'sending' && <p></p>}
           {saveStatus === 'success' && <p className="text-green-300">Sesion guardada correctamente.</p>}
-          {saveStatus === 'error' && <p className="text-red-300">No se pudo guardar la sesion: {saveError}</p>}
+          {saveStatus === 'error' && <p className="text-red-300">No se pudo guardar la sesión: {saveError}</p>}
         </div>
         {(saveStatus === 'error' || onRetrySave || onDownloadBackup) && (
           <div className="mb-6 flex flex-wrap items-center justify-center gap-3">

@@ -1,3 +1,4 @@
+// Captura telemetria de proceso por nodo: inicio, hover/focus y duracion hasta la eleccion final.
 import { ProcessLogEntry } from '../types';
 
 let currentLog: Partial<ProcessLogEntry> | null = null;
@@ -35,7 +36,7 @@ export const logEvent = (type: string, metadata: any): void => {
  */
 export const finalizeLogging = (finalChoice: string): ProcessLogEntry | null => {
     if (!currentLog || typeof currentLog.startTime === 'undefined') return null;
-    
+
     const endTime = performance.now();
     const finalizedLog: ProcessLogEntry = {
         nodeId: currentLog.nodeId!,
@@ -45,7 +46,7 @@ export const finalizeLogging = (finalChoice: string): ProcessLogEntry | null => 
         totalDuration: endTime - currentLog.startTime,
         finalChoice,
     };
-    
+
     currentLog = null; // Reset for the next node
     return finalizedLog;
 };

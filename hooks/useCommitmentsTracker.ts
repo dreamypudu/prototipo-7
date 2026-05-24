@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CommitmentDisplayItem } from '../services/commitments';
-import { buildCommitmentDisplayItem } from '../services/commitments';
+import type { CommitmentDisplayItem, CommitmentTextTemplates } from '../services/commitments_text_generator';
+import { buildCommitmentDisplayItem } from '../services/commitments_text_generator';
 import type { GameState, GameStatus, RoomDefinition } from '../types';
+
+const EMPTY_COMMITMENT_TEXT_TEMPLATES: CommitmentTextTemplates = {};
 
 const buildSignature = (commitment: CommitmentDisplayItem) =>
   `${commitment.status}:${commitment.title}:${commitment.description}`;
@@ -9,7 +11,8 @@ const buildSignature = (commitment: CommitmentDisplayItem) =>
 export const useCommitmentsTracker = (
   gameState: GameState,
   roomDefinitions: RoomDefinition[] = [],
-  gameStatus: GameStatus = 'playing'
+  gameStatus: GameStatus = 'playing',
+  textTemplates: CommitmentTextTemplates = EMPTY_COMMITMENT_TEXT_TEMPLATES
 ) => {
   const [unseenCommitmentIds, setUnseenCommitmentIds] = useState<string[]>([]);
   const previousSignaturesRef = useRef<Record<string, string>>({});
@@ -19,14 +22,14 @@ export const useCommitmentsTracker = (
     () =>
       gameState.expectedActions
         .map((expected) => {
-          const item = buildCommitmentDisplayItem(expected, gameState, roomDefinitions);
+          const item = buildCommitmentDisplayItem(expected, gameState, roomDefinitions, textTemplates);
           if (gameStatus !== 'playing' && item.status === 'active') {
             return { ...item, status: 'failed' as const };
           }
           return item;
         })
         .sort((left, right) => right.createdAt - left.createdAt),
-    [gameState, roomDefinitions, gameStatus]
+    [gameState, roomDefinitions, gameStatus, textTemplates]
   );
 
   useEffect(() => {

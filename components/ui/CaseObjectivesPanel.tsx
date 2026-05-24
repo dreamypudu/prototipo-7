@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ActiveCaseDisplay } from '../../hooks/useCaseTracker';
-import type { CommitmentDisplayItem } from '../../services/commitments';
+import type { CommitmentDisplayItem } from '../../services/commitments_text_generator';
 
 interface CaseObjectivesPanelProps {
   isOpen: boolean;

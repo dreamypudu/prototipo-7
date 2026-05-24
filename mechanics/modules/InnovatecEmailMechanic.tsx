@@ -1,5 +1,5 @@
 import React from 'react';
-import EmailClient from '../../components/innovatec/EmailClient';
+import EmailClient from '../inbox/components/InnovatecEmailClient';
 import { useMechanicContext } from '../MechanicContext';
 
 const InnovatecEmailMechanic: React.FC = () => {

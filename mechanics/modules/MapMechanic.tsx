@@ -1,5 +1,5 @@
 import React from 'react';
-import CesfamMap from '../../components/CesfamMap';
+import CesfamMap from '../map/components/CesfamMap';
 import { StaffMember } from '../../types';
 import { useMechanicContext } from '../MechanicContext';
 

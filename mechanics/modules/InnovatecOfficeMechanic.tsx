@@ -1,10 +1,10 @@
 import React from 'react';
 import { useMechanicContext } from '../MechanicContext';
-import ActionBar from '../../components/ActionBar';
-import DialogueArea from '../../components/DialogueArea';
-import ScheduleView from '../../components/ScheduleView';
-import Spinner from '../../components/ui/Spinner';
-import StakeholderList from '../../components/StakeholderList';
+import ActionBar from '../office/components/ActionBar';
+import DialogueArea from '../office/components/DialogueArea';
+import ScheduleView from '../office/components/ScheduleView';
+import Spinner from '../shared/components/Spinner';
+import StakeholderList from '../office/components/StakeholderList';
 import { SECRETARY_ROLE, TIME_SLOTS } from '../../data/versions/innovatec/defaults';
 
 const InnovatecOfficeMechanic: React.FC = () => {

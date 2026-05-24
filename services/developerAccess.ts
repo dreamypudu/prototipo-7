@@ -1,3 +1,4 @@
+// Gestiona el desbloqueo local del modo desarrollador en el navegador.
 const STORAGE_KEY = 'compass:developer-view-unlocked';
 const DEFAULT_DEVELOPER_PASSWORD = 'compass-dev';
 

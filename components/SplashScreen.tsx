@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 interface SplashScreenProps {
   onStartGame: (name: string) => void;
@@ -12,7 +12,7 @@ interface SplashScreenProps {
 // Se recomienda una imagen cuadrada (ej: 200x200 px) con fondo transparente.
 // Ejemplo: 'https://i.imgur.com/69J15vd.png'
 // ==============================================================================
-const DEFAULT_LOGO_URL = '/avatars/icono-compass.svg'; // placeholder
+const DEFAULT_LOGO_URL = '/assets/common/logos/icono-compass.svg'; // placeholder
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPASS', subtitle = 'Simulador de Decisión', logoUrl }) => {
   const [playerName, setPlayerName] = useState('');
@@ -26,10 +26,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
   }, []);
 
   const animatedLogoSrc = useMemo(
-    () => `/avatars/logo-animado-compass.svg?loop=${logoRefreshKey}`,
+    () => `/assets/common/logos/logo-animado-compass.svg?loop=${logoRefreshKey}`,
     [logoRefreshKey]
   );
-  
+
   const handleStart = () => {
     if (playerName.trim()) {
         onStartGame(playerName.trim());
@@ -48,20 +48,20 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onStartGame, title = 'COMPA
               style={{ width: '100%', maxWidth: '320px', height: '180px', margin: '0 auto' }}
             />
         </div>
-        
+
         {title === 'COMPASS' ? (
           <img
             src={animatedLogoSrc}
             alt="COMPASS"
             className="mx-auto mb-1 object-contain"
             style={{ width: '240px', maxWidth: '80%', height: 'auto' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/avatars/logo-compass.svg'; }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/assets/common/logos/logo-compass.svg'; }}
           />
         ) : (
           <h1 className="text-4xl font-bold text-white mb-1">{title}</h1>
         )}
         <p className="text-lg text-blue-300 mb-6">{subtitle}</p>
-        
+
         {/* Registro directo */}
         <div className="w-full animate-fade-in-up mt-2">
               <input

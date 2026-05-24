@@ -1,5 +1,5 @@
 import React from 'react';
-import DocumentReader from '../../components/DocumentReader';
+import DocumentReader from '../documents/components/DocumentReader';
 import { useMechanicContext } from '../MechanicContext';
 
 const DocumentsMechanic: React.FC = () => {
