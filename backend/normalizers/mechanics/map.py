@@ -23,6 +23,15 @@ CREATE TABLE IF NOT EXISTS map_action_details (
 )
 """
 
+ALTER_SQL = """
+ALTER TABLE map_action_details
+ADD COLUMN IF NOT EXISTS session_id TEXT,
+ADD COLUMN IF NOT EXISTS origin_room TEXT,
+ADD COLUMN IF NOT EXISTS destination_room TEXT,
+ADD COLUMN IF NOT EXISTS npc_id TEXT,
+ADD COLUMN IF NOT EXISTS visit_duration_ms BIGINT
+"""
+
 
 def upsert(conn, session_id: str, action: dict, value_final: dict, payload: dict):
     conn.execute(

@@ -16,6 +16,9 @@ EXPORT_HANDLERS = {module.HANDLER_KEY: module.upsert for module in MECHANIC_MODU
 def create_mechanic_export_schema(conn):
     for module in MECHANIC_MODULES:
         conn.execute(module.CREATE_SQL)
+        alter_sql = getattr(module, "ALTER_SQL", None)
+        if alter_sql:
+            conn.execute(alter_sql)
     for table_name in DETAIL_TABLE_NAMES:
         conn.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_session ON {table_name}(session_id)")
 

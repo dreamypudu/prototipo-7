@@ -23,6 +23,15 @@ CREATE TABLE IF NOT EXISTS email_action_details (
 )
 """
 
+ALTER_SQL = """
+ALTER TABLE email_action_details
+ADD COLUMN IF NOT EXISTS session_id TEXT,
+ADD COLUMN IF NOT EXISTS email_id TEXT,
+ADD COLUMN IF NOT EXISTS opened_count INTEGER,
+ADD COLUMN IF NOT EXISTS read_duration_ms BIGINT,
+ADD COLUMN IF NOT EXISTS reopened BOOLEAN
+"""
+
 
 def upsert(conn, session_id: str, action: dict, value_final: dict, payload: dict):
     conn.execute(

@@ -22,6 +22,14 @@ CREATE TABLE IF NOT EXISTS document_action_details (
 )
 """
 
+ALTER_SQL = """
+ALTER TABLE document_action_details
+ADD COLUMN IF NOT EXISTS session_id TEXT,
+ADD COLUMN IF NOT EXISTS document_id TEXT,
+ADD COLUMN IF NOT EXISTS read_duration_ms BIGINT,
+ADD COLUMN IF NOT EXISTS scroll_depth DOUBLE PRECISION
+"""
+
 
 def upsert(conn, session_id: str, action: dict, value_final: dict, payload: dict):
     conn.execute(

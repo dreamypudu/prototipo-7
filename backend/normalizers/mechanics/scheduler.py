@@ -28,6 +28,18 @@ CREATE TABLE IF NOT EXISTS scheduler_action_details (
 )
 """
 
+ALTER_SQL = """
+ALTER TABLE scheduler_action_details
+ADD COLUMN IF NOT EXISTS session_id TEXT,
+ADD COLUMN IF NOT EXISTS schedule_scope TEXT,
+ADD COLUMN IF NOT EXISTS week_schedule JSONB,
+ADD COLUMN IF NOT EXISTS assignment_count INTEGER,
+ADD COLUMN IF NOT EXISTS conflict_count INTEGER,
+ADD COLUMN IF NOT EXISTS conflicts JSONB,
+ADD COLUMN IF NOT EXISTS load_summary JSONB,
+ADD COLUMN IF NOT EXISTS submitted_at_ms BIGINT
+"""
+
 
 def upsert(conn, session_id: str, action: dict, value_final: dict, payload: dict):
     conn.execute(

@@ -80,9 +80,14 @@ def _migrate_json_columns(conn):
         ("expected_actions", "raw_effects"),
         ("canonical_actions", "raw_value_final"),
         ("canonical_actions", "raw_context"),
+        ("canonical_actions", "value_final"),
+        ("canonical_actions", "context"),
         ("mechanic_events", "raw_payload"),
+        ("mechanic_events", "payload"),
         ("comparisons", "raw_deviation"),
+        ("comparisons", "deviation"),
         ("process_logs", "raw_metadata"),
+        ("process_logs", "events"),
         ("daily_effects", "comparisons"),
         ("daily_effects", "global_deltas"),
         ("daily_effects", "stakeholder_deltas"),
@@ -92,6 +97,9 @@ def _migrate_json_columns(conn):
         ("session_stakeholders", "state"),
         ("final_states", "raw_final_state"),
         ("reports", "payload"),
+        ("scheduler_action_details", "week_schedule"),
+        ("scheduler_action_details", "conflicts"),
+        ("scheduler_action_details", "load_summary"),
     ]:
         conn.execute(
             f"""
@@ -621,6 +629,83 @@ def _add_missing_columns(conn):
         ADD COLUMN IF NOT EXISTS resolved_at_ms BIGINT,
         ADD COLUMN IF NOT EXISTS raw_deviation JSONB,
         ADD COLUMN IF NOT EXISTS deviation JSONB
+        """,
+        """
+        ALTER TABLE process_logs
+        ADD COLUMN IF NOT EXISTS node_id TEXT,
+        ADD COLUMN IF NOT EXISTS option_id TEXT,
+        ADD COLUMN IF NOT EXISTS event_type TEXT,
+        ADD COLUMN IF NOT EXISTS timestamp_ms DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS elapsed_from_node_start_ms DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS node_total_duration_ms DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS option_hover_total_ms DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS option_hover_count INTEGER,
+        ADD COLUMN IF NOT EXISTS first_hover_option_id TEXT,
+        ADD COLUMN IF NOT EXISTS last_hover_option_id TEXT,
+        ADD COLUMN IF NOT EXISTS selected_option_hover_ms DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS selected_option_was_most_hovered BOOLEAN,
+        ADD COLUMN IF NOT EXISTS hover_switch_count INTEGER,
+        ADD COLUMN IF NOT EXISTS raw_metadata JSONB,
+        ADD COLUMN IF NOT EXISTS start_time DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS end_time DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS total_duration DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS final_choice TEXT,
+        ADD COLUMN IF NOT EXISTS events JSONB
+        """,
+        """
+        ALTER TABLE question_log
+        ADD COLUMN IF NOT EXISTS npc_id TEXT,
+        ADD COLUMN IF NOT EXISTS question_id TEXT,
+        ADD COLUMN IF NOT EXISTS was_locked BOOLEAN,
+        ADD COLUMN IF NOT EXISTS trust_at_ask DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS support_at_ask DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS reputation_at_ask DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS timestamp_ms BIGINT,
+        ADD COLUMN IF NOT EXISTS day INTEGER,
+        ADD COLUMN IF NOT EXISTS time_slot TEXT
+        """,
+        """
+        ALTER TABLE final_states
+        ADD COLUMN IF NOT EXISTS user_id TEXT,
+        ADD COLUMN IF NOT EXISTS version_id TEXT,
+        ADD COLUMN IF NOT EXISTS final_day INTEGER,
+        ADD COLUMN IF NOT EXISTS final_budget DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS final_reputation DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS final_project_progress DOUBLE PRECISION,
+        ADD COLUMN IF NOT EXISTS completed_sequences_count INTEGER,
+        ADD COLUMN IF NOT EXISTS completed_scenarios_count INTEGER,
+        ADD COLUMN IF NOT EXISTS raw_final_state JSONB
+        """,
+        """
+        ALTER TABLE daily_effects
+        ADD COLUMN IF NOT EXISTS day INTEGER,
+        ADD COLUMN IF NOT EXISTS comparisons JSONB,
+        ADD COLUMN IF NOT EXISTS global_deltas JSONB,
+        ADD COLUMN IF NOT EXISTS stakeholder_deltas JSONB,
+        ADD COLUMN IF NOT EXISTS created_at TEXT,
+        ADD COLUMN IF NOT EXISTS status TEXT,
+        ADD COLUMN IF NOT EXISTS applied_at TEXT
+        """,
+        """
+        ALTER TABLE player_actions_log
+        ADD COLUMN IF NOT EXISTS event TEXT,
+        ADD COLUMN IF NOT EXISTS metadata JSONB,
+        ADD COLUMN IF NOT EXISTS day INTEGER,
+        ADD COLUMN IF NOT EXISTS time_slot TEXT,
+        ADD COLUMN IF NOT EXISTS timestamp DOUBLE PRECISION
+        """,
+        """
+        ALTER TABLE session_state
+        ADD COLUMN IF NOT EXISTS stakeholders JSONB,
+        ADD COLUMN IF NOT EXISTS global_state JSONB
+        """,
+        """
+        ALTER TABLE session_stakeholders
+        ADD COLUMN IF NOT EXISTS state JSONB
+        """,
+        """
+        ALTER TABLE reports
+        ADD COLUMN IF NOT EXISTS payload JSONB
         """,
     ]
     for statement in statements:
