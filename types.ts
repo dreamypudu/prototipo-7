@@ -378,8 +378,14 @@ export interface ScenarioOption {
   text: string;
   cardTitle?: string;
   cardEmoji?: string;
-  tags: { [key: string]: string };
+  tags: { [key: string]: any } | ScenarioTag[];
   consequences: Consequences;
+}
+
+export interface ScenarioTag {
+  tag_type: string;
+  tag_value: string;
+  tag_score: number;
 }
 
 export interface ScenarioNode {

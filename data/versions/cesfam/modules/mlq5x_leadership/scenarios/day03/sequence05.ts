@@ -1,4 +1,5 @@
 import type { MeetingSequence, ScenarioNode } from '../../../../../../../types';
+import { mlqTags } from '../tags';
 
 export const nodes: ScenarioNode[] = [
   {
@@ -14,7 +15,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '⏳',
         text:
           'No puedo cambiarlo de un dia para otro. Lo del Sector Amarillo viene de mucho antes que yo asumiera, por lo que no lo puedo corregir ahora.',
-        tags: { instrument: 'MLQ-5X', behavior: 'avoidant_legacy_problem_deferral' },
+        tags: mlqTags(),
         consequences: {
           trustChange: -5,
           supportChange: -5,
@@ -26,7 +27,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Cortar incumplimiento',
         cardEmoji: '📋',
         text: 'Quiero terminar ese problema de raiz; el Sector Amarillo no puede seguir actuando de esa manera.',
-        tags: { instrument: 'MLQ-5X', behavior: 'protocol_enforcement_commitment' },
+        tags: mlqTags(),
         consequences: {
           trustChange: 5,
           supportChange: 10,
@@ -38,7 +39,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Prometer gestion gradual',
         cardEmoji: '⚖️',
         text: 'Intentare solucionarlo por el bien del CESFAM, pero no le prometo cambios inmediatos.',
-        tags: { instrument: 'MLQ-5X', behavior: 'balanced_but_noncommittal_protocol_response' },
+        tags: mlqTags(),
         consequences: {
           dialogueResponse: 'Esta bien, director.',
         },

@@ -1,11 +1,12 @@
 import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
+import { mlqTags } from '../tags';
 
 const nextOption = (dialogueResponse = ''): ScenarioOption => ({
   option_id: 'NEXT',
   cardTitle: 'Siguiente',
   cardEmoji: '➡️',
   text: 'Continuar',
-  tags: { instrument: 'MLQ-5X', behavior: 'narrative_progression' },
+  tags: mlqTags(),
   consequences: { dialogueResponse },
 });
 
@@ -86,7 +87,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '🤝',
         text:
           'Buen dia. Para comenzar, quiero recalcar que para que el CESFAM vaya por buen camino debemos mantener una atencion centrada en las personas, transparencia y trabajo en equipo.',
-        tags: { instrument: 'MLQ-5X', behavior: 'values_based_team_direction', IIA: '+4', IIC: '+4' },
+        tags: mlqTags({ "IIA": 4, "IIC": 4 }),
         consequences: {
           dialogueResponse: 'Me alegra escuchar eso.',
           response_stakeholder_id: 'andres-guzman',
@@ -97,7 +98,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Aprender primero',
         cardEmoji: '📘',
         text: 'Gracias por la bienvenida. Tengo muchas ganas de aprender y en los proximos dias ire conociendolo todo.',
-        tags: { instrument: 'MLQ-5X', behavior: 'motivational_learning_posture', MI: '+2' },
+        tags: mlqTags({ "MI": 2 }),
         consequences: {
           dialogueResponse: 'Me alegra escuchar eso.',
           response_stakeholder_id: 'andres-guzman',
@@ -108,7 +109,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Enfocar objetivos',
         cardEmoji: '🎯',
         text: 'Buenos dias a todos. Sofia Castro me comento los objetivos que tiene el CESFAM. Hay trabajo que hacer.',
-        tags: { instrument: 'MLQ-5X', behavior: 'task_objective_focus', RC: '+2' },
+        tags: mlqTags({ "RC": 2 }),
         consequences: {
           dialogueResponse: 'Me alegra escuchar eso.',
           response_stakeholder_id: 'andres-guzman',
@@ -130,7 +131,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '🩺',
         text:
           'La docencia es parte de la mision del CESFAM. Considerare el proyecto para entender el impacto en la carga del equipo antes de decidir.',
-        tags: { instrument: 'MLQ-5X', behavior: 'mission_aligned_support', IIC: '+4', MI: '+2' },
+        tags: mlqTags({ "IIC": 4, "MI": 2 }),
         consequences: {
           trustChange: 10,
           supportChange: 10,
@@ -147,7 +148,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Postergar revision',
         cardEmoji: '⏳',
         text: 'Lo revisare, pero acabo de asumir el puesto. Tengo muchas prioridades que atender primero.',
-        tags: { instrument: 'MLQ-5X', behavior: 'deferred_leadership_response', LF: '+2' },
+        tags: mlqTags({ "LF": 2 }),
         consequences: {
           dialogueResponse:
             'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
@@ -160,7 +161,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '📊',
         text:
           'Cualquier actividad extra necesita justificarse en carga asistencial antes de aceptarla. No podemos comprometer la atencion al publico.',
-        tags: { instrument: 'MLQ-5X', behavior: 'contingent_resource_control', RC: '+2' },
+        tags: mlqTags({ "RC": 2 }),
         consequences: {
           supportChange: -5,
           stakeholder_effects: {
@@ -186,7 +187,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Revisar formalmente',
         cardEmoji: '📘',
         text: 'Los protocolos son lo minimo, no el techo. Cuando no benefician al paciente hay que revisarlos formalmente, no ignorarlos.',
-        tags: { instrument: 'MLQ-5X', behavior: 'principled_protocol_review', IIC: '+2', EI: '+2' },
+        tags: mlqTags({ "IIC": 2, "EI": 2 }),
         consequences: {
           trustChange: 5,
           supportChange: 5,
@@ -199,7 +200,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Esperar contexto',
         cardEmoji: '⏳',
         text: 'Es un tema que ire conociendo. No quiero opinar al respecto sin tener mas contexto.',
-        tags: { instrument: 'MLQ-5X', behavior: 'avoidant_context_deferral', LF: '+4' },
+        tags: mlqTags({ "LF": 4 }),
         consequences: {
           stakeholder_effects: {
             'marcela-soto': { trustChange: -5 },
@@ -213,7 +214,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Resguardar norma',
         cardEmoji: '📋',
         text: 'Los protocolos existen por alguna razon. Espero que se respeten en todos los sectores.',
-        tags: { instrument: 'MLQ-5X', behavior: 'active_exception_management', 'DPE-A': '+2' },
+        tags: mlqTags({ "DPE-A": 2 }),
         consequences: {
           stakeholder_effects: {
             'marcela-soto': { supportChange: 5 },
@@ -237,7 +238,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '📊',
         text:
           'Los indicadores son importantes, pero antes de sacar conclusiones me interesa conocer bien el funcionamiento del CESFAM.',
-        tags: { instrument: 'MLQ-5X', behavior: 'intellectual_context_gathering', CI: '+2', EI: '+2' },
+        tags: mlqTags({ "CI": 2, "EI": 2 }),
         consequences: {
           dialogueResponse: 'No hay problema, director.',
           response_stakeholder_id: 'marcela-soto',
@@ -248,7 +249,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Pedir resumen',
         cardEmoji: '📈',
         text: 'Eso es excelente. Por favor prepara un resumen del Sector Rojo para la tarde.',
-        tags: { instrument: 'MLQ-5X', behavior: 'contingent_data_request', RC: '+2' },
+        tags: mlqTags({ "RC": 2 }),
         consequences: {
           trustChange: 5,
           supportChange: 5,
@@ -262,7 +263,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Extender estandar',
         cardEmoji: '🎯',
         text: 'Es algo que espero podamos lograr con todos los sectores.',
-        tags: { instrument: 'MLQ-5X', behavior: 'contingent_standard_setting', RC: '+2' },
+        tags: mlqTags({ "RC": 2 }),
         consequences: {
           supportChange: 5,
           dialogueResponse: 'No hay problema, director.',
@@ -283,7 +284,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '🔵',
         text:
           'Me reunire primero con Guzman del Sector Azul. No quiero tener problemas con temas docentes por el beneficio que tienen para el CESFAM.',
-        tags: { instrument: 'MLQ-5X', behavior: 'priority_blue_docente' },
+        tags: mlqTags(),
         consequences: {
           dialogueResponse: 'Yo le avisare que va para su oficina, director.',
           expected_actions: [
@@ -317,7 +318,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '🔴',
         text:
           'Avisele a Soto del Sector Rojo que ire a su oficina primero. Revisaremos lo asociado a los protocolos para que todo vaya en regla en el CESFAM.',
-        tags: { instrument: 'MLQ-5X', behavior: 'priority_red_protocols' },
+        tags: mlqTags(),
         consequences: {
           dialogueResponse: 'Yo le avisare que va para su oficina, director.',
           expected_actions: [
@@ -351,7 +352,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '🟡',
         text:
           'Primero ire a la oficina de Rios del Sector Amarillo. Quiero revisar todo lo asociado a los pacientes antes de tomar cualquier decision.',
-        tags: { instrument: 'MLQ-5X', behavior: 'priority_yellow_patients' },
+        tags: mlqTags(),
         consequences: {
           dialogueResponse: 'Yo le avisare que va para su oficina, director.',
           expected_actions: [

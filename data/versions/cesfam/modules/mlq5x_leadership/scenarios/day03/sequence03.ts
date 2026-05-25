@@ -1,4 +1,5 @@
 import type { MeetingSequence, ScenarioNode } from '../../../../../../../types';
+import { mlqTags } from '../tags';
 
 export const nodes: ScenarioNode[] = [
   {
@@ -14,7 +15,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '📘',
         text:
           'No se preocupe, Guzman. Siempre tendre en consideracion el compromiso docente a la hora de tomar decisiones.',
-        tags: { instrument: 'MLQ-5X', behavior: 'supports_docente_commitment' },
+        tags: mlqTags(),
         consequences: {
           trustChange: 5,
           supportChange: 10,
@@ -26,7 +27,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Priorizar pacientes',
         cardEmoji: '🩺',
         text: 'No puedo garantizar eso, Guzman. Los pacientes son lo primero.',
-        tags: { instrument: 'MLQ-5X', behavior: 'prioritizes_patients_over_docencia' },
+        tags: mlqTags(),
         consequences: {
           trustChange: -10,
           supportChange: -10,
@@ -39,7 +40,7 @@ export const nodes: ScenarioNode[] = [
         cardEmoji: '⚖️',
         text:
           'El compromiso docente es importante, pero no puedo comprometer la atencion a los pacientes en beneficio de la docencia.',
-        tags: { instrument: 'MLQ-5X', behavior: 'balances_docencia_and_patient_care' },
+        tags: mlqTags(),
         consequences: {
           dialogueResponse: 'Comprendo, director. Eso es todo lo que tenia que decir de momento.',
         },
