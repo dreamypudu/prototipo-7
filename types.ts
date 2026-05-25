@@ -93,6 +93,7 @@ export interface DailyResolution {
   global_deltas: Record<string, number>;
   stakeholder_deltas: Record<string, Record<string, number>>;
   resolved_expected_action_ids: string[];
+  content_unlocks?: ContentUnlocks;
   scheduled_email_events?: { event_id: string; day: number; slot: TimeSlotType }[];
   status?: string;
   created_at?: string;
@@ -174,6 +175,12 @@ export interface InboxEmail {
     isRead: boolean;
 }
 
+export interface ContentUnlocks {
+    sequences?: string[];
+    emails?: string[];
+    documents?: string[];
+}
+
 export interface Consequences {
     budgetChange?: number;
     trustChange?: number;
@@ -183,6 +190,7 @@ export interface Consequences {
     dialogueResponse: string;
     response_stakeholder_id?: string;
     expected_actions?: Partial<ExpectedAction>[]; // NEW: Actions that "should" happen after this choice
+    unlocks?: ContentUnlocks;
     email_event_ids?: string[];
     scheduled_email_events?: { event_id: string; day: number; slot: TimeSlotType }[];
     stakeholder_effects?: Record<string, { trustChange?: number; supportChange?: number }>;
@@ -334,6 +342,7 @@ export interface GameState {
   questionLog: QuestionLogEntry[];
   processLog: ProcessLogEntry[];
   inbox: InboxEmail[];
+  unlockedContent?: ContentUnlocks;
   pendingEmailEvents?: { event_id: string; day: number; slot: TimeSlotType }[];
   stakeholder_preferences: { [stakeholderId: string]: string };
   readDocuments: string[];
@@ -411,6 +420,7 @@ export interface MeetingSequence {
     };
     isInevitable?: boolean;
     isContingent?: boolean;
+    requiresUnlock?: boolean;
     contingentRules?: ContingentRules;
     contingentConditions?: ConditionGroup;
 }
@@ -499,6 +509,7 @@ export interface DirectorObjectives {
 
 export interface EmailTemplate {
   email_id: string;
+  requiresUnlock?: boolean;
   trigger:
     | {
         type: 'ON_MEETING_COMPLETE';

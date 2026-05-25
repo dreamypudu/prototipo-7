@@ -1,6 +1,7 @@
 // Orquesta la comparacion expected vs canonical usando las reglas registradas por cada mecanica.
 import type {
   CanonicalAction,
+  ContentUnlocks,
   ComparisonResult,
   DailyResolution,
   ExpectedAction,
@@ -12,6 +13,7 @@ import type {
 import type { MechanicRuleContext, MechanicRuleEvaluation } from '../mechanics/types';
 import { MECHANIC_REGISTRY } from '../mechanics/registry';
 import { resolveGenericExpectedAction } from './comparisonRuleUtils';
+import { normalizeContentUnlocks } from './contentUnlocks';
 
 const DEFAULT_SESSION_ID = 'local-session';
 
@@ -166,6 +168,7 @@ const applyEffects = (
   globalDeltas: Record<string, number>,
   stakeholderDeltas: Record<string, Record<string, number>>,
   scheduledEmailEvents: NonNullable<DailyResolution['scheduled_email_events']>,
+  contentUnlocks: Required<ContentUnlocks>,
   expected: ExpectedAction,
   outcome: OutcomeBranch
 ) => {
@@ -176,6 +179,10 @@ const applyEffects = (
   if (Array.isArray(effect.scheduled_email_events)) {
     scheduledEmailEvents.push(...effect.scheduled_email_events);
   }
+  const effectUnlocks = normalizeContentUnlocks(effect.unlocks);
+  contentUnlocks.sequences.push(...effectUnlocks.sequences);
+  contentUnlocks.emails.push(...effectUnlocks.emails);
+  contentUnlocks.documents.push(...effectUnlocks.documents);
 
   const stakeholderId = resolveEffectStakeholderId(expected);
   if (!stakeholderId) return;
@@ -282,6 +289,7 @@ export const resolveDayEffectsLocally = (
   const globalDeltas: Record<string, number> = {};
   const stakeholderDeltas: Record<string, Record<string, number>> = {};
   const scheduledEmailEvents: NonNullable<DailyResolution['scheduled_email_events']> = [];
+  const contentUnlocks: Required<ContentUnlocks> = { sequences: [], emails: [], documents: [] };
   const resolvedExpectedActionIds: string[] = [];
   const resolvedAtMs = Date.now();
 
@@ -305,6 +313,7 @@ export const resolveDayEffectsLocally = (
       globalDeltas,
       stakeholderDeltas,
       scheduledEmailEvents,
+      contentUnlocks,
       expected,
       comparison.outcome ? 'TRUE' : 'FALSE'
     );
@@ -316,6 +325,7 @@ export const resolveDayEffectsLocally = (
     global_deltas: globalDeltas,
     stakeholder_deltas: stakeholderDeltas,
     resolved_expected_action_ids: resolvedExpectedActionIds,
+    content_unlocks: normalizeContentUnlocks(contentUnlocks),
     scheduled_email_events: scheduledEmailEvents,
     status: 'frontend_applied',
     created_at: new Date(resolvedAtMs).toISOString(),
@@ -372,4 +382,9 @@ export const resolveExpectedActionStatus = (
 export const resolutionHasChanges = (resolution: DailyResolution) =>
   resolution.comparisons.length > 0 ||
   hasAnyDelta(resolution.global_deltas, resolution.stakeholder_deltas) ||
+  Boolean(
+    resolution.content_unlocks?.sequences?.length ||
+    resolution.content_unlocks?.emails?.length ||
+    resolution.content_unlocks?.documents?.length
+  ) ||
   Boolean(resolution.scheduled_email_events?.length);

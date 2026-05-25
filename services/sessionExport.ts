@@ -39,6 +39,7 @@ export interface SessionExport {
     stakeholders: GameState['stakeholders'];
     completedSequences: GameState['completedSequences'];
     completedScenarios: GameState['completedScenarios'];
+    unlockedContent?: GameState['unlockedContent'];
     global: {
       day: number;
       timeSlot: GameState['timeSlot'];
@@ -111,6 +112,7 @@ export const buildSessionExport = ({
       stakeholders: gameState.stakeholders,
       completedSequences: gameState.completedSequences,
       completedScenarios: gameState.completedScenarios,
+      unlockedContent: gameState.unlockedContent,
       global: {
         day: gameState.day,
         timeSlot: gameState.timeSlot,

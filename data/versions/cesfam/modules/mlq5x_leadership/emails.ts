@@ -23,7 +23,8 @@ export const CESFAM_MLQ5X_EMAILS: EmailTemplate[] = [
     subject: 'Resumen indicadores Sector Rojo',
     body:
       'Director:\n\nSegun lo acordado en la reunion de esta manana, adjunto el resumen de indicadores del Sector Rojo correspondiente al ultimo trimestre:\n\n- Cumplimiento de protocolos clinicos: 100%\n- Tiempo promedio de atencion: 18 min. (menor a 20 min.)\n- Tasa de derivaciones correctamente documentadas: 100%\n- Reclamos formales recibidos: 1 (resuelto en plazo)\n- Ausentismo del personal: 2,1% (menor a 4,8%)\n- Cumplimiento de agenda: 100%\n\nEnf. Marcela Soto',
-    trigger: { type: 'ON_CASE_EVENT', event_id: 'mlq5x-d1-sequence-6-red-indicators-summary' },
+    trigger: { type: 'ON_TIME_BLOCK', day: 3, slot: 'tarde' },
+    requiresUnlock: true,
   },
   {
     email_id: 'mlq5x-d2-sequence-7-guzman-broken-priority',
@@ -48,5 +49,21 @@ export const CESFAM_MLQ5X_EMAILS: EmailTemplate[] = [
     body:
       'Director:\n\nSere breve. Ayer no cumplio su promesa de venir a visitarme antes que a los demas sectores. No es el hecho de que haya ido a ver a los demas; es que no cumplio con su promesa.\n\nEso claramente tuvo un efecto en mi confianza hacia usted y este nuevo proyecto.\n\nDaniel Rios\nJefe Sector Amarillo',
     trigger: { type: 'ON_CASE_EVENT', event_id: 'mlq5x-d2-sequence-7-rios-broken-priority' },
+  },
+  {
+    email_id: 'mlq5x-d2-sequence-12-soto-box-request',
+    from: 'Enf. Marcela Soto',
+    subject: 'Solicitud de reserva de Box 1',
+    body:
+      'Director:\n\nSolicito el Box 1 para el martes en el bloque AM con motivo de una auditoria interna de indicadores del Sector Rojo.\n\nLe recuerdo que esta corresponde a una actividad recurrente mensual.\n\nSaludos,\nEnf. Marcela Soto',
+    trigger: { type: 'ON_TIME_BLOCK', day: 4, slot: 'tarde' },
+  },
+  {
+    email_id: 'mlq5x-d2-sequence-13-javier-workload',
+    from: 'TENS Javier Castro',
+    subject: 'Consulta sobre carga asistencial',
+    body:
+      'Director, buenas tardes.\n\nSolo queria hacerle saber que esta semana tengo varios turnos agendados, lo que esta por sobre el estandar. Se que es su primera semana y no quiero molestar, pero si hay posibilidad de conversarlo en algun momento, se lo agradeceria.\n\nSaludos,\nTENS Javier Castro',
+    trigger: { type: 'ON_TIME_BLOCK', day: 4, slot: 'tarde' },
   },
 ];

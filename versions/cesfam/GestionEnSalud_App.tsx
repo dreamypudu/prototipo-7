@@ -14,6 +14,7 @@ import { compareExpectedVsActual, mergeComparisonResults, resolveDayEffectsLocal
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
+import { applyContentUnlocks, isEmailUnlocked } from '../../services/contentUnlocks';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
 import { API_BASE_URL } from '../../services/apiConfig';
 import {
@@ -147,6 +148,7 @@ const createInitialGameState = (contentPack: VersionContentPack): GameState => {
       dailyResolutions: [],
       resolvedExpectedActionIds: [],
       pendingEmailEvents: [],
+      unlockedContent: { sequences: [], emails: [], documents: [] },
       questionLog: []
   };
 };
@@ -160,7 +162,10 @@ const appendCaseEventEmails = (
   if (eventIds.length === 0) return state;
 
   const templates = emailTemplates.filter(
-    (template) => template.trigger.type === 'ON_CASE_EVENT' && eventIds.includes(template.trigger.event_id)
+    (template) =>
+      template.trigger.type === 'ON_CASE_EVENT' &&
+      eventIds.includes(template.trigger.event_id) &&
+      isEmailUnlocked(template, state)
   );
   const newInboxEntries = templates
     .filter((template) => !state.inbox.some((entry) => entry.email_id === template.email_id))
@@ -610,7 +615,7 @@ export default function GestionEnSaludApp({
     }
 
     if (!sequence.contingentRules) {
-      return Boolean(sequence.contingentConditions);
+      return Boolean(sequence.contingentConditions || sequence.requiresUnlock);
     }
 
     const rules = sequence.contingentRules;
@@ -1174,7 +1179,8 @@ export default function GestionEnSaludApp({
       const welcomeEmails = emailTemplates.filter(
         (template) =>
           template.trigger.type === 'ON_MEETING_COMPLETE' &&
-          template.trigger.stakeholder_id === 'system-startup'
+          template.trigger.stakeholder_id === 'system-startup' &&
+          isEmailUnlocked(template, prev)
       );
       const newEmails = welcomeEmails
         .filter(t => !prev.inbox.some(e => e.email_id === t.email_id))
@@ -1737,19 +1743,21 @@ export default function GestionEnSaludApp({
                     processLog: processLog ? [...prev.processLog, processLog] : prev.processLog,
                     decisionLog: [...prev.decisionLog, decisionEntry]
                 };
+                const nextStateWithUnlocks = applyContentUnlocks(nextState, consequences.unlocks);
                 const nextStateWithScheduledEmails = consequences.scheduled_email_events?.length
                   ? {
-                      ...nextState,
+                      ...nextStateWithUnlocks,
                       pendingEmailEvents: [
-                        ...(nextState.pendingEmailEvents ?? []),
+                        ...(nextStateWithUnlocks.pendingEmailEvents ?? []),
                         ...consequences.scheduled_email_events,
                       ],
                     }
-                  : nextState;
+                  : nextStateWithUnlocks;
                 const nextStateWithEmails = consequences.email_event_ids
                   ? appendCaseEventEmails(nextStateWithScheduledEmails, contentPack.emails, consequences.email_event_ids, prev.day)
                   : nextStateWithScheduledEmails;
-                return adminDecision ? mergeMechanicFlushIntoState(nextStateWithEmails) : nextStateWithEmails;
+                const nextStateWithDueEmails = appendTimeBlockEmails(nextStateWithEmails, contentPack.emails, prev.day, prev.timeSlot);
+                return adminDecision ? mergeMechanicFlushIntoState(nextStateWithDueEmails) : nextStateWithDueEmails;
             });
 
             const responseStakeholder = consequences.response_stakeholder_id

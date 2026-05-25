@@ -7,6 +7,7 @@ import { buildSessionExport } from '../../services/sessionExport';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
+import { applyContentUnlocks } from '../../services/contentUnlocks';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
 import { API_BASE_URL } from '../../services/apiConfig';
@@ -571,7 +572,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     }
 
     if (!sequence.contingentRules) {
-      return Boolean(sequence.contingentConditions);
+      return Boolean(sequence.contingentConditions || sequence.requiresUnlock);
     }
 
     const rules = sequence.contingentRules;
@@ -1162,7 +1163,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
                     globalEffectsAfter
                 };
 
-                return {
+                const nextState = {
                     ...prev,
                     budget: nextBudget,
                     reputation: nextReputation,
@@ -1173,6 +1174,8 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
                     decisionLog: [...prev.decisionLog, decisionLogEntry],
                     processLog: processLog ? [...prev.processLog, processLog] : prev.processLog,
                 };
+                const nextStateWithUnlocks = applyContentUnlocks(nextState, consequences.unlocks);
+                return appendTimeBlockEmails(nextStateWithUnlocks, EMAIL_TEMPLATES, prev.day, prev.timeSlot);
             });
 
             setPersonalizedDialogue(consequences.dialogueResponse);

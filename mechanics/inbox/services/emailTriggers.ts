@@ -1,4 +1,5 @@
 import { EmailTemplate, GameState, TimeSlotType } from '../../../types';
+import { isEmailUnlocked } from '../../../services/contentUnlocks';
 
 export const appendTimeBlockEmails = (
   state: GameState,
@@ -23,6 +24,7 @@ export const appendTimeBlockEmails = (
           template.trigger.type === 'ON_CASE_EVENT' &&
           dueEventIds.has(template.trigger.event_id)
         ) &&
+        isEmailUnlocked(template, state) &&
         !state.inbox.some((entry) => entry.email_id === template.email_id)
     )
     .map((template) => ({

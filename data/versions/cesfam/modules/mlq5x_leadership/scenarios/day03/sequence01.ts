@@ -253,7 +253,9 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: 5,
           supportChange: 5,
-          scheduled_email_events: [{ event_id: 'mlq5x-d1-sequence-6-red-indicators-summary', day: 3, slot: 'tarde' }],
+          unlocks: {
+            emails: ['mlq5x-d1-sequence-6-red-indicators-summary'],
+          },
           dialogueResponse: 'No hay problema, director.',
           response_stakeholder_id: 'marcela-soto',
         },

@@ -373,6 +373,7 @@ export const INITIAL_GAME_STATE: GameState = {
   questionLog: [],
   processLog: [],
   inbox: [],
+  unlockedContent: { sequences: [], emails: [], documents: [] },
   stakeholder_preferences: {},
   readDocuments: [],
   playerActionsLog: [],

@@ -1,6 +1,7 @@
 // Aplica una resolución diaria ya calculada sobre GameState y evita duplicar comparaciones/resoluciones.
 import type { ComparisonResult, DailyResolution, GameState } from '../types';
 import { mergeComparisonResults } from './ComparisonEngine';
+import { applyContentUnlocks } from './contentUnlocks';
 
 const clampReputation = (value: number): number => Math.max(0, Math.min(100, value));
 
@@ -67,7 +68,7 @@ export const applyDailyResolutionToState = (
     deltaReputation !== 0 ||
     Object.keys(resolution.stakeholder_deltas ?? {}).length > 0;
 
-  return {
+  return applyContentUnlocks({
     ...prev,
     budget: prev.budget + deltaBudget,
     reputation: clampReputation(prev.reputation + deltaReputation),
@@ -77,5 +78,5 @@ export const applyDailyResolutionToState = (
     resolvedExpectedActionIds,
     pendingEmailEvents,
     eventsLog: shouldLogSummary ? [...prev.eventsLog, summary] : prev.eventsLog,
-  };
+  }, resolution.content_unlocks);
 };

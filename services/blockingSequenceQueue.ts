@@ -1,4 +1,5 @@
 import type { GameState, MeetingSequence } from '../types';
+import { isSequenceUnlocked } from './contentUnlocks';
 
 interface BlockingSequenceQueueOptions {
   isSequenceWindowOpen: (sequence: MeetingSequence, state: GameState) => boolean;
@@ -24,6 +25,7 @@ export const getBlockingSequenceQueue = (
     .filter(({ sequence }) => {
       if (!isBlockingSequence(sequence)) return false;
       if (state.completedSequences.includes(sequence.sequence_id)) return false;
+      if (!isSequenceUnlocked(sequence, state)) return false;
       if (!options.isSequenceWindowOpen(sequence, state)) return false;
       if (sequence.isContingent) {
         return options.shouldTriggerContingentSequence(sequence, state);
