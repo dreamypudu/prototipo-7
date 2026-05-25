@@ -1,5 +1,4 @@
 import {
-  CaseDefinition,
   Document,
   DirectorObjectives,
   EmailTemplate,
@@ -27,6 +26,5 @@ export interface VersionContentPack {
   questions: Record<string, StakeholderQuestion[]>;
   emails: EmailTemplate[];
   documents: Document[];
-  cases: CaseDefinition[];
   defaults: VersionDefaults;
 }

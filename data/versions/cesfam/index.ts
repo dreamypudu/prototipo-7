@@ -10,7 +10,6 @@ import {
   SECRETARY_ROLE,
   TIME_SLOTS,
 } from './defaults';
-import { CESFAM_CASES } from './cases';
 import type { VersionContentPack } from '../types';
 
 export const CESFAM_CONTENT: VersionContentPack = {
@@ -20,7 +19,6 @@ export const CESFAM_CONTENT: VersionContentPack = {
   questions: CESFAM_QUESTIONS,
   emails: EMAIL_TEMPLATES,
   documents: CESFAM_DOCUMENTS,
-  cases: CESFAM_CASES,
   defaults: {
     timeSlots: TIME_SLOTS,
     secretaryRole: SECRETARY_ROLE,

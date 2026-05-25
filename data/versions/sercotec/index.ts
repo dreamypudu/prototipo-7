@@ -9,7 +9,6 @@ import {
   SECRETARY_ROLE,
   TIME_SLOTS,
 } from './defaults';
-import { SERCOTEC_CASES } from './cases';
 import type { VersionContentPack } from '../types';
 
 export const SERCOTEC_CONTENT: VersionContentPack = {
@@ -19,7 +18,6 @@ export const SERCOTEC_CONTENT: VersionContentPack = {
   questions: SERCOTEC_QUESTIONS,
   emails: SERCOTEC_EMAIL_TEMPLATES,
   documents: SERCOTEC_DOCUMENTS,
-  cases: SERCOTEC_CASES,
   defaults: {
     timeSlots: TIME_SLOTS,
     secretaryRole: SECRETARY_ROLE,

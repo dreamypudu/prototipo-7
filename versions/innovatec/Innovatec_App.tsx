@@ -5,7 +5,6 @@ import { startLogging, finalizeLogging } from '../../services/Timelogger';
 import { mechanicEngine } from '../../services/MechanicEngine';
 import { buildSessionExport } from '../../services/sessionExport';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
-import { isFrontendComparisonMode } from '../../services/comparisonMode';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
@@ -33,8 +32,7 @@ import EndGameScreen from '../../components/EndGameScreen';
 import WarningPopup from '../../components/WarningPopup';
 import SplashScreen from '../../components/SplashScreen';
 import Sidebar from '../../components/Sidebar';
-import CaseObjectivesPanel from '../../components/ui/CaseObjectivesPanel';
-import { useCaseTracker } from '../../hooks/useCaseTracker';
+import ObjectivesPanel from '../../components/ui/ObjectivesPanel';
 import { useCommitmentsTracker } from '../../hooks/useCommitmentsTracker';
 import { buildCommitmentTextTemplates } from '../../services/commitments_text_generator';
 
@@ -152,23 +150,15 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   const finalPersistAttemptedRef = useRef(false);
   const enabledMechanics = useMemo(() => resolveMechanics(config), [config]);
   const commitmentTextTemplates = useMemo(() => buildCommitmentTextTemplates(enabledMechanics), [enabledMechanics]);
-  const caseTracker = useCaseTracker(INNOVATEC_CONTENT.cases, gameState);
   const commitmentTracker = useCommitmentsTracker(gameState, roomDefinitions, gameStatus, commitmentTextTemplates);
-  const {
-    activeCase,
-    unseenCount: caseUnseenCount,
-    hasUnseenUpdates: hasUnseenCaseUpdates,
-    registerSequenceCompleted,
-    markAllSeen: markCaseUpdatesSeen,
-  } = caseTracker;
   const {
     commitments,
     unseenCount: commitmentUnseenCount,
     hasUnseenUpdates: hasUnseenCommitmentUpdates,
     markAllSeen: markCommitmentsSeen,
   } = commitmentTracker;
-  const objectivesUnseenCount = caseUnseenCount + commitmentUnseenCount;
-  const hasUnseenObjectiveUpdates = hasUnseenCaseUpdates || hasUnseenCommitmentUpdates;
+  const objectivesUnseenCount = commitmentUnseenCount;
+  const hasUnseenObjectiveUpdates = hasUnseenCommitmentUpdates;
   const playerVisibleMechanics = React.useMemo(
     () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
     [enabledMechanics]
@@ -224,19 +214,17 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     setIsObjectivesOpen((prev) => {
       const next = !prev;
       if (next) {
-        markCaseUpdatesSeen();
         markCommitmentsSeen();
       }
       return next;
     });
-  }, [markCaseUpdatesSeen, markCommitmentsSeen]);
+  }, [markCommitmentsSeen]);
 
   useEffect(() => {
     if (isObjectivesOpen && hasUnseenObjectiveUpdates) {
-      markCaseUpdatesSeen();
       markCommitmentsSeen();
     }
-  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markCaseUpdatesSeen, markCommitmentsSeen]);
+  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markCommitmentsSeen]);
 
   const hasQuestionsFor = (stakeholder: Stakeholder | null): boolean => {
     if (!stakeholder) return false;
@@ -470,24 +458,22 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
 
   const syncDayWithBackend = useCallback(
     async (completedDay: number, snapshot: GameState) => {
-      if (isFrontendComparisonMode) {
-        const resolution = resolveDayEffectsLocally(snapshot, completedDay, roomDefinitions, {
-          sessionId: sessionIdRef.current,
-        });
-        if (!resolutionHasChanges(resolution)) {
-          setDailySummary(null);
-          return;
-        }
-
-        setGameState((prev) => applyDailyResolutionToState(prev, resolution));
-        const summary = summarizeDeltas(completedDay, resolution.global_deltas, resolution.stakeholder_deltas);
+      const localResult = applyLocalDailyResolution(snapshot, completedDay);
+      if (localResult.resolution) {
+        setGameState(localResult.nextState);
+        const summary = summarizeDeltas(
+          completedDay,
+          localResult.resolution.global_deltas,
+          localResult.resolution.stakeholder_deltas
+        );
         setDailySummary(summary);
-        return;
+      } else {
+        setDailySummary(null);
       }
 
       try {
         const exportPayload = buildSessionExport({
-          gameState: snapshot,
+          gameState: localResult.nextState,
           config,
           sessionId: sessionIdRef.current,
           anonymousUserId: anonymousUserIdRef.current,
@@ -500,40 +486,11 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(exportPayload),
         });
-
-        // 2) Resolve daily effects
-        const resp = await fetch(
-          `${API_BASE_URL.replace(/\/$/, '')}/sessions/${exportPayload.session_metadata.session_id}/resolve_day_effects?day=${completedDay}`,
-          { method: 'POST' }
-        );
-        if (!resp.ok) {
-          console.warn('resolve_day_effects failed', await resp.text());
-          return;
-        }
-        const data = await resp.json();
-        const globalDeltas = data.global_deltas || {};
-        const stakeholderDeltas = data.stakeholder_deltas || {};
-
-        setGameState((prev) =>
-          applyDailyResolutionToState(prev, {
-            day: completedDay,
-            comparisons: data.comparisons || [],
-            global_deltas: globalDeltas,
-            stakeholder_deltas: stakeholderDeltas,
-            resolved_expected_action_ids: (data.comparisons || [])
-              .map((comparison: any) => comparison.expected_action_id)
-              .filter(Boolean),
-            status: data.cached ? 'cached' : 'applied',
-            created_at: new Date().toISOString(),
-          })
-        );
-        const summary = summarizeDeltas(completedDay, globalDeltas, stakeholderDeltas);
-        setDailySummary(summary);
       } catch (err) {
         console.warn('syncDayWithBackend error', err);
       }
     },
-    [config, roomDefinitions]
+    [applyLocalDailyResolution, config, roomDefinitions]
   );
 
   const returnToSecretary = (message: string) => {
@@ -630,23 +587,10 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     }
     let newState = advanceTime(stateAfterMeetingEnd);
     const completedDay = (newState as any).__completedDay as number | null;
-    if (isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
-        const snapshot = { ...newState };
-        delete (snapshot as any).__completedDay;
-        const localResult = applyLocalDailyResolution(snapshot, completedDay);
-        newState = localResult.nextState;
-        if (localResult.resolution) {
-            const summary = summarizeDeltas(completedDay, localResult.resolution.global_deltas, localResult.resolution.stakeholder_deltas);
-            setDailySummary(summary);
-        } else {
-            setDailySummary(null);
-        }
-    }
-    registerSequenceCompleted(justCompletedSequenceId);
     delete (newState as any).__completedDay;
     setGameState(newState);
     syncLogs();
-    if (!isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
+    if (completedDay !== null && completedDay > 0) {
         const snapshot = { ...newState };
         delete (snapshot as any).__completedDay;
         syncDayWithBackend(completedDay, snapshot);
@@ -701,7 +645,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
         }
         returnToSecretary(secretaryMessage);
     }
-  }, [gameState, characterInFocus, secretary, advanceTime, registerSequenceCompleted, setPersonalizedDialogue, presentScenario, startSequence, hasQuestionsFor, buildQuestionListActions, syncLogs]);
+  }, [gameState, characterInFocus, secretary, advanceTime, setPersonalizedDialogue, presentScenario, startSequence, hasQuestionsFor, buildQuestionListActions, syncLogs]);
 
    useEffect(() => {
     if (effectiveTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || !isGameStarted) {
@@ -1095,12 +1039,19 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
                 const nextReputation = clampReputation(prev.reputation + globalEffects.deltas.reputation);
                 const globalEffectsAfter = { budget: nextBudget, reputation: nextReputation };
                 const decisionLogEntry: DecisionLogEntry = {
+                    decision_order: prev.decisionLog.length + 1,
+                    sequence_id: currentMeeting?.sequence.sequence_id,
+                    node_title: scenario.node_id,
+                    npc_id: characterInFocus.id,
+                    npc_role: characterInFocus.role,
+                    npc_name: characterInFocus.name,
                     day: prev.day,
                     timeSlot: prev.timeSlot,
                     stakeholder: characterInFocus.name,
                     nodeId: scenario.node_id,
                     choiceId: option.option_id,
                     choiceText: option.text,
+                    is_decision: option.option_id !== 'NEXT',
                     consequences: consequences,
                     globalEffectsShown: globalEffects.ui,
                     globalEffectsApplied: globalEffects.real,
@@ -1425,12 +1376,11 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
         />
 
         <div className="mt-4 max-w-md">
-          <CaseObjectivesPanel
+          <ObjectivesPanel
             isOpen={isObjectivesOpen}
             onToggle={handleToggleObjectives}
             hasUnseenUpdates={hasUnseenObjectiveUpdates}
             unseenCount={objectivesUnseenCount}
-            activeCase={activeCase}
             commitments={commitments}
           />
         </div>

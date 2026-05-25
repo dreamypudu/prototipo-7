@@ -186,12 +186,20 @@ export interface Consequences {
 }
 
 export interface DecisionLogEntry {
+    decision_order?: number;
+    sequence_id?: string;
+    case_id?: string;
+    node_title?: string;
+    npc_id?: string;
+    npc_role?: string;
+    npc_name?: string;
     day: number;
     timeSlot: TimeSlotType;
     stakeholder: string;
     nodeId: string;
     choiceId: string;
     choiceText: string;
+    is_decision?: boolean;
     tags?: Record<string, any>;
     consequences: Consequences;
     globalEffectsShown?: GlobalEffectsUI;
@@ -466,29 +474,6 @@ export type NarrativeCondition =
 export interface ConditionGroup {
   all?: NarrativeCondition[];
   any?: NarrativeCondition[];
-}
-
-export interface CaseGoalDefinition {
-  goal_id: string;
-  title: string;
-  description: string;
-  success: ConditionGroup;
-  failure?: ConditionGroup;
-  weight?: number;
-}
-
-export interface CaseDefinition {
-  case_id: string;
-  title: string;
-  description: string;
-  revealedBySequenceIds: string[];
-  goals: CaseGoalDefinition[];
-}
-
-export interface CaseGoalSnapshot {
-  goal_id: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  progressLabel: string;
 }
 
 export interface DirectorObjectives {

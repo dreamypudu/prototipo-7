@@ -9,7 +9,6 @@ import {
   SECRETARY_ROLE,
   TIME_SLOTS,
 } from './defaults';
-import { MUNICIPAL_CASES } from './cases';
 import type { VersionContentPack } from '../types';
 
 export const MUNICIPAL_CONTENT: VersionContentPack = {
@@ -19,7 +18,6 @@ export const MUNICIPAL_CONTENT: VersionContentPack = {
   questions: MUNICIPAL_QUESTIONS,
   emails: MUNICIPAL_EMAIL_TEMPLATES,
   documents: MUNICIPAL_DOCUMENTS,
-  cases: MUNICIPAL_CASES,
   defaults: {
     timeSlots: TIME_SLOTS,
     secretaryRole: SECRETARY_ROLE,

@@ -49,10 +49,9 @@ import WarningPopup from '../../components/WarningPopup';
 import Sidebar from '../../components/Sidebar';
 import HelpButton from '../../components/ui/HelpButton';
 import HelpPanel from '../../components/ui/HelpPanel';
-import CaseObjectivesPanel from '../../components/ui/CaseObjectivesPanel';
+import ObjectivesPanel from '../../components/ui/ObjectivesPanel';
 import SplashScreen from '../../components/SplashScreen';
 import type { DailyEffectSummary } from '../../types';
-import { useCaseTracker } from '../../hooks/useCaseTracker';
 import { useCommitmentsTracker } from '../../hooks/useCommitmentsTracker';
 import { buildCesfamDayReviewData, type CesfamDayReviewData } from './services/dayReview';
 import { buildCommitmentTextTemplates, evaluateConditionGroup } from '../../services/commitments_text_generator';
@@ -271,23 +270,15 @@ export default function GestionEnSaludApp({
   const emailTemplates = contentPack.emails;
   const enabledMechanics = useMemo(() => resolveMechanics(config), [config]);
   const commitmentTextTemplates = useMemo(() => buildCommitmentTextTemplates(enabledMechanics), [enabledMechanics]);
-  const caseTracker = useCaseTracker(contentPack.cases, gameState);
   const commitmentTracker = useCommitmentsTracker(gameState, roomDefinitions, gameStatus, commitmentTextTemplates);
-  const {
-    activeCase,
-    unseenCount: caseUnseenCount,
-    hasUnseenUpdates: hasUnseenCaseUpdates,
-    registerSequenceCompleted,
-    markAllSeen: markCaseUpdatesSeen,
-  } = caseTracker;
   const {
     commitments,
     unseenCount: commitmentUnseenCount,
     hasUnseenUpdates: hasUnseenCommitmentUpdates,
     markAllSeen: markCommitmentsSeen,
   } = commitmentTracker;
-  const objectivesUnseenCount = caseUnseenCount + commitmentUnseenCount;
-  const hasUnseenObjectiveUpdates = hasUnseenCaseUpdates || hasUnseenCommitmentUpdates;
+  const objectivesUnseenCount = commitmentUnseenCount;
+  const hasUnseenObjectiveUpdates = hasUnseenCommitmentUpdates;
   const playerVisibleMechanics = useMemo(
     () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
     [enabledMechanics]
@@ -458,12 +449,11 @@ export default function GestionEnSaludApp({
     setIsObjectivesOpen((prev) => {
       const next = !prev;
       if (next) {
-        markCaseUpdatesSeen();
         markCommitmentsSeen();
       }
       return next;
     });
-  }, [markCaseUpdatesSeen, markCommitmentsSeen]);
+  }, [markCommitmentsSeen]);
 
   const handleLeftRailEnter = useCallback(() => {
     setIsLeftRailExpanded(true);
@@ -477,10 +467,9 @@ export default function GestionEnSaludApp({
 
   useEffect(() => {
     if (isObjectivesOpen && hasUnseenObjectiveUpdates) {
-      markCaseUpdatesSeen();
       markCommitmentsSeen();
     }
-  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markCaseUpdatesSeen, markCommitmentsSeen]);
+  }, [isObjectivesOpen, hasUnseenObjectiveUpdates, markCommitmentsSeen]);
 
   const hasQuestionsFor = (stakeholder: Stakeholder | null): boolean => {
     if (!stakeholder) return false;
@@ -814,26 +803,18 @@ export default function GestionEnSaludApp({
 
   const resolveCompletedDayTransition = useCallback(
     async (completedDay: number, snapshot: GameState) => {
-      if (isFrontendComparisonMode) {
-        const localResult = applyLocalDailyResolution(snapshot, completedDay);
-        const summary = localResult.resolution
-          ? summarizeDeltas(
-              completedDay,
-              localResult.resolution.global_deltas,
-              localResult.resolution.stakeholder_deltas
-            )
-          : null;
-
-        return {
-          nextState: localResult.nextState,
-          resolution: localResult.resolution,
-          summary,
-        };
-      }
+      const localResult = applyLocalDailyResolution(snapshot, completedDay);
+      const summary = localResult.resolution
+        ? summarizeDeltas(
+            completedDay,
+            localResult.resolution.global_deltas,
+            localResult.resolution.stakeholder_deltas
+          )
+        : null;
 
       try {
         const exportPayload = buildSessionExport({
-          gameState: snapshot,
+          gameState: localResult.nextState,
           config,
           sessionId: sessionIdRef.current,
           anonymousUserId: anonymousUserIdRef.current,
@@ -849,39 +830,8 @@ export default function GestionEnSaludApp({
         });
 
         if (!firstResp.ok) {
-          return { nextState: snapshot, resolution: null, summary: null };
+          console.warn(`[Backend] POST /sessions failed with status ${firstResp.status}`);
         }
-
-        const resp = await fetch(
-          `${API_BASE_URL.replace(/\/$/, '')}/sessions/${exportPayload.session_metadata.session_id}/resolve_day_effects?day=${completedDay}`,
-          { method: 'POST' }
-        );
-
-        if (!resp.ok) {
-          return { nextState: snapshot, resolution: null, summary: null };
-        }
-
-        const data = await resp.json();
-        const resolution: DailyResolution = {
-          day: completedDay,
-          comparisons: data.comparisons || [],
-          global_deltas: data.global_deltas || {},
-          stakeholder_deltas: data.stakeholder_deltas || {},
-          resolved_expected_action_ids: (data.comparisons || [])
-            .map((comparison: any) => comparison.expected_action_id)
-            .filter(Boolean),
-          status: data.cached ? 'cached' : 'applied',
-          created_at: new Date().toISOString(),
-        };
-
-        const nextState = applyDailyResolutionToState(snapshot, resolution);
-        const summary = summarizeDeltas(
-          completedDay,
-          resolution.global_deltas,
-          resolution.stakeholder_deltas
-        );
-
-        return { nextState, resolution, summary };
       } catch (err: any) {
         console.error('[Backend] resolveCompletedDayTransition error:', {
           error: err?.message || String(err),
@@ -889,8 +839,12 @@ export default function GestionEnSaludApp({
           type: err?.name,
         });
         showToast(`Error de conexión: ${err?.message || 'No se pudo conectar al servidor'}`);
-        return { nextState: snapshot, resolution: null, summary: null };
       }
+      return {
+        nextState: localResult.nextState,
+        resolution: localResult.resolution,
+        summary,
+      };
     },
     [applyLocalDailyResolution, config, roomDefinitions, showToast]
   );
@@ -924,7 +878,7 @@ export default function GestionEnSaludApp({
         'Se reinici? la planificación para la nueva semana.',
       ],
     };
-    if (isFrontendComparisonMode) {
+    {
       const localResult = applyLocalDailyResolution(stateAfterMeetingEnd, stateAfterMeetingEnd.day);
       nextState = {
         ...localResult.nextState,
@@ -952,7 +906,6 @@ export default function GestionEnSaludApp({
     }
     nextState = appendCaseEventEmails(nextState, emailTemplates, mondayEmailIds, CASE1_NEXT_MONDAY_DAY);
 
-    registerSequenceCompleted(justCompletedSequenceId);
     setGameState(nextState);
     setCurrentMeeting(null);
     setConversationMode('idle');
@@ -963,27 +916,27 @@ export default function GestionEnSaludApp({
     setIsTimerPaused(false);
     pendingCase1EndingRef.current = null;
     syncLogs();
-  }, [gameState, characterInFocus, secretaryRole, emailTemplates, registerSequenceCompleted, syncLogs, applyLocalDailyResolution, morningSlot]);
+  }, [gameState, characterInFocus, secretaryRole, emailTemplates, syncLogs, applyLocalDailyResolution, morningSlot]);
 
   const syncDayWithBackend = useCallback(
     async (completedDay: number, snapshot: GameState) => {
-      if (isFrontendComparisonMode) {
-        const resolution = resolveDayEffectsLocally(snapshot, completedDay, roomDefinitions, {
-          sessionId: sessionIdRef.current,
-        });
-        if (!resolutionHasChanges(resolution)) {
-          setDailySummary(null);
-          return;
-        }
-
-        setGameState((prev) => applyDailyResolutionToState(prev, resolution));
-        setDailySummary(summarizeDeltas(completedDay, resolution.global_deltas, resolution.stakeholder_deltas));
-        return;
+      const localResult = applyLocalDailyResolution(snapshot, completedDay);
+      if (localResult.resolution) {
+        setGameState(localResult.nextState);
+        setDailySummary(
+          summarizeDeltas(
+            completedDay,
+            localResult.resolution.global_deltas,
+            localResult.resolution.stakeholder_deltas
+          )
+        );
+      } else {
+        setDailySummary(null);
       }
 
       try {
         const exportPayload = buildSessionExport({
-          gameState: snapshot,
+          gameState: localResult.nextState,
           config,
           sessionId: sessionIdRef.current,
           anonymousUserId: anonymousUserIdRef.current,
@@ -1004,36 +957,6 @@ export default function GestionEnSaludApp({
           console.warn(`[Backend] POST /sessions failed with status ${firstResp.status}`);
           return;
         }
-
-        const resp = await fetch(
-          `${API_BASE_URL.replace(/\/$/, '')}/sessions/${exportPayload.session_metadata.session_id}/resolve_day_effects?day=${completedDay}`,
-          { method: 'POST' }
-        );
-
-        if (!resp.ok) {
-          const errorText = await resp.text();
-          console.warn(`[Backend] resolve_day_effects failed with status ${resp.status}: ${errorText}`);
-          return;
-        }
-
-        const data = await resp.json();
-        const globalDeltas = data.global_deltas || {};
-        const stakeholderDeltas = data.stakeholder_deltas || {};
-        setGameState((prev) =>
-          applyDailyResolutionToState(prev, {
-            day: completedDay,
-            comparisons: data.comparisons || [],
-            global_deltas: globalDeltas,
-            stakeholder_deltas: stakeholderDeltas,
-            resolved_expected_action_ids: (data.comparisons || [])
-              .map((comparison: any) => comparison.expected_action_id)
-              .filter(Boolean),
-            status: data.cached ? 'cached' : 'applied',
-            created_at: new Date().toISOString(),
-          })
-        );
-        const summary = summarizeDeltas(completedDay, globalDeltas, stakeholderDeltas);
-        setDailySummary(summary);
       } catch (err: any) {
         console.error('[Backend] syncDayWithBackend error:', {
           error: err?.message || String(err),
@@ -1043,7 +966,7 @@ export default function GestionEnSaludApp({
         showToast(`Error de conexión: ${err?.message || 'No se pudo conectar al servidor'}`);
       }
     },
-    [config, gameState.stakeholders, roomDefinitions, showToast]
+    [applyLocalDailyResolution, config, roomDefinitions, showToast]
   );
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
@@ -1107,7 +1030,6 @@ export default function GestionEnSaludApp({
 
     if (shouldBlockFridayClose) {
       const blockedState = appendCaseEventEmails(stateAfterMeetingEnd, emailTemplates, deferredEmailIds, stateAfterMeetingEnd.day);
-      registerSequenceCompleted(justCompletedSequenceId);
       setGameState(blockedState);
       setCharacterInFocus(null);
       setActiveTab('schedule');
@@ -1141,8 +1063,6 @@ export default function GestionEnSaludApp({
       completedDay !== null &&
       completedDay >= 3 &&
       completedDay < CASE1_FRIDAY_DAY;
-
-    registerSequenceCompleted(justCompletedSequenceId);
 
     if (shouldOpenCesfamDayReview) {
       const snapshot = { ...newState };
@@ -1180,28 +1100,11 @@ export default function GestionEnSaludApp({
       return;
     }
 
-    if (isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
-      const snapshot = { ...newState };
-      delete (snapshot as any).__completedDay;
-      const localResult = applyLocalDailyResolution(snapshot, completedDay);
-      newState = localResult.nextState;
-      if (localResult.resolution) {
-        setDailySummary(
-          summarizeDeltas(
-            completedDay,
-            localResult.resolution.global_deltas,
-            localResult.resolution.stakeholder_deltas
-          )
-        );
-      } else {
-        setDailySummary(null);
-      }
-    }
     delete (newState as any).__completedDay;
     newState = appendCaseEventEmails(newState, emailTemplates, deferredEmailIds, newState.day);
     setGameState(newState);
     if (!skipTimeAdvance) {
-      if (!isFrontendComparisonMode && completedDay !== null && completedDay > 0) {
+      if (completedDay !== null && completedDay > 0) {
         const snapshot = { ...newState };
         delete (snapshot as any).__completedDay;
         syncDayWithBackend(completedDay, snapshot);
@@ -1215,7 +1118,7 @@ export default function GestionEnSaludApp({
     }
     setCharacterInFocus(null);
     syncLogs();
-  }, [gameState, characterInFocus, advanceTime, secretaryRole, registerSequenceCompleted, syncLogs, selectedVersion, emailTemplates, mergeMechanicFlushIntoState, resolveCompletedDayTransition, morningSlot]);
+  }, [gameState, characterInFocus, advanceTime, secretaryRole, syncLogs, selectedVersion, emailTemplates, mergeMechanicFlushIntoState, resolveCompletedDayTransition, syncDayWithBackend, morningSlot]);
 
   useEffect(() => {
     if (effectiveTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
@@ -1583,7 +1486,6 @@ export default function GestionEnSaludApp({
                 ? [...prev.completedSequences, justCompletedSequenceId]
                 : prev.completedSequences,
           }));
-          registerSequenceCompleted(justCompletedSequenceId);
           sessionEndRef.current = Date.now();
           setCurrentMeeting(null);
           setConversationMode('idle');
@@ -1610,7 +1512,6 @@ export default function GestionEnSaludApp({
                 ? [...prev.completedSequences, justCompletedSequenceId]
                 : prev.completedSequences,
           }));
-          registerSequenceCompleted(justCompletedSequenceId);
           setCurrentMeeting(null);
           setConversationMode('idle');
           setQuestionsOrigin(null);
@@ -1750,12 +1651,19 @@ export default function GestionEnSaludApp({
                 const nextReputation = clampReputation(prev.reputation + globalEffects.deltas.reputation);
                 const globalEffectsAfter = { budget: nextBudget, reputation: nextReputation };
                 const decisionEntry: DecisionLogEntry = {
+                    decision_order: prev.decisionLog.length + 1,
+                    sequence_id: currentMeeting?.sequence.sequence_id,
+                    node_title: scenario.node_id,
+                    npc_id: characterInFocus.id,
+                    npc_role: characterInFocus.role,
+                    npc_name: characterInFocus.name,
                     day: prev.day,
                     timeSlot: prev.timeSlot,
                     stakeholder: characterInFocus.name,
                     nodeId: scenario.node_id,
                     choiceId: option.option_id,
                     choiceText: option.text,
+                    is_decision: option.option_id !== 'NEXT',
                     tags: option.tags,
                     consequences,
                     globalEffectsShown: globalEffects.ui,
@@ -2223,12 +2131,11 @@ export default function GestionEnSaludApp({
             </button>
 
             {isLeftRailExpanded && (
-              <CaseObjectivesPanel
+              <ObjectivesPanel
                 isOpen={isObjectivesOpen}
                 onToggle={handleToggleObjectives}
                 hasUnseenUpdates={hasUnseenObjectiveUpdates}
                 unseenCount={objectivesUnseenCount}
-                activeCase={activeCase}
                 commitments={commitments}
                 hideHeader
                 className="w-full"

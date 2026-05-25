@@ -1,9 +1,6 @@
 // Genera textos legibles de compromisos a partir de ExpectedAction y permite que cada mecanica entregue sus propios templates.
 import { resolveExpectedActionStatus } from './ComparisonEngine';
 import type {
-  CaseDefinition,
-  CaseGoalDefinition,
-  CaseGoalSnapshot,
   ConditionGroup,
   ExpectedAction,
   GameState,
@@ -109,22 +106,6 @@ export const evaluateConditionGroup = (state: GameState, group?: ConditionGroup)
       all: [condition],
     })
   );
-};
-
-export const buildCaseGoalSnapshot = (definition: CaseGoalDefinition, state: GameState): CaseGoalSnapshot => {
-  const failed = definition.failure ? evaluateConditionGroup(state, definition.failure) : false;
-  if (failed) {
-    return { goal_id: definition.goal_id, status: 'failed', progressLabel: 'Fallido' };
-  }
-  const completed = evaluateConditionGroup(state, definition.success);
-  if (completed) {
-    return { goal_id: definition.goal_id, status: 'completed', progressLabel: 'Completado' };
-  }
-  return { goal_id: definition.goal_id, status: 'in_progress', progressLabel: 'En progreso' };
-};
-
-export const shouldRevealCaseForSequence = (definition: CaseDefinition, sequenceId: string): boolean => {
-  return definition.revealedBySequenceIds.includes(sequenceId) || definition.revealedBySequenceIds.includes('*');
 };
 
 export const normalizeTimeWindowBlock = (value: unknown): 'AM' | 'PM' | null => {

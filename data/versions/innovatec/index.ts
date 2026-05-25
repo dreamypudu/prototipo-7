@@ -9,7 +9,6 @@ import {
   SECRETARY_ROLE,
   TIME_SLOTS,
 } from './defaults';
-import { INNOVATEC_CASES } from './cases';
 import type { VersionContentPack } from '../types';
 
 export const INNOVATEC_CONTENT: VersionContentPack = {
@@ -19,7 +18,6 @@ export const INNOVATEC_CONTENT: VersionContentPack = {
   questions: INNOVATEC_QUESTIONS,
   emails: EMAIL_TEMPLATES,
   documents: INNOVATEC_DOCUMENTS,
-  cases: INNOVATEC_CASES,
   defaults: {
     timeSlots: TIME_SLOTS,
     secretaryRole: SECRETARY_ROLE,

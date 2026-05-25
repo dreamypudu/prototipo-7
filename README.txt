@@ -125,10 +125,10 @@ Expected actions por mecanica (ejemplos):
 
 Flujo de persistencia (sesiones y días)
 ---------------------------------------
-- Al iniciar una sesión (POST /sessions con el payload completo) el backend siembra/actualiza todos los expected_actions de la sesión y mantiene las FK visibles. No se borran expected_actions en llamadas posteriores.
-- Las canonical_actions se envían desde el front conforme ocurren (o en el snapshot diario) y se upsertan; las comparisons/daily_effects se calculan en /sessions/{id}/resolve_day_effects usando los expected ya guardados.
-- Si el backend no encuentra expected_actions en DB al resolver un día, devuelve ok:false con reason=missing_expected_actions sin romper FK.
-- Orden de normalización: borrar comparisons/daily_effects/canonical/events/logs y luego upsert expected (sin borrarlos), canonical, logs. Así las referencias quedan íntegras.
+- POST /sessions recibe el payload completo y normaliza expected_actions, canonical_actions, comparisons, eventos, logs y estados derivados.
+- La resolución diaria se calcula en el frontend y viaja dentro del payload de sesión; el backend ya no expone un endpoint separado para resolver efectos diarios.
+- La normalización es idempotente por session_id: borra derivados de la sesión y reinserta datos estructurados manteniendo las FK.
+- Orden de normalización: catálogos mínimos, expected_actions, canonical_actions, detalles por mecánica, comparisons, eventos/logs y estados.
 
 
 Backend
@@ -141,10 +141,10 @@ Carpeta: backend/
 
 Flujo actualizado (expected/canonical)
 --------------------------------------
-- Expected_actions se guardan una vez al iniciar la sesión (POST /sessions) y no se borran después.
-- /sessions/{id}/resolve_day_effects puede recibir opcionalmente expected_actions (solo las opciones elegidas) y canonical_actions del día; primero las upserta (expected → canonical) y luego calcula comparisons/daily_effects.
-- Si faltan expected en DB, responde ok:false con reason=missing_expected_actions sin romper FK.
-- Mantén el orden: expected primero, luego canonical, luego comparisons. Los borrados diarios no tocan expected.
+- Expected_actions se normalizan desde el payload de POST /sessions.
+- Canonical_actions se normalizan desde el mismo payload y se conectan a sus tablas detalle por mecánica.
+- Comparisons se persisten desde el payload con FK a expected_actions y canonical_actions cuando el match existe.
+- Mantén el orden: expected primero, luego canonical y detalles, luego comparisons.
 - rebuild_db.py
   Utilidad de mantenimiento/normalización.
 

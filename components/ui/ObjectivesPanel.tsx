@@ -1,32 +1,16 @@
 import React from 'react';
-import type { ActiveCaseDisplay } from '../../hooks/useCaseTracker';
 import type { CommitmentDisplayItem } from '../../services/commitments_text_generator';
 
-interface CaseObjectivesPanelProps {
+interface ObjectivesPanelProps {
   isOpen: boolean;
   onToggle: () => void;
   hasUnseenUpdates: boolean;
   unseenCount: number;
-  activeCase: ActiveCaseDisplay | null;
   commitments: CommitmentDisplayItem[];
   collapsed?: boolean;
   hideHeader?: boolean;
   className?: string;
 }
-
-const goalStatusStyles: Record<ActiveCaseDisplay['goals'][number]['status'], string> = {
-  pending: 'bg-gray-500/20 text-gray-200 border-gray-400/30',
-  in_progress: 'bg-blue-500/20 text-blue-100 border-blue-300/40',
-  completed: 'bg-emerald-500/20 text-emerald-100 border-emerald-300/40',
-  failed: 'bg-red-500/20 text-red-100 border-red-300/40',
-};
-
-const goalStatusLabel: Record<ActiveCaseDisplay['goals'][number]['status'], string> = {
-  pending: 'Pendiente',
-  in_progress: 'En progreso',
-  completed: 'Completado',
-  failed: 'Fallido',
-};
 
 const commitmentStatusStyles: Record<CommitmentDisplayItem['status'], string> = {
   active: 'bg-amber-400/20 text-amber-100 border-amber-300/50',
@@ -46,12 +30,11 @@ const commitmentStatusLabel: Record<CommitmentDisplayItem['status'], string> = {
   failed: 'Incumplido',
 };
 
-const CaseObjectivesPanel: React.FC<CaseObjectivesPanelProps> = ({
+const ObjectivesPanel: React.FC<ObjectivesPanelProps> = ({
   isOpen,
   onToggle,
   hasUnseenUpdates,
   unseenCount,
-  activeCase,
   commitments,
   collapsed = false,
   hideHeader = false,
@@ -59,32 +42,6 @@ const CaseObjectivesPanel: React.FC<CaseObjectivesPanelProps> = ({
 }) => {
   const content = (
     <div className="max-h-[70vh] space-y-4 overflow-y-auto px-4 py-4 pr-2">
-      <section>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-200/90">Objetivos</p>
-        {!activeCase ? (
-          <p className="rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs text-slate-300">
-            Aun no hay objetivos visibles.
-          </p>
-        ) : (
-          <div className="rounded-xl border border-blue-950/70 bg-slate-950/60 p-3">
-            <ul className="space-y-2">
-              {activeCase.goals.map((goal) => (
-                <li key={goal.goal_id} className="rounded-lg border border-white/10 bg-slate-900/80 p-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-100">{goal.title}</p>
-                    </div>
-                    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${goalStatusStyles[goal.status]}`}>
-                      {goalStatusLabel[goal.status]}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
-
       <section>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-200/90">Decisiones</p>
         {commitments.length === 0 ? (
@@ -166,4 +123,4 @@ const CaseObjectivesPanel: React.FC<CaseObjectivesPanelProps> = ({
   );
 };
 
-export default CaseObjectivesPanel;
+export default ObjectivesPanel;

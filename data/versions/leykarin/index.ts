@@ -9,7 +9,6 @@ import {
   SECRETARY_ROLE,
   TIME_SLOTS,
 } from './defaults';
-import { LEYKARIN_CASES } from './cases';
 import type { VersionContentPack } from '../types';
 
 export const LEYKARIN_CONTENT: VersionContentPack = {
@@ -19,7 +18,6 @@ export const LEYKARIN_CONTENT: VersionContentPack = {
   questions: LEYKARIN_QUESTIONS,
   emails: LEYKARIN_EMAIL_TEMPLATES,
   documents: LEYKARIN_DOCUMENTS,
-  cases: LEYKARIN_CASES,
   defaults: {
     timeSlots: TIME_SLOTS,
     secretaryRole: SECRETARY_ROLE,

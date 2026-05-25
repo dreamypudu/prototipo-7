@@ -1,8 +1,8 @@
 import argparse
-import json
 from typing import Optional
 
 from backend.main import create_schema, get_conn, normalize_session
+from backend.json_utils import json_load
 
 
 def normalize_sessions(session_id: Optional[str]) -> int:
@@ -24,7 +24,7 @@ def normalize_sessions(session_id: Optional[str]) -> int:
 
         conn.execute("BEGIN")
         for row in rows:
-            session = json.loads(row["payload"])
+            session = json_load(row["payload"]) or {}
             normalize_session(conn, row["session_id"], session, row["created_at"])
         conn.commit()
 

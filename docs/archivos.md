@@ -73,7 +73,6 @@ Este documento resume la responsabilidad principal de cada zona del proyecto.
 | Archivo | Funcion |
 |---|---|
 | `hooks/useMechanicLogSync.ts` | Sincroniza buffers del `MechanicEngine` con `GameState`. |
-| `hooks/useCaseTracker.ts` | Controla visibilidad y estado de objetivos/casos. |
 | `hooks/useCommitmentsTracker.ts` | Construye y actualiza compromisos visibles al jugador. |
 
 ## Componentes Globales
