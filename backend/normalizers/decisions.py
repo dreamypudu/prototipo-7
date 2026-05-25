@@ -1,8 +1,8 @@
 try:
-    from ..json_utils import bool_or_none, first_present, float_or_none, int_or_none, to_jsonb
+    from ..json_utils import as_record, bool_or_none, first_present, float_or_none, int_or_none, to_jsonb
     from .common import ensure_decision_reference, ensure_stakeholder, find_stakeholder_by_name
 except ImportError:
-    from json_utils import bool_or_none, first_present, float_or_none, int_or_none, to_jsonb
+    from json_utils import as_record, bool_or_none, first_present, float_or_none, int_or_none, to_jsonb
     from normalizers.common import ensure_decision_reference, ensure_stakeholder, find_stakeholder_by_name
 
 
@@ -34,6 +34,36 @@ def _coerce_tags(raw_tags):
     return (None, None, None)
 
 
+def _number_delta(primary, before, after):
+    explicit_delta = float_or_none(primary)
+    if explicit_delta is not None:
+        return explicit_delta
+    before_value = float_or_none(before)
+    after_value = float_or_none(after)
+    if before_value is None or after_value is None:
+        return None
+    return after_value - before_value
+
+
+def _zero_if_missing(value):
+    number = float_or_none(value)
+    return number if number is not None else 0
+
+
+def _extract_consequences(decision: dict):
+    return as_record(first_present(decision.get("consequences"), decision.get("raw_consequences")))
+
+
+def _extract_global_delta(decision: dict, consequences: dict, field: str, legacy_field: str):
+    before = as_record(first_present(decision.get("globalEffectsBefore"), decision.get("global_effects_before")))
+    after = as_record(first_present(decision.get("globalEffectsAfter"), decision.get("global_effects_after")))
+    return _number_delta(
+        first_present(consequences.get(legacy_field), consequences.get(field)),
+        before.get(field),
+        after.get(field),
+    )
+
+
 def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: str | None, decisions: list, stakeholders_state: list):
     for index, decision in enumerate(decisions, start=1):
         node_id = first_present(decision.get("node_id"), decision.get("nodeId"))
@@ -41,12 +71,29 @@ def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: s
         option_text = first_present(decision.get("option_text"), decision.get("choiceText"))
         raw_tags = first_present(decision.get("raw_tags"), decision.get("tags"))
         tag_type, tag_value, tag_score = _coerce_tags(raw_tags)
-        consequences = decision.get("consequences") if isinstance(decision.get("consequences"), dict) else {}
+        consequences = _extract_consequences(decision)
         stakeholder = find_stakeholder_by_name(stakeholders_state, decision.get("stakeholder"))
-        npc_id = first_present(decision.get("npc_id"), decision.get("stakeholder_id"), stakeholder.get("id") if stakeholder else None)
-        npc_role = first_present(decision.get("npc_role"), stakeholder.get("role") if stakeholder else None)
-        npc_name = first_present(decision.get("npc_name"), decision.get("stakeholder"), stakeholder.get("name") if stakeholder else None)
-        sequence_id = decision.get("sequence_id")
+        npc_id = first_present(
+            decision.get("npc_id"),
+            decision.get("npcId"),
+            decision.get("stakeholder_id"),
+            decision.get("stakeholderId"),
+            stakeholder.get("id") if stakeholder else None,
+        )
+        npc_role = first_present(decision.get("npc_role"), decision.get("npcRole"), stakeholder.get("role") if stakeholder else None)
+        npc_name = first_present(decision.get("npc_name"), decision.get("npcName"), decision.get("stakeholder"), stakeholder.get("name") if stakeholder else None)
+        sequence_id = first_present(decision.get("sequence_id"), decision.get("sequenceId"))
+        case_id = first_present(decision.get("case_id"), decision.get("caseId"))
+        node_title = first_present(decision.get("node_title"), decision.get("nodeTitle"), node_id)
+        time_slot = first_present(decision.get("time_slot"), decision.get("timeSlot"))
+        trust_delta = _zero_if_missing(first_present(consequences.get("trust_delta"), consequences.get("trustChange")))
+        support_delta = _zero_if_missing(first_present(consequences.get("support_delta"), consequences.get("supportChange")))
+        reputation_delta = _zero_if_missing(_extract_global_delta(decision, consequences, "reputation", "reputationChange"))
+        budget_delta = _zero_if_missing(_extract_global_delta(decision, consequences, "budget", "budgetChange"))
+        project_progress_delta = _zero_if_missing(
+            first_present(consequences.get("project_progress_delta"), consequences.get("projectProgressChange"))
+        )
+        dialogue_response = first_present(consequences.get("dialogue_response"), consequences.get("dialogueResponse"))
 
         ensure_stakeholder(conn, npc_id, npc_name, npc_role)
         ensure_decision_reference(
@@ -60,7 +107,7 @@ def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: s
             npc_role=npc_role,
             npc_name=npc_name,
             day=int_or_none(decision.get("day")),
-            time_slot=decision.get("timeSlot") or decision.get("time_slot"),
+            time_slot=time_slot,
             raw_node={"decision": decision},
             raw_option={"tags": raw_tags, "consequences": consequences},
         )
@@ -78,16 +125,16 @@ def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: s
             (
                 session_id,
                 user_id,
-                int_or_none(decision.get("decision_order")) or index,
+                int_or_none(first_present(decision.get("decision_order"), decision.get("decisionOrder"))) or index,
                 sequence_id,
-                decision.get("case_id"),
+                case_id,
                 node_id,
-                first_present(decision.get("node_title"), node_id),
+                node_title,
                 npc_id,
                 npc_role,
                 npc_name,
                 int_or_none(decision.get("day")),
-                decision.get("timeSlot") or decision.get("time_slot"),
+                time_slot,
                 option_id,
                 option_text,
                 bool_or_none(first_present(decision.get("is_decision"), option_id != "NEXT")),
@@ -95,12 +142,12 @@ def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: s
                 tag_value,
                 tag_score,
                 to_jsonb(raw_tags),
-                float_or_none(consequences.get("trustChange")),
-                float_or_none(consequences.get("supportChange")),
-                float_or_none(consequences.get("reputationChange")),
-                float_or_none(consequences.get("budgetChange")),
-                float_or_none(consequences.get("projectProgressChange")),
-                consequences.get("dialogueResponse"),
+                trust_delta,
+                support_delta,
+                reputation_delta,
+                budget_delta,
+                project_progress_delta,
+                dialogue_response,
                 to_jsonb(consequences),
             ),
         )
