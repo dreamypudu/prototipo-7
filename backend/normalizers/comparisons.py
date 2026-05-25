@@ -46,38 +46,3 @@ def insert_comparisons(conn, session_id: str, comparisons: list, expected_ids: s
                 to_jsonb(raw_deviation),
             ),
         )
-
-
-def insert_daily_resolutions(conn, session_id: str, daily_resolutions: list, created_at: str, comparison_mode: str):
-    for resolution in daily_resolutions:
-        resolution_day = int_or_none(resolution.get("day"))
-        if resolution_day is None:
-            continue
-        resolution_created_at = resolution.get("created_at") or created_at
-        resolution_status = resolution.get("status") or ("frontend_applied" if comparison_mode == "frontend" else "applied")
-        conn.execute(
-            """
-            INSERT INTO daily_effects (
-                session_id, day, comparisons, global_deltas, stakeholder_deltas,
-                created_at, status, applied_at
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (session_id, day) DO UPDATE SET
-                comparisons = EXCLUDED.comparisons,
-                global_deltas = EXCLUDED.global_deltas,
-                stakeholder_deltas = EXCLUDED.stakeholder_deltas,
-                created_at = EXCLUDED.created_at,
-                status = EXCLUDED.status,
-                applied_at = EXCLUDED.applied_at
-            """,
-            (
-                session_id,
-                resolution_day,
-                to_jsonb(resolution.get("comparisons")),
-                to_jsonb(resolution.get("global_deltas")),
-                to_jsonb(resolution.get("stakeholder_deltas")),
-                resolution_created_at,
-                resolution_status,
-                resolution_created_at,
-            ),
-        )

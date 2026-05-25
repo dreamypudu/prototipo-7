@@ -10,11 +10,11 @@ try:
         resolve_anonymous_user_id,
         upsert_stakeholders_from_state,
     )
-    from .comparisons import insert_comparisons, insert_daily_resolutions
+    from .comparisons import insert_comparisons
     from .decisions import insert_explicit_decisions
     from .events import insert_mechanic_events
     from .process import insert_process_logs
-    from .state import insert_final_state, insert_player_actions, insert_question_log, insert_session_state
+    from .state import insert_final_state, insert_question_log
 except ImportError:
     from json_utils import as_list, as_record, to_jsonb
     from normalizers.actions import upsert_canonical_action, upsert_expected_action
@@ -25,26 +25,22 @@ except ImportError:
         resolve_anonymous_user_id,
         upsert_stakeholders_from_state,
     )
-    from normalizers.comparisons import insert_comparisons, insert_daily_resolutions
+    from normalizers.comparisons import insert_comparisons
     from normalizers.decisions import insert_explicit_decisions
     from normalizers.events import insert_mechanic_events
     from normalizers.process import insert_process_logs
-    from normalizers.state import insert_final_state, insert_player_actions, insert_question_log, insert_session_state
+    from normalizers.state import insert_final_state, insert_question_log
 
 
 DERIVED_TABLES_DELETE_ORDER = [
     "comparisons",
-    "daily_effects",
     "mechanic_events",
     "canonical_actions",
     "expected_actions",
     "explicit_decisions",
     "process_logs",
-    "player_actions_log",
     "question_log",
     "final_states",
-    "session_state",
-    "session_stakeholders",
 ]
 
 
@@ -82,7 +78,6 @@ def _upsert_session_row(
 
 def normalize_session(conn, session_id: str, session: dict, created_at: str):
     metadata = as_record(session.get("session_metadata"))
-    comparison_mode = session.get("comparison_mode", "backend")
     version_id = metadata.get("simulator_version_id")
     user_id = resolve_anonymous_user_id(session_id, metadata.get("user_id"))
     start_time = metadata.get("start_time")
@@ -97,9 +92,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     canonical_actions = as_list(session.get("canonical_actions"))
     mechanic_events = as_list(session.get("mechanic_events"))
     comparisons = as_list(session.get("comparisons"))
-    daily_resolutions = as_list(session.get("daily_resolutions"))
     process_log = as_list(session.get("process_log"))
-    player_actions_log = as_list(session.get("player_actions_log"))
     question_log = as_list(session.get("question_log"))
     final_state = as_record(session.get("final_state"))
     stakeholders_state = final_state.get("stakeholders") if isinstance(final_state, dict) else []
@@ -151,11 +144,8 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
 
     insert_mechanic_events(conn, session_id, version_id, mechanic_events)
     insert_comparisons(conn, session_id, comparisons, expected_ids, canonical_ids)
-    insert_daily_resolutions(conn, session_id, daily_resolutions, created_at, comparison_mode)
     insert_process_logs(conn, session_id, version_id, process_log)
-    insert_player_actions(conn, session_id, player_actions_log)
     insert_question_log(conn, session_id, question_log)
-    insert_session_state(conn, session_id, final_state)
     insert_final_state(conn, session_id, user_id, version_id, final_state, explicit_decisions)
 
     return {
@@ -164,9 +154,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
         "canonical_actions": len(canonical_actions),
         "mechanic_events": len(mechanic_events),
         "comparisons": len(comparisons),
-        "daily_resolutions": len(daily_resolutions),
         "process_log": len(process_log),
-        "player_actions_log": len(player_actions_log),
         "question_log": len(question_log),
         "final_state": 1 if final_state else 0,
     }

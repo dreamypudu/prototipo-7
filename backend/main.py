@@ -162,20 +162,11 @@ def get_session_normalized(session_id: str):
             *DETAIL_TABLE_NAMES,
             "mechanic_events",
             "comparisons",
-            "daily_effects",
             "process_logs",
-            "player_actions_log",
             "question_log",
-            "session_stakeholders",
             "final_states",
         ]:
             data[table_name] = _fetch_table(conn, table_name, session_id)
-
-        state_row = conn.execute(
-            "SELECT * FROM session_state WHERE session_id = %s",
-            (session_id,),
-        ).fetchone()
-        data["session_state"] = dict(state_row) if state_row else None
 
     return data
 

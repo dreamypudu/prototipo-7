@@ -31,7 +31,15 @@ def _drop_constraint(conn, table_name: str, constraint_name: str):
 
 
 def _migrate_legacy_columns(conn):
-    conn.execute("DROP TABLE IF EXISTS cases CASCADE")
+    for table_name in [
+        "cases",
+        "daily_effects",
+        "player_actions_log",
+        "session_state",
+        "session_stakeholders",
+        "reports",
+    ]:
+        conn.execute(f"DROP TABLE IF EXISTS {table_name} CASCADE")
     conn.execute(
         """
         DO $$
@@ -88,15 +96,7 @@ def _migrate_json_columns(conn):
         ("comparisons", "deviation"),
         ("process_logs", "raw_metadata"),
         ("process_logs", "events"),
-        ("daily_effects", "comparisons"),
-        ("daily_effects", "global_deltas"),
-        ("daily_effects", "stakeholder_deltas"),
-        ("player_actions_log", "metadata"),
-        ("session_state", "stakeholders"),
-        ("session_state", "global_state"),
-        ("session_stakeholders", "state"),
         ("final_states", "raw_final_state"),
-        ("reports", "payload"),
         ("scheduler_action_details", "week_schedule"),
         ("scheduler_action_details", "conflicts"),
         ("scheduler_action_details", "load_summary"),
@@ -437,63 +437,7 @@ def _create_contract_tables(conn):
 
 
 def _create_support_tables(conn):
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS daily_effects (
-            effect_id BIGSERIAL PRIMARY KEY,
-            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-            day INTEGER NOT NULL,
-            comparisons JSONB,
-            global_deltas JSONB,
-            stakeholder_deltas JSONB,
-            created_at TEXT NOT NULL,
-            status TEXT,
-            applied_at TEXT,
-            UNIQUE (session_id, day)
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS player_actions_log (
-            player_action_id BIGSERIAL PRIMARY KEY,
-            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-            event TEXT,
-            metadata JSONB,
-            day INTEGER,
-            time_slot TEXT,
-            timestamp DOUBLE PRECISION
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS session_state (
-            session_id TEXT PRIMARY KEY REFERENCES sessions(session_id) ON DELETE CASCADE,
-            stakeholders JSONB,
-            global_state JSONB
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS session_stakeholders (
-            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-            stakeholder_id TEXT NOT NULL REFERENCES stakeholders(stakeholder_id),
-            state JSONB,
-            PRIMARY KEY (session_id, stakeholder_id)
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS reports (
-            report_id BIGSERIAL PRIMARY KEY,
-            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-            payload JSONB
-        )
-        """
-    )
+    return
 
 
 def _add_missing_columns(conn):
@@ -676,37 +620,6 @@ def _add_missing_columns(conn):
         ADD COLUMN IF NOT EXISTS completed_scenarios_count INTEGER,
         ADD COLUMN IF NOT EXISTS raw_final_state JSONB
         """,
-        """
-        ALTER TABLE daily_effects
-        ADD COLUMN IF NOT EXISTS day INTEGER,
-        ADD COLUMN IF NOT EXISTS comparisons JSONB,
-        ADD COLUMN IF NOT EXISTS global_deltas JSONB,
-        ADD COLUMN IF NOT EXISTS stakeholder_deltas JSONB,
-        ADD COLUMN IF NOT EXISTS created_at TEXT,
-        ADD COLUMN IF NOT EXISTS status TEXT,
-        ADD COLUMN IF NOT EXISTS applied_at TEXT
-        """,
-        """
-        ALTER TABLE player_actions_log
-        ADD COLUMN IF NOT EXISTS event TEXT,
-        ADD COLUMN IF NOT EXISTS metadata JSONB,
-        ADD COLUMN IF NOT EXISTS day INTEGER,
-        ADD COLUMN IF NOT EXISTS time_slot TEXT,
-        ADD COLUMN IF NOT EXISTS timestamp DOUBLE PRECISION
-        """,
-        """
-        ALTER TABLE session_state
-        ADD COLUMN IF NOT EXISTS stakeholders JSONB,
-        ADD COLUMN IF NOT EXISTS global_state JSONB
-        """,
-        """
-        ALTER TABLE session_stakeholders
-        ADD COLUMN IF NOT EXISTS state JSONB
-        """,
-        """
-        ALTER TABLE reports
-        ADD COLUMN IF NOT EXISTS payload JSONB
-        """,
     ]
     for statement in statements:
         conn.execute(statement)
@@ -822,10 +735,6 @@ def _add_contract_constraints(conn):
         ("final_states_session_id_fkey", "ALTER TABLE final_states ADD CONSTRAINT final_states_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
         ("final_states_user_id_fkey", "ALTER TABLE final_states ADD CONSTRAINT final_states_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)"),
         ("final_states_version_id_fkey", "ALTER TABLE final_states ADD CONSTRAINT final_states_version_id_fkey FOREIGN KEY (version_id) REFERENCES versions(version_id)"),
-        ("player_actions_log_session_id_fkey", "ALTER TABLE player_actions_log ADD CONSTRAINT player_actions_log_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
-        ("session_state_session_id_fkey", "ALTER TABLE session_state ADD CONSTRAINT session_state_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
-        ("session_stakeholders_session_id_fkey", "ALTER TABLE session_stakeholders ADD CONSTRAINT session_stakeholders_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
-        ("session_stakeholders_stakeholder_id_fkey", "ALTER TABLE session_stakeholders ADD CONSTRAINT session_stakeholders_stakeholder_id_fkey FOREIGN KEY (stakeholder_id) REFERENCES stakeholders(stakeholder_id)"),
     ]
     for constraint_name, ddl in constraints:
         conn.execute(_constraint_exists_block(constraint_name, ddl + ";"))
@@ -844,10 +753,7 @@ def _create_indexes(conn):
         "CREATE INDEX IF NOT EXISTS idx_events_node_option ON mechanic_events(node_id, option_id)",
         "CREATE INDEX IF NOT EXISTS idx_comparisons_session ON comparisons(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_process_session ON process_logs(session_id)",
-        "CREATE INDEX IF NOT EXISTS idx_player_session ON player_actions_log(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_question_log_session ON question_log(session_id)",
-        "CREATE INDEX IF NOT EXISTS idx_session_stakeholders_session ON session_stakeholders(session_id)",
-        "CREATE INDEX IF NOT EXISTS idx_daily_effects_session_day ON daily_effects(session_id, day)",
     ]
     for statement in indexes:
         conn.execute(statement)
