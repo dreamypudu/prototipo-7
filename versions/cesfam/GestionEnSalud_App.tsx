@@ -16,6 +16,7 @@ import { isFrontendComparisonMode } from '../../services/comparisonMode';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
+import { API_BASE_URL } from '../../services/apiConfig';
 import {
   clearSessionSnapshot,
   downloadSessionSnapshot,
@@ -73,10 +74,6 @@ interface PendingDayReviewState {
 }
 
 const PERIOD_DURATION = 90;
-const API_BASE_URL =
-  (import.meta as any)?.env?.VITE_API_URL ||
-  'https://prototipo-5-41cj.onrender.com';
-
 const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
   INNOVATEC: '/assets/common/logos/icono-compass.svg',
   CESFAM: '/assets/common/logos/icono-compass.svg',

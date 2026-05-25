@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { DecisionLogEntry, ProcessLogEntry, PlayerActionLogEntry, MechanicEvent, CanonicalAction, ExpectedAction, QuestionLogEntry } from '../../../types';
 import { SessionExport } from '../../../services/sessionExport';
+import { API_BASE_URL } from '../../../services/apiConfig';
+import { persistSessionExport } from '../../../services/sessionPersistence';
 
 interface DataExportProps {
     decisionLog: DecisionLogEntry[];
@@ -29,7 +31,6 @@ const DataExport: React.FC<DataExportProps> = ({
         link.click();
     };
     const hasSessionData = decisionLog.length > 0 || canonicalActions.length > 0 || expectedActions.length > 0 || mechanicEvents.length > 0 || processLog.length > 0 || questionLog.length > 0;
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [sendError, setSendError] = useState<string | null>(null);
 
@@ -38,16 +39,7 @@ const DataExport: React.FC<DataExportProps> = ({
         setSendStatus('sending');
         setSendError(null);
         try {
-            const url = `${apiBaseUrl.replace(/\/$/, '')}/sessions`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(sessionExport)
-            });
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `Request failed (${response.status})`);
-            }
+            await persistSessionExport(sessionExport, API_BASE_URL);
             setSendStatus('success');
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';

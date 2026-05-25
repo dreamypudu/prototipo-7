@@ -9,6 +9,7 @@ import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../servi
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
+import { API_BASE_URL } from '../../services/apiConfig';
 import {
   clearSessionSnapshot,
   downloadSessionSnapshot,
@@ -43,9 +44,6 @@ interface InnovatecAppProps {
 }
 
 const PERIOD_DURATION = 30; // 30 seconds per time slot
-const API_BASE_URL =
-  (import.meta as any)?.env?.VITE_API_URL ||
-  'https://prototipo-5-41cj.onrender.com';
 const INNOVATEC_CONTENT = getVersionContentPack('INNOVATEC');
 const scenarioData = INNOVATEC_CONTENT.scenarios;
 const EMAIL_TEMPLATES = INNOVATEC_CONTENT.emails;
