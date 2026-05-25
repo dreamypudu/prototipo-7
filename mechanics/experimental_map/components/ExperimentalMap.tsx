@@ -25,7 +25,7 @@ const BridgeResponse: React.FC<{ option: ScenarioOption }> = ({ option }) => {
             <span className="cursor-pointer">i</span>
             <div className="absolute left-full ml-2 w-72 p-2 bg-gray-900 border border-gray-600 rounded-md text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
                 <p className="font-bold text-blue-400">Respuesta Puente:</p>
-                <p>"{option.consequences.dialogueResponse}"</p>
+                <p>"{option.consequences.bridgeResponse}"</p>
             </div>
         </div>
     );

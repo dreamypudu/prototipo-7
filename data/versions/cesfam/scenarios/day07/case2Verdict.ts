@@ -6,14 +6,14 @@ export const nodes: ScenarioNode[] = [
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Director, se acabo el tiempo. Son las 16:30 y el plazo administrativo para dar curso o rechazar la denuncia formal de Marcela Soto vence en medía hora.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_VEREDICTO_2',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Tengo la resolución impresa en su escritorio. Si usted aprueba el sumario, Daniel Rios sera suspendido de sus funciones de jefatura mientras dure la investigacion. Si usted lo rechaza, Marcela Soto quedara desautorizada frente a todo el Centro de Salud.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_VEREDICTO_3',
@@ -31,7 +31,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Entendido. Ingresare el documento al sistema ahora mismo. Preparese para la reacción del Sector Amarillo manana.',
+              bridgeResponse: 'Entendido. Ingresare el documento al sistema ahora mismo. Preparese para la reacción del Sector Amarillo manana.',
             },
           },
           {
@@ -44,7 +44,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Como ordene, Director. Destruire la solicitud. Pero le advierto que Marcela Soto y el Dr. Guzman no se van a quedar de brazos cruzados manana.',
+              bridgeResponse: 'Como ordene, Director. Destruire la solicitud. Pero le advierto que Marcela Soto y el Dr. Guzman no se van a quedar de brazos cruzados manana.',
             },
           },
           {
@@ -57,7 +57,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Una salida diplomatica, aunque a Marcela Soto no le va a gustar que esto quede contenido dentro del Centro de Salud. Dejare lista la amonestacion.',
+              bridgeResponse: 'Una salida diplomatica, aunque a Marcela Soto no le va a gustar que esto quede contenido dentro del Centro de Salud. Dejare lista la amonestacion.',
             },
           },
         ],

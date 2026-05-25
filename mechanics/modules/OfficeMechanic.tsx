@@ -16,6 +16,7 @@ const OfficeMechanic: React.FC = () => {
   const {
     characterInFocus,
     currentDialogue,
+    isDialogueNarration,
     playerActions,
     isLoading,
     gameStatus,
@@ -63,6 +64,7 @@ const OfficeMechanic: React.FC = () => {
           participants={sceneParticipants}
           allStakeholders={gameState.stakeholders}
           dialogue={currentDialogue}
+          isNarration={isDialogueNarration}
           timeSlot={gameState.timeSlot}
           backgroundKey={backgroundKey as any}
           onTypingStateChange={onDialogueTypingChange}

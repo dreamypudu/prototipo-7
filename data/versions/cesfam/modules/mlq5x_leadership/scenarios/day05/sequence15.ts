@@ -1,13 +1,13 @@
 import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
 import { mlqTags } from '../tags';
 
-const nextOption = (dialogueResponse = ''): ScenarioOption => ({
+const nextOption = (): ScenarioOption => ({
   option_id: 'NEXT',
   cardTitle: 'Siguiente',
   cardEmoji: '➡️',
   text: 'Continuar',
   tags: mlqTags(),
-  consequences: { dialogueResponse },
+  consequences: {},
 });
 
 const sectorHeads = ['andres-guzman', 'marcela-soto', 'daniel-rios'];
@@ -17,6 +17,7 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D3S15_CHIEFS_ENTER',
     participantIds: sectorHeads,
     dialogue: '(Entran los tres jefes de sector.)',
+    dialogueIsNarration: true,
     options: [nextOption()],
   },
   {
@@ -76,8 +77,20 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "EI": 2, "CI": 2 }),
         consequences: {
           supportChange: -10,
-          dialogueResponse: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Si se va a considerar una excepcion, necesito que el reglamento no quede como una sugerencia.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Eso es todo lo que pido: que si algo funciona en terreno, se mire antes de descartarlo.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
+            }
+          ]
         },
       },
       {
@@ -91,8 +104,20 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'daniel-rios': { trustChange: -5, supportChange: -5 },
           },
-          dialogueResponse: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Gracias. El reglamento existe para que los turnos no dependan de ensayos informales.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Entiendo la regla, pero entonces nunca vamos a probar una salida aunque el equipo ya haya visto que funciona.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
+            }
+          ]
         },
       },
       {
@@ -105,8 +130,20 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'daniel-rios': { supportChange: 10 },
           },
-          dialogueResponse: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Eso abre una puerta real para el equipo. Podemos traer evidencia y ordenar la propuesta.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Estoy dispuesta a revisar, pero tiene que hacerse por una via formal y trazable.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
+            }
+          ]
         },
       },
     ],
@@ -117,6 +154,7 @@ export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D3_SEQUENCE_15',
     initialDialogue: '(La decision de revisar el uso del ecografo convoca a los tres jefes de sector durante la tarde.)',
+    initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D3S15_CHIEFS_ENTER',
       'MLQ5X_D3S15_N20_GUZMAN_ULTRASOUND',
@@ -127,6 +165,7 @@ export const sequences: MeetingSequence[] = [
       'MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION',
     ],
     finalDialogue: 'La reunion deja abierta una discusion mayor: cuando la evidencia operacional tensiona el reglamento, la direccion debe decidir como aprender sin perder control.',
+    finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 5, slot: 'tarde' },
     isContingent: true,

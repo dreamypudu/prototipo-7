@@ -181,11 +181,13 @@ export interface ContentUnlocks {
     documents?: string[];
 }
 
-export interface NarrativeReaction {
+export interface BridgeResponseLine {
     stakeholder_id?: string;
     stakeholder_role?: string;
     text: string;
 }
+
+export type BridgeResponse = string | BridgeResponseLine[];
 
 export interface Consequences {
     budgetChange?: number;
@@ -193,9 +195,8 @@ export interface Consequences {
     supportChange?: number;
     reputationChange?: number;
     projectProgressChange?: number;
-    dialogueResponse: string;
+    bridgeResponse?: BridgeResponse;
     response_stakeholder_id?: string;
-    reactions?: NarrativeReaction[];
     expected_actions?: Partial<ExpectedAction>[]; // NEW: Actions that "should" happen after this choice
     unlocks?: ContentUnlocks;
     email_event_ids?: string[];
@@ -410,6 +411,7 @@ export interface ScenarioNode {
   stakeholderRole?: string;
   participantIds?: string[];
   dialogue: string;
+  dialogueIsNarration?: boolean;
   options: ScenarioOption[];
 }
 
@@ -418,8 +420,10 @@ export interface MeetingSequence {
     stakeholderId?: string;
     stakeholderRole?: string;
     initialDialogue: string;
+    initialDialogueIsNarration?: boolean;
     nodes: string[];
     finalDialogue: string;
+    finalDialogueIsNarration?: boolean;
     consumesTime?: boolean;
     triggerMap?: {
         day: number;

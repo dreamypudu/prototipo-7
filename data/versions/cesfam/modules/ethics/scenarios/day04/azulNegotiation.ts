@@ -7,7 +7,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Azul',
         participantIds: ['paz-herrera'],
         dialogue: 'Director, lo estabamos esperando. Supongo que ya vio el desastre logistico que intentan armar los otros sectores en la planificacion.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AZUL_NEGOTIATION_2',
@@ -26,7 +26,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 10,
               supportChange: 5,
               reputationChange: 10,
-              dialogueResponse: 'Una decision sensata, Director. Sabia que podiamos entendernos en terminos de calidad.',
+              bridgeResponse: 'Una decision sensata, Director. Sabia que podiamos entendernos en terminos de calidad.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -55,7 +55,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -10,
               supportChange: -10,
               reputationChange: -10,
-              dialogueResponse: 'Me esta diciendo que va a sacrificar una alianza institucional por darle el gusto al Sector Rojo. Tomo nota.',
+              bridgeResponse: 'Me esta diciendo que va a sacrificar una alianza institucional por darle el gusto al Sector Rojo. Tomo nota.',
             },
           },
           {
@@ -68,7 +68,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: 0,
               reputationChange: -5,
-              dialogueResponse: 'No hay mucho que evaluar. Si nos quita el box, yo mismo llamare a la Universidad para explicarles su decision.',
+              bridgeResponse: 'No hay mucho que evaluar. Si nos quita el box, yo mismo llamare a la Universidad para explicarles su decision.',
             },
           },
         ],
@@ -79,7 +79,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Enfermera Sector Azul',
         participantIds: ['andres-guzman'],
         dialogue: 'Ese no es nuestro unico problema. El lunes en la mañana tengo curaciones avanzadas de pie diabético. Pero Daniel Rios ya dejo entrever que quiere llevarse a Javier Castro para reforzar terreno.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AZUL_NEGOTIATION_4',
@@ -98,7 +98,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 10,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Perfecto. Le avisare a Javier que el lunes se queda con nosotros.',
+              bridgeResponse: 'Perfecto. Le avisare a Javier que el lunes se queda con nosotros.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -127,7 +127,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -10,
               supportChange: -10,
               reputationChange: -15,
-              dialogueResponse: 'Eso es una negligencia administrativa. Si un paciente se complica por falta de manos, lo voy a dejar por escrito.',
+              bridgeResponse: 'Eso es una negligencia administrativa. Si un paciente se complica por falta de manos, lo voy a dejar por escrito.',
             },
           },
           {
@@ -140,7 +140,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: -5,
               reputationChange: -5,
-              dialogueResponse: 'Mis curaciones no se mueven, Director. Le sugiero que lo resuelva antes de que llegue el lunes.',
+              bridgeResponse: 'Mis curaciones no se mueven, Director. Le sugiero que lo resuelva antes de que llegue el lunes.',
             },
           },
         ],

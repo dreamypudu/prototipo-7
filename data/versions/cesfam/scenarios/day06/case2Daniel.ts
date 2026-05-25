@@ -7,7 +7,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Amarillo',
         participantIds: ['ricardo-meza'],
         dialogue: 'Jefe... digo, Director. Ya se a que viene. Marcela Soto ya fue a instalarle su version del asunto por las cajas de amoxicilina pediatrica, verdad? A ella le importan mas los timbres que la gente.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_DANIEL_2',
@@ -15,7 +15,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Amarillo',
         participantIds: ['ricardo-meza'],
         dialogue: 'Le voy a decir la verdad sin rodeos: si, entre a la bodega y saque las cajas. El Dr. Meza estaba estabilizando a un paciente descompensado y no iba a soltar la atencion para firmar un formulario en ese momento.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_DANIEL_3',
@@ -23,7 +23,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Amarillo',
         participantIds: ['ricardo-meza'],
         dialogue: 'Teniamos ninos con fiebre alta esperando atencion. Fui a pedirle los antibioticos a Marcela Soto y me cerro la puerta en la cara porque faltaba una firma. No iba a dejar que los pacientes pagaran esa burocracia, asi que use una llave antigua de mantenimiento y retire lo que necesitabamos.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '\u27A1\uFE0F', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_DANIEL_4',
@@ -42,7 +42,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 15,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Sabia que usted entendía la calle, Director. Si pone ese limite con criterio, yo puedo sostener al equipo y bajar la temperatura del sector.',
+              bridgeResponse: 'Sabia que usted entendía la calle, Director. Si pone ese limite con criterio, yo puedo sostener al equipo y bajar la temperatura del sector.',
               expected_actions: [
                 {
                   mechanic_id: 'admin',
@@ -72,7 +72,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -15,
               supportChange: -10,
               reputationChange: -5,
-              dialogueResponse: 'Perfecto. Entonces abracese con Marcela Soto y sus formularios mientras nosotros damos la cara a las familias. Quedo clarisimo de que lado esta la Direccion.',
+              bridgeResponse: 'Perfecto. Entonces abracese con Marcela Soto y sus formularios mientras nosotros damos la cara a las familias. Quedo clarisimo de que lado esta la Direccion.',
             },
           },
           {
@@ -85,7 +85,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Revise todo lo que quiera, Director. Mientras usted duda, nosotros seguimos parchando el sector con los recursos justos.',
+              bridgeResponse: 'Revise todo lo que quiera, Director. Mientras usted duda, nosotros seguimos parchando el sector con los recursos justos.',
             },
           },
         ],

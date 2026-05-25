@@ -18,7 +18,9 @@ const InnovatecOfficeMechanic: React.FC = () => {
     secretary,
     schedulingState,
     currentDialogue,
+    isDialogueNarration,
     characterInFocus,
+    currentMeeting,
     playerActions,
     isLoading,
     gameStatus,
@@ -60,12 +62,13 @@ const InnovatecOfficeMechanic: React.FC = () => {
       case 'confirming_schedule':
       case 'none':
       default:
-        return characterInFocus ? (
+        return characterInFocus || currentMeeting ? (
           <DialogueArea
-            key={characterInFocus.name}
+            key={characterInFocus?.name ?? currentMeeting?.sequence.sequence_id ?? 'narration'}
             stakeholder={characterInFocus}
             allStakeholders={gameState.stakeholders}
             dialogue={currentDialogue}
+            isNarration={isDialogueNarration}
             timeSlot={gameState.timeSlot}
             onTypingStateChange={onDialogueTypingChange}
           />

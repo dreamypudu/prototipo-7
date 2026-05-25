@@ -6,21 +6,21 @@ export const nodes: ScenarioNode[] = [
         stakeholderId: 'marcela-soto',
         stakeholderRole: 'Jefa Sector Rojo',
         dialogue: 'Director, pase. Supongo que viene por el incidente de la bodega. Tengo sobre el escritorio el formulario rechazado y el registro de camaras del pasillo para que vea que esto no es una impresion mia.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_MARCELA_2',
         stakeholderId: 'marcela-soto',
         stakeholderRole: 'Jefa Sector Rojo',
         dialogue: 'La solicitud del Sr. Daniel Rios venia sin la validacion medica obligatoria. Como responsable subrogante de la bodega, mi deber era retener el despacho hasta que el formulario estuviera correcto. No tenia margen legal para hacer otra cosa.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_MARCELA_3',
         stakeholderId: 'marcela-soto',
         stakeholderRole: 'Jefa Sector Rojo',
         dialogue: 'En lugar de conseguir la firma que faltaba, espero a que yo saliera a colacion, uso una llave maestra antigua que no deberia conservar y entro a la bodega central para sacar tres cajas de antibioticos pediatricos por su cuenta.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_MARCELA_4',
@@ -38,7 +38,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 15,
               supportChange: 5,
               reputationChange: 0,
-              dialogueResponse: 'Es la unica decision que protege al centro de un desastre mayor, Director. Dejare el documento listo para su formalizacion administrativa.',
+              bridgeResponse: 'Es la unica decision que protege al centro de un desastre mayor, Director. Dejare el documento listo para su formalizacion administrativa.',
               expected_actions: [
                 {
                   mechanic_id: 'admin',
@@ -68,7 +68,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -15,
               supportChange: -10,
               reputationChange: 0,
-              dialogueResponse: '¿Un llamado de atencion por allanar la bodega? Acaba de sentar un precedente nefasto, Director. Dejare por escrito que usted decidio encubrir esta falta.',
+              bridgeResponse: '¿Un llamado de atencion por allanar la bodega? Acaba de sentar un precedente nefasto, Director. Dejare por escrito que usted decidio encubrir esta falta.',
             },
           },
           {
@@ -81,7 +81,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Puede escuchar todas las excusas que quiera, Director. Los hechos ya estan registrados y las camaras no mienten. Lo estare esperando.',
+              bridgeResponse: 'Puede escuchar todas las excusas que quiera, Director. Los hechos ya estan registrados y las camaras no mienten. Lo estare esperando.',
             },
           },
         ],

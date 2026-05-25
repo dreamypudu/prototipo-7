@@ -39,6 +39,7 @@ export interface OfficeBaseState {
   variant: OfficeVariant;
   characterInFocus: Stakeholder | null;
   currentDialogue: string;
+  isDialogueNarration?: boolean;
   playerActions: PlayerAction[];
   conversationMode: ConversationMode;
   isLoading: boolean;

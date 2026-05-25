@@ -16,8 +16,16 @@ export const nodes: ScenarioNode[] = [
         text: 'Tengo una vision en construccion, pero necesito a todos como equipo para darle forma real.',
         tags: mlqTags({ "MI": 4, "IIC": 2 }),
         consequences: {
-          dialogueResponse: 'Solo espero que esta direccion sea mejor que la anterior.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Esa es una base seria. Si hay vision, puedo aportar desde lo tecnico y la docencia.',
+            },
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Solo espero que esta direccion sea mejor que la anterior.',
+            }
+          ]},
       },
       {
         option_id: 'B',
@@ -27,8 +35,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags(),
         consequences: {
           trustChange: -5,
-          dialogueResponse: 'Solo espero que esta direccion sea mejor que la anterior.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Comprendo que este conociendo el lugar, pero el CESFAM ya lleva demasiado tiempo sin rumbo claro.',
+            },
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Solo espero que esta direccion sea mejor que la anterior.',
+            }
+          ]},
       },
       {
         option_id: 'C',
@@ -37,8 +53,16 @@ export const nodes: ScenarioNode[] = [
         text: 'Mi vision es hacer bien lo que hay que hacer y los indicadores son la guia.',
         tags: mlqTags({ "RC": 2 }),
         consequences: {
-          dialogueResponse: 'Solo espero que esta direccion sea mejor que la anterior.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Los indicadores sirven, pero no reemplazan una direccion que inspire hacia donde vamos.',
+            },
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Solo espero que esta direccion sea mejor que la anterior.',
+            }
+          ]},
       },
     ],
   },
@@ -75,8 +99,16 @@ export const nodes: ScenarioNode[] = [
               },
             },
           ],
-          dialogueResponse: 'Gracias, director.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Perfecto. Con esa senal puedo responderle a la universidad con respaldo institucional.',
+            },
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Gracias, director.',
+            }
+          ]},
       },
       {
         option_id: 'B',
@@ -87,8 +119,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "MI": 2 }),
         consequences: {
           trustChange: 5,
-          dialogueResponse: 'Gracias, director.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Me sirve que se haga cargo, aunque necesito una respuesta antes de que la universidad cierre la ventana.',
+            },
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Gracias, director.',
+            }
+          ]},
       },
       {
         option_id: 'C',
@@ -98,8 +138,16 @@ export const nodes: ScenarioNode[] = [
           'Todavia estoy en proceso de revision interna y verificando box disponibles; no puedo darle una respuesta aun.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
-          dialogueResponse: 'Gracias, director.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Entiendo la revision, pero la universidad necesita una posicion. La ambiguedad tambien tiene costo.',
+            },
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Gracias, director.',
+            }
+          ]},
       },
     ],
   },
@@ -111,11 +159,13 @@ export const sequences: MeetingSequence[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     initialDialogue: '(Te reunes con Andres Guzman en el Sector Azul durante la tarde del jueves.)',
+    initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D2S11_N16_GUZMAN_VISION',
       'MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS',
     ],
     finalDialogue: 'Guzman queda esperando una senal clara sobre la continuidad de la docencia clinica del CESFAM.',
+    finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 4, slot: 'tarde' },
   },

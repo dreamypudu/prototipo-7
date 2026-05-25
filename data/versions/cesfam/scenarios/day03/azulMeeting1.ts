@@ -6,7 +6,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Azul',
         stakeholderId: 'andres-guzman',
         dialogue: 'Director, bienvenido. Soy el Dr. Andres Guzman, jefe del Sector Azul. Llevo ocho años en este Centro de Salud y conozco exactamente que sostiene a este sector. Se lo digo desde el principio: esto funciona porque nosotros lo hacemos funcionar.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }]
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }]
       },
   {
         node_id: 'INTRO_GUZMAN_NODE_2',
@@ -25,7 +25,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 5,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Mientras las prioridades queden claras, no deberiamos tener problemas.',
+              bridgeResponse: 'Mientras las prioridades queden claras, no deberiamos tener problemas.',
             },
           },
           {
@@ -38,7 +38,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Perfecto. Entonces sigamos.',
+              bridgeResponse: 'Perfecto. Entonces sigamos.',
             },
           },
         ],
@@ -49,14 +49,14 @@ export const nodes: ScenarioNode[] = [
         stakeholderId: 'andres-guzman',
         participantIds: ['andres-guzman', 'paz-herrera', 'javier-castro'],
         dialogue: 'Y el es Javier Castro, nuestro TENS. Siempre disponible, incluso cuando el resto del Centro de Salud se acuerda tarde del Sector Azul.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {node_id: 'INTRO_GUZMAN_NODE_4',
         stakeholderRole: 'TENS Sector Azul',
         stakeholderId: 'javier-castro',
         participantIds: ['andres-guzman', 'paz-herrera', 'javier-castro'],
         dialogue: '(Javier baja la mirada antes de hablar). Hola, Director. Bienvenido.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'INTRO_GUZMAN_NODE_5',
@@ -75,7 +75,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 5,
               supportChange: 5,
               reputationChange: 10,
-              dialogueResponse: 'Me alegra que lo entienda desde el principio. Es algo que no conviene interrumpir a la ligera.',
+              bridgeResponse: 'Me alegra que lo entienda desde el principio. Es algo que no conviene interrumpir a la ligera.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -105,7 +105,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: -5,
               reputationChange: 5,
-              dialogueResponse: 'Los otros sectores se adaptan. Asi ha funcionado siempre. Si alguien sale perjudicado, no ha sido el Sector Azul.',
+              bridgeResponse: 'Los otros sectores se adaptan. Asi ha funcionado siempre. Si alguien sale perjudicado, no ha sido el Sector Azul.',
             },
           },
           {
@@ -118,7 +118,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Prudente. Aunque en este caso no hay tanto que analizar como parece.',
+              bridgeResponse: 'Prudente. Aunque en este caso no hay tanto que analizar como parece.',
             },
           },
         ],
@@ -139,7 +139,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 5,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Excelente. Lo espero en la tarde. Prefiero hablar esto antes de que la semana se cierre mal.',
+              bridgeResponse: 'Excelente. Lo espero en la tarde. Prefiero hablar esto antes de que la semana se cierre mal.',
               expected_actions: [
                 {
                   mechanic_id: 'map',
@@ -169,7 +169,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: -5,
               reputationChange: -5,
-              dialogueResponse: 'No es lo ideal, pero peor seria dejarlo para la proxima semana. Si va a ser, que sea el viernes temprano.',
+              bridgeResponse: 'No es lo ideal, pero peor seria dejarlo para la proxima semana. Si va a ser, que sea el viernes temprano.',
               expected_actions: [
                 {
                   mechanic_id: 'map',
@@ -199,7 +199,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: -5,
               reputationChange: -5,
-              dialogueResponse: 'Entiendo. Pero cuando uno posterga este tipo de conversaciones, despues el costo lo paga otro.',
+              bridgeResponse: 'Entiendo. Pero cuando uno posterga este tipo de conversaciones, despues el costo lo paga otro.',
             },
           },
         ],

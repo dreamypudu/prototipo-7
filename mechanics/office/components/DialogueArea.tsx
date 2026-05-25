@@ -8,6 +8,7 @@ interface DialogueAreaProps {
   participants?: Stakeholder[];              // NPC presentes en la escena
   allStakeholders?: Stakeholder[];           // Plantel completo (para tooltips)
   dialogue: string;
+  isNarration?: boolean;
   timeSlot: TimeSlotType;
   backgroundKey?: keyof typeof backgroundImages;
   onTypingStateChange?: (isTyping: boolean) => void;
@@ -26,6 +27,7 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
   participants,
   allStakeholders,
   dialogue,
+  isNarration = false,
   timeSlot,
   backgroundKey,
   onTypingStateChange
@@ -64,6 +66,7 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
         ? [stakeholder]
         : [];
   const roster = allStakeholders ?? activeParticipants;
+  const showNameplate = Boolean(stakeholder && !isNarration);
 
   const renderWithTooltips = (text: string) => {
     if (!text) return '';
@@ -182,7 +185,7 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
     const lines = text.split('\n');
     return lines.flatMap((line, index) => {
       const trimmed = line.trim();
-      const isNarratorLine = trimmed.startsWith('(');
+      const isNarratorLine = isNarration || trimmed.startsWith('(');
       const narratorText = isNarratorLine
         ? trimmed.replace(/^\(/, '').replace(/\)?$/, '')
         : line;
@@ -236,14 +239,14 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
 
       {/* Dialogue Box */}
       <div className="absolute bottom-5 left-5 right-5 dialogue-box p-5 rounded-xl border backdrop-blur-md shadow-2xl animate-fade-in z-30">
-        {stakeholder && (
+        {showNameplate && stakeholder && (
           <div className="dialogue-nameplate absolute -top-4 left-8 rounded-t-lg px-4 py-2 flex items-center gap-2">
             <h3 className="text-xl font-bold text-white drop-shadow-md">{stakeholder.name}</h3>
             <span className="text-xs text-gray-400 uppercase tracking-widest">({stakeholder.role})</span>
           </div>
         )}
         <div
-          className={`text-md lg:text-lg text-gray-100 leading-relaxed max-h-28 pr-2 scroll-soft overflow-visible cursor-pointer whitespace-pre-wrap ${stakeholder ? 'mt-4' : 'mt-0'}`}
+          className={`text-md lg:text-lg text-gray-100 leading-relaxed max-h-28 pr-2 scroll-soft overflow-visible cursor-pointer whitespace-pre-wrap ${showNameplate ? 'mt-4' : 'mt-0'}`}
           onClick={() => setSkipTyping(true)}
           title="Click para mostrar todo el texto"
         >

@@ -122,6 +122,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   const [secretary, setSecretary] = useState<Stakeholder | null>(null);
   const [characterInFocus, setCharacterInFocus] = useState<Stakeholder | null>(null);
   const [currentDialogue, setCurrentDialogue] = useState<string>("");
+  const [isCurrentDialogueNarration, setIsCurrentDialogueNarration] = useState(false);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
   const [pendingDialogueQueue, setPendingDialogueQueue] = useState<PendingDialogueQueue | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -210,8 +211,9 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     setGameState((prev) => appendTimeBlockEmails(prev, EMAIL_TEMPLATES, prev.day, prev.timeSlot));
   }, [isGameStarted, gameState.day, gameState.timeSlot]);
 
-  const setPersonalizedDialogue = useCallback((dialogue: string) => {
+  const setPersonalizedDialogue = useCallback((dialogue: string, options?: { isNarration?: boolean }) => {
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
+    setIsCurrentDialogueNarration(Boolean(options?.isNarration));
   }, [gameState.playerName]);
 
   const buildContinueDialogueAction = (): PlayerAction => ({
@@ -221,12 +223,16 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   });
 
   const presentDialogueLine = useCallback((line: DialogueLine) => {
+    if (line.preserveCurrentSpeaker) {
+      setPersonalizedDialogue(line.text);
+      return;
+    }
     const speaker = resolveStakeholderByRef(gameState.stakeholders, {
       stakeholderId: line.stakeholderId,
       stakeholderRole: line.stakeholderRole,
     });
     setCharacterInFocus(speaker ?? null);
-    setPersonalizedDialogue(line.text);
+    setPersonalizedDialogue(line.text, { isNarration: !speaker });
   }, [gameState.stakeholders, setPersonalizedDialogue]);
 
   const beginDialogueQueue = useCallback((lines: DialogueLine[], finalActions: PlayerAction[]) => {
@@ -557,7 +563,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
     setPendingDialogueQueue(null);
-    setPersonalizedDialogue(scenario.dialogue);
+    setPersonalizedDialogue(scenario.dialogue, { isNarration: Boolean(scenario.dialogueIsNarration) });
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
@@ -581,7 +587,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     setCharacterInFocus(stakeholder);
     setPendingDialogueQueue(null);
     setCurrentMeeting({ sequence, nodeIndex: 0 });
-    setPersonalizedDialogue(sequence.initialDialogue);
+    setPersonalizedDialogue(sequence.initialDialogue, { isNarration: Boolean(sequence.initialDialogueIsNarration) });
     setConversationMode('pre_sequence');
     const allowQuestions = hasCompletedSequenceForStakeholder(stakeholder, gameState.completedSequences);
     setPlayerActions(buildPreSequenceActions(stakeholder, allowQuestions));
@@ -987,7 +993,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
             case 'NEXT': {
                 const nextNodeIndex = nodeIndex + 1;
                 if (nextNodeIndex >= sequence.nodes.length) {
-                    setPersonalizedDialogue(sequence.finalDialogue);
+                    setPersonalizedDialogue(sequence.finalDialogue, { isNarration: Boolean(sequence.finalDialogueIsNarration) });
                     setConversationMode('post_sequence');
                     setPlayerActions(buildPostSequenceActions(characterInFocus));
                     setIsLoading(false);
@@ -1014,7 +1020,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
                 return;
             }
             case 'end_meeting_sequence':
-                setPersonalizedDialogue(sequence.finalDialogue);
+                setPersonalizedDialogue(sequence.finalDialogue, { isNarration: Boolean(sequence.finalDialogueIsNarration) });
                 setConversationMode('post_sequence');
                 setPlayerActions(buildPostSequenceActions(characterInFocus));
                 setIsLoading(false);
@@ -1439,6 +1445,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     schedulingState,
     characterInFocus,
     currentDialogue,
+    isDialogueNarration: isCurrentDialogueNarration,
     playerActions,
     conversationMode,
     isLoading,

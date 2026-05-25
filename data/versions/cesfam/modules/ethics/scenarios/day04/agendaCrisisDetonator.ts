@@ -6,35 +6,35 @@ export const nodes: ScenarioNode[] = [
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Director, buen día. Revise las propuestas que le dejaron ayer las jefaturas. Si usted aprueba todo tal como esta, la planificacion de la proxima semana entra en choque desde el primer bloque.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AGENDA_CRISIS_THURS_2',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Primer tope critico: Viernes AM en el Box 5. Andres Guzman lo exige para su bloque docente, pero Eduardo Naranjo sigue agendado en ese mismo box para el Sector Rojo. Si no lo corrige, el viernes va a terminar incumpliendole a uno de los dos.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AGENDA_CRISIS_THURS_3',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Segundo: Miercoles PM en el Box 6. Marcela Soto lo deja tomado para el Sector Rojo, pero Francisca Solis también quedo puesta ahi desde el Sector Amarillo. Ese cruce no se va a resolver solo.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AGENDA_CRISIS_THURS_4',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Y tercero: Lunes AM. Paz Herrera da por hecho que Javier Castro se queda apoyando sus curaciones, pero Daniel Rios sigue contando con llevarselo a terreno para el operativo del Sector Amarillo. Ese cruce no aparece en rojo, pero igual le va a explotar si no toma partido.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AGENDA_CRISIS_THURS_5',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Tiene hasta mañana viernes en la tarde para corregir esto manualmente en la Planificacion. Si llega la hora de enviar el borrador con estos choques adentro, yo igual tendre que mandarlo.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AGENDA_CRISIS_THURS_6',
@@ -52,7 +52,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 5,
-              dialogueResponse: 'Avisare al Dr. Guzman que va para alla. Suerte intentando moverle prioridades al Sector Azul.',
+              bridgeResponse: 'Avisare al Dr. Guzman que va para alla. Suerte intentando moverle prioridades al Sector Azul.',
               expected_actions: [
                 {
                   mechanic_id: 'map',
@@ -81,7 +81,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 5,
-              dialogueResponse: 'Buena idea. Le dire a Marcela Soto que la visita ahora.',
+              bridgeResponse: 'Buena idea. Le dire a Marcela Soto que la visita ahora.',
               expected_actions: [
                 {
                   mechanic_id: 'map',
@@ -110,7 +110,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 0,
               supportChange: 0,
               reputationChange: 5,
-              dialogueResponse: 'Entendido. Rios va a notar que priorizo el frente mas expuesto hacia comunidad. Le aviso que va para alla.',
+              bridgeResponse: 'Entendido. Rios va a notar que priorizo el frente mas expuesto hacia comunidad. Le aviso que va para alla.',
               expected_actions: [
                 {
                   mechanic_id: 'map',

@@ -19,8 +19,15 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: -5,
           supportChange: -5,
-          dialogueResponse: 'Esta bien, director.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Eso es justamente lo que me preocupa: que la antiguedad del problema termine siendo una excusa para no corregirlo.',
+            },
+            {stakeholder_id: 'marcela-soto',
+              text: 'Esta bien, director.',
+            }
+          ]},
       },
       {
         option_id: 'B',
@@ -31,8 +38,15 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: 5,
           supportChange: 10,
-          dialogueResponse: 'Esta bien, director.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Bien. Si direccion marca ese limite, el resto del CESFAM va a entender que las reglas son comunes.',
+            },
+            {stakeholder_id: 'marcela-soto',
+              text: 'Esta bien, director.',
+            }
+          ]},
       },
       {
         option_id: 'C',
@@ -41,8 +55,15 @@ export const nodes: ScenarioNode[] = [
         text: 'Intentare solucionarlo por el bien del CESFAM, pero no le prometo cambios inmediatos.',
         tags: mlqTags(),
         consequences: {
-          dialogueResponse: 'Esta bien, director.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Aprecio que lo intente, pero necesito ver plazos y decisiones, no solo buena voluntad.',
+            },
+            {stakeholder_id: 'marcela-soto',
+              text: 'Esta bien, director.',
+            }
+          ]},
       },
     ],
   },
@@ -54,8 +75,10 @@ export const sequences: MeetingSequence[] = [
     stakeholderId: 'marcela-soto',
     stakeholderRole: 'Jefa Sector Rojo',
     initialDialogue: '(Llegas a la oficina del Sector Rojo para escuchar la preocupacion formal de Marcela Soto.)',
+    initialDialogueIsNarration: true,
     nodes: ['MLQ5X_D1S5_N10_SOTO_PROTOCOLS'],
     finalDialogue: 'Soto deja instalada su expectativa: la direccion debe ordenar el cumplimiento de protocolos entre sectores.',
+    finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 3, slot: 'tarde' },
   },

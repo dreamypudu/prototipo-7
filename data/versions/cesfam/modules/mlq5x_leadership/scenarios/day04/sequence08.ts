@@ -1,13 +1,13 @@
 import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
 import { mlqTags } from '../tags';
 
-const nextOption = (dialogueResponse = ''): ScenarioOption => ({
+const nextOption = (): ScenarioOption => ({
   option_id: 'NEXT',
   cardTitle: 'Siguiente',
   cardEmoji: '➡️',
   text: 'Continuar',
   tags: mlqTags(),
-  consequences: { dialogueResponse },
+  consequences: {},
 });
 
 export const nodes: ScenarioNode[] = [
@@ -15,6 +15,7 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D2S8_WATER_CUT_CONTEXT',
     participantIds: ['sofia-castro', 'marcela-soto'],
     dialogue: '(Sofia Castro y Marcela Soto te esperan con cara de quien tiene malas noticias.)',
+    dialogueIsNarration: true,
     options: [nextOption()],
   },
   {
@@ -42,8 +43,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "MI": 4, "IIA": 2 }),
         consequences: {
           trustChange: 5,
-          dialogueResponse: 'Vere lo que puedo lograr.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Entendido. Si vamos a sostener atencion, necesitare respaldo para coordinar rapido con Rios.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Vere lo que puedo lograr.',
+            }
+          ]},
       },
       {
         option_id: 'B',
@@ -53,8 +62,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "DPE-P": 2 }),
         consequences: {
           trustChange: -5,
-          dialogueResponse: 'Vere lo que puedo lograr.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Suspender cuarenta atenciones va a golpear al sector. Informare, pero no sera una conversacion facil.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Vere lo que puedo lograr.',
+            }
+          ]},
       },
       {
         option_id: 'C',
@@ -65,8 +82,16 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: -5,
           supportChange: -5,
-          dialogueResponse: 'Vere lo que puedo lograr.',
-        },
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Llamar al municipio sirve, pero los pacientes estan aqui ahora. Necesito una decision operativa, no solo derivar el problema.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Vere lo que puedo lograr.',
+            }
+          ]},
       },
     ],
   },
@@ -76,12 +101,14 @@ export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D2_SEQUENCE_8',
     initialDialogue: '(El jueves comienza con una contingencia operativa que afecta directamente al Sector Rojo.)',
+    initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D2S8_WATER_CUT_CONTEXT',
       'MLQ5X_D2S8_N11_SOFIA_WATER_CUT',
       'MLQ5X_D2S8_N11_SOTO_DECISION',
     ],
     finalDialogue: 'La decision deja instalada la prioridad de la manana: sostener la atencion pese al corte de agua.',
+    finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 4, slot: 'mañana' },
     isInevitable: true,

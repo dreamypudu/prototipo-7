@@ -1,13 +1,13 @@
 import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
 import { mlqTags } from '../tags';
 
-const nextOption = (dialogueResponse = ''): ScenarioOption => ({
+const nextOption = (): ScenarioOption => ({
   option_id: 'NEXT',
   cardTitle: 'Siguiente',
   cardEmoji: '➡️',
   text: 'Continuar',
   tags: mlqTags(),
-  consequences: { dialogueResponse },
+  consequences: {},
 });
 
 const sectorHeads = ['andres-guzman', 'marcela-soto', 'daniel-rios'];
@@ -18,12 +18,14 @@ export const nodes: ScenarioNode[] = [
     participantIds: sectorHeads,
     dialogue:
       '(En la tarde es la primera reunion formal de jefes de sector. Guzman llega cinco minutos tarde. Soto se percata. El ambiente se tensa.)',
+    dialogueIsNarration: true,
     options: [nextOption()],
   },
   {
     node_id: 'MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE',
     participantIds: sectorHeads,
     dialogue: '(Todos te miran para que digas algo.)',
+    dialogueIsNarration: true,
     options: [
       {
         option_id: 'A',
@@ -32,8 +34,12 @@ export const nodes: ScenarioNode[] = [
         text: 'Me gustaria darles la oportunidad de hablar: alguna necesidad o inconveniente que hayan tenido hasta ahora.',
         tags: mlqTags({ "MI": 2, "CI": 2 }),
         consequences: {
-          dialogueResponse: 'Yo quiero mencionar algo.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Yo quiero mencionar algo.',
+            },
+          ],
         },
       },
       {
@@ -43,8 +49,12 @@ export const nodes: ScenarioNode[] = [
         text: 'Este dia ha sido complicado, sin embargo quiero felicitarlos por la buena labor realizada hasta ahora.',
         tags: mlqTags({ "CI": 2 }),
         consequences: {
-          dialogueResponse: 'Yo quiero mencionar algo.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Yo quiero mencionar algo.',
+            },
+          ],
         },
       },
       {
@@ -57,14 +67,16 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'andres-guzman': { supportChange: -10 },
           },
-          reactions: [
+          bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
               text: 'Entiendo, director. Venia saliendo de una atención que se extendió mas de lo esperado, el Director anterior lo entendía.',
             },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Yo quiero mencionar algo.',
+            },
           ],
-          dialogueResponse: 'Yo quiero mencionar algo.',
-          response_stakeholder_id: 'daniel-rios',
         },
       },
     ],
@@ -86,7 +98,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "CI": 4, "MI": 2 }),
         consequences: {
           supportChange: 5,
-          dialogueResponse: 'Tambien quiero decir otra cosa.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Eso es lo que necesitaba escuchar. Si hay una respuesta concreta, puedo sostener al equipo un poco mas.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Tambien quiero decir otra cosa.',
+            },
+          ],
         },
       },
       {
@@ -96,7 +117,16 @@ export const nodes: ScenarioNode[] = [
         text: 'Lo tendre en cuenta para la propuesta de horario del viernes.',
         tags: mlqTags({ "DPE-P": 2 }),
         consequences: {
-          dialogueResponse: 'Tambien quiero decir otra cosa.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Tomarlo en cuenta no alcanza mucho cuando la gente ya viene doblando turnos.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Tambien quiero decir otra cosa.',
+            },
+          ],
         },
       },
       {
@@ -107,7 +137,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "LF": 2 }),
         consequences: {
           supportChange: -5,
-          dialogueResponse: 'Tambien quiero decir otra cosa.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Si todo queda esperando presupuesto, el equipo va a seguir pagando el costo en la sala de espera.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Tambien quiero decir otra cosa.',
+            },
+          ],
         },
       },
     ],
@@ -128,7 +167,16 @@ export const nodes: ScenarioNode[] = [
           'Comprendo que sea una situacion no sostenible. Vere si puedo revisar los turnos para la proxima semana, independiente del presupuesto.',
         tags: mlqTags({ "CI": 2 }),
         consequences: {
-          dialogueResponse: 'Comprendido, jefe.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Eso ayudaria. Necesito que el equipo vea que la direccion entendio que esto no es sostenible.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Comprendido, jefe.',
+            },
+          ],
         },
       },
       {
@@ -140,7 +188,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "LF": 4 }),
         consequences: {
           trustChange: -5,
-          dialogueResponse: 'Comprendido, jefe.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Puedo levantar una propuesta, pero si esto queda solo en mis manos no cambia la sobrecarga de fondo.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Comprendido, jefe.',
+            },
+          ],
         },
       },
       {
@@ -152,7 +209,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "LF": 4 }),
         consequences: {
           trustChange: -10,
-          dialogueResponse: 'Comprendido, jefe.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Con esa respuesta es dificil pedirle al equipo que espere algo distinto de esta direccion.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Comprendido, jefe.',
+            },
+          ],
         },
       },
     ],
@@ -163,6 +229,7 @@ export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D2_SEQUENCE_10',
     initialDialogue: '(Comienza la primera reunion formal de jefes de sector del jueves.)',
+    initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D2S10_FORMAL_MEETING_CONTEXT',
       'MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE',
@@ -171,6 +238,7 @@ export const sequences: MeetingSequence[] = [
     ],
     finalDialogue:
       'La reunion deja sobre la mesa la tension por atrasos, turnos extendidos y riesgo de renuncias en el Sector Amarillo.',
+    finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 4, slot: 'tarde' },
     isInevitable: true,

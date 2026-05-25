@@ -7,7 +7,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Amarillo',
         participantIds: ['francisca-solis', 'ricardo-meza'],
         dialogue: 'Director, menos mal que vino a ver la trinchera. Ya debe saber que la agenda esta ardiendo, pero aqui estamos peleando por el bienestar de las personas.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AMARILLO_NEGOTIATION_2',
@@ -26,7 +26,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 10,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Gracias, Director. Al menos alguien esta mirando lo que pasa con los pacientes y no solo los formularios.',
+              bridgeResponse: 'Gracias, Director. Al menos alguien esta mirando lo que pasa con los pacientes y no solo los formularios.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -55,7 +55,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -10,
               supportChange: -10,
               reputationChange: -5,
-              dialogueResponse: 'Claro. Otra vez los papeles pesan mas que los ninos con dificultad respiratoria. Quedo clarisimo.',
+              bridgeResponse: 'Claro. Otra vez los papeles pesan mas que los ninos con dificultad respiratoria. Quedo clarisimo.',
             },
           },
           {
@@ -68,7 +68,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: 0,
               reputationChange: -10,
-              dialogueResponse: 'No se demore mucho, Director. Los virus no esperan a que uno termine de ordenar planillas.',
+              bridgeResponse: 'No se demore mucho, Director. Los virus no esperan a que uno termine de ordenar planillas.',
             },
           },
         ],
@@ -79,7 +79,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefe Sector Amarillo',
         participantIds: ['francisca-solis', 'ricardo-meza'],
         dialogue: 'La otra pelea es el lunes en la mañana. Tenemos operativo en terreno con postrados y vacunación, y nos faltan manos. Si Javier Castro no sale con nosotros, el despliegue queda cojo desde la primera visita.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'AMARILLO_NEGOTIATION_4',
@@ -98,7 +98,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 10,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Esa es la actitud, Director. Si vamos completos, el operativo realmente puede mover la aguja en terreno.',
+              bridgeResponse: 'Esa es la actitud, Director. Si vamos completos, el operativo realmente puede mover la aguja en terreno.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -127,7 +127,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -10,
               supportChange: -10,
               reputationChange: -10,
-              dialogueResponse: 'Entonces cuando el operativo fracase y los vecinos pregunten por que no llegamos, espero que usted también de la cara.',
+              bridgeResponse: 'Entonces cuando el operativo fracase y los vecinos pregunten por que no llegamos, espero que usted también de la cara.',
             },
           },
           {
@@ -140,7 +140,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: -5,
               reputationChange: -5,
-              dialogueResponse: 'Dele todas las vueltas que quiera, Director. Pero el lunes necesitamos manos en la calle, no otra reunion para mirar el problema.',
+              bridgeResponse: 'Dele todas las vueltas que quiera, Director. Pero el lunes necesitamos manos en la calle, no otra reunion para mirar el problema.',
             },
           },
         ],

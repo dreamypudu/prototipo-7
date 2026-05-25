@@ -1,13 +1,13 @@
 import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
 import { mlqTags } from '../tags';
 
-const nextOption = (dialogueResponse = ''): ScenarioOption => ({
+const nextOption = (): ScenarioOption => ({
   option_id: 'NEXT',
   cardTitle: 'Siguiente',
   cardEmoji: '➡️',
   text: 'Continuar',
   tags: mlqTags(),
-  consequences: { dialogueResponse },
+  consequences: {},
 });
 
 export const nodes: ScenarioNode[] = [
@@ -15,6 +15,7 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D1S1_ARRIVAL',
     dialogue:
       '(Son las 7:55 AM. Llegas al CESFAM con una carpeta del SEREMI bajo el brazo. El edificio huele a cafe y antiseptico; pacientes esperan en los pasillos desde antes de las 8.)',
+    dialogueIsNarration: true,
     options: [nextOption()],
   },
   {
@@ -52,6 +53,7 @@ export const nodes: ScenarioNode[] = [
   {
     node_id: 'MLQ5X_D1S1_ROOM_TONE',
     dialogue: '(El ambiente de la sala es relajado, pero serio. Las tres jefaturas traen carpetas abiertas y miradas atentas.)',
+    dialogueIsNarration: true,
     participantIds: ['andres-guzman', 'marcela-soto', 'daniel-rios'],
     options: [nextOption()],
   },
@@ -89,8 +91,12 @@ export const nodes: ScenarioNode[] = [
           'Buen dia. Para comenzar, quiero recalcar que para que el CESFAM vaya por buen camino debemos mantener una atencion centrada en las personas, transparencia y trabajo en equipo.',
         tags: mlqTags({ "IIA": 4, "IIC": 4 }),
         consequences: {
-          dialogueResponse: 'Me alegra escuchar eso.',
-          response_stakeholder_id: 'andres-guzman',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Me alegra escuchar eso.',
+            },
+          ],
         },
       },
       {
@@ -100,8 +106,12 @@ export const nodes: ScenarioNode[] = [
         text: 'Gracias por la bienvenida. Tengo muchas ganas de aprender y en los proximos dias ire conociendolo todo.',
         tags: mlqTags({ "MI": 2 }),
         consequences: {
-          dialogueResponse: 'Me alegra escuchar eso.',
-          response_stakeholder_id: 'andres-guzman',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Me alegra escuchar eso.',
+            },
+          ],
         },
       },
       {
@@ -111,8 +121,12 @@ export const nodes: ScenarioNode[] = [
         text: 'Buenos dias a todos. Sofia Castro me comento los objetivos que tiene el CESFAM. Hay trabajo que hacer.',
         tags: mlqTags({ "RC": 2 }),
         consequences: {
-          dialogueResponse: 'Me alegra escuchar eso.',
-          response_stakeholder_id: 'andres-guzman',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Me alegra escuchar eso.',
+            },
+          ],
         },
       },
     ],
@@ -138,9 +152,16 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'marcela-soto': { supportChange: -5 },
           },
-          dialogueResponse:
-            'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
-          response_stakeholder_id: 'marcela-soto',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Eso es lo que esperaba escuchar: que la docencia se mire como parte del proyecto del CESFAM, no como un favor personal.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
+            }
+          ]
         },
       },
       {
@@ -150,9 +171,16 @@ export const nodes: ScenarioNode[] = [
         text: 'Lo revisare, pero acabo de asumir el puesto. Tengo muchas prioridades que atender primero.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
-          dialogueResponse:
-            'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
-          response_stakeholder_id: 'marcela-soto',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Entiendo que acaba de llegar, pero ese tipo de respuesta es precisamente lo que dejo el tema a medias antes.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
+            }
+          ]
         },
       },
       {
@@ -167,9 +195,16 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'marcela-soto': { supportChange: 5 },
           },
-          dialogueResponse:
-            'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
-          response_stakeholder_id: 'marcela-soto',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Puedo justificarlo tecnicamente, pero necesito que la direccion no lo trate solo como una actividad extra.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
+            }
+          ]
         },
       },
     ],
@@ -191,8 +226,16 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: 5,
           supportChange: 5,
-          dialogueResponse: 'Es algo que ha perjudicado principalmente al Sector Amarillo. Espero que lo pueda resolver.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Eso nos daria una salida real: no saltarse la norma, pero tampoco dejar que la norma tape al paciente.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Es algo que ha perjudicado principalmente al Sector Amarillo. Espero que lo pueda resolver.',
+            }
+          ]
         },
       },
       {
@@ -205,8 +248,16 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'marcela-soto': { trustChange: -5 },
           },
-          dialogueResponse: 'Es algo que ha perjudicado principalmente al Sector Amarillo. Espero que lo pueda resolver.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Director, el problema ya esta golpeando al equipo. Si solo esperamos contexto, el paciente sigue esperando.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Es algo que ha perjudicado principalmente al Sector Amarillo. Espero que lo pueda resolver.',
+            }
+          ]
         },
       },
       {
@@ -219,8 +270,16 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'marcela-soto': { supportChange: 5 },
           },
-          dialogueResponse: 'Es algo que ha perjudicado principalmente al Sector Amarillo. Espero que lo pueda resolver.',
-          response_stakeholder_id: 'daniel-rios',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Me parece correcto partir desde ahi. Sin reglas comunes, cada sector termina improvisando por su cuenta.',
+            },
+            {
+              stakeholder_id: 'daniel-rios',
+              text: 'Es algo que ha perjudicado principalmente al Sector Amarillo. Espero que lo pueda resolver.',
+            }
+          ]
         },
       },
     ],
@@ -240,8 +299,16 @@ export const nodes: ScenarioNode[] = [
           'Los indicadores son importantes, pero antes de sacar conclusiones me interesa conocer bien el funcionamiento del CESFAM.',
         tags: mlqTags({ "CI": 2, "EI": 2 }),
         consequences: {
-          dialogueResponse: 'No hay problema, director.',
-          response_stakeholder_id: 'marcela-soto',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Mientras esa revision no diluya los datos, me parece razonable que conozca el funcionamiento completo.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'No hay problema, director.',
+            }
+          ]
         },
       },
       {
@@ -256,8 +323,16 @@ export const nodes: ScenarioNode[] = [
           unlocks: {
             emails: ['mlq5x-d1-sequence-6-red-indicators-summary'],
           },
-          dialogueResponse: 'No hay problema, director.',
-          response_stakeholder_id: 'marcela-soto',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Lo preparo. Es importante que direccion vea que el cumplimiento del Sector Rojo no es casualidad.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'No hay problema, director.',
+            }
+          ]
         },
       },
       {
@@ -268,8 +343,16 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "RC": 2 }),
         consequences: {
           supportChange: 5,
-          dialogueResponse: 'No hay problema, director.',
-          response_stakeholder_id: 'marcela-soto',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'Ese estandar se puede extender, siempre que no se relativicen los protocolos para hacerlo mas comodo.',
+            },
+            {
+              stakeholder_id: 'marcela-soto',
+              text: 'No hay problema, director.',
+            }
+          ]
         },
       },
     ],
@@ -288,7 +371,12 @@ export const nodes: ScenarioNode[] = [
           'Me reunire primero con Guzman del Sector Azul. No quiero tener problemas con temas docentes por el beneficio que tienen para el CESFAM.',
         tags: mlqTags(),
         consequences: {
-          dialogueResponse: 'Yo le avisare que va para su oficina, director.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'sofia-castro',
+              text: 'Yo le avisare que va para su oficina, director.',
+            },
+          ],
           expected_actions: [
             {
               mechanic_id: 'map',
@@ -322,7 +410,12 @@ export const nodes: ScenarioNode[] = [
           'Avisele a Soto del Sector Rojo que ire a su oficina primero. Revisaremos lo asociado a los protocolos para que todo vaya en regla en el CESFAM.',
         tags: mlqTags(),
         consequences: {
-          dialogueResponse: 'Yo le avisare que va para su oficina, director.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'sofia-castro',
+              text: 'Yo le avisare que va para su oficina, director.',
+            },
+          ],
           expected_actions: [
             {
               mechanic_id: 'map',
@@ -356,7 +449,12 @@ export const nodes: ScenarioNode[] = [
           'Primero ire a la oficina de Rios del Sector Amarillo. Quiero revisar todo lo asociado a los pacientes antes de tomar cualquier decision.',
         tags: mlqTags(),
         consequences: {
-          dialogueResponse: 'Yo le avisare que va para su oficina, director.',
+          bridgeResponse: [
+            {
+              stakeholder_id: 'sofia-castro',
+              text: 'Yo le avisare que va para su oficina, director.',
+            },
+          ],
           expected_actions: [
             {
               mechanic_id: 'map',
@@ -390,6 +488,7 @@ export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D1_SEQUENCE_1',
     initialDialogue: '(Comienza tu primer dia como director del CESFAM. Sofia Castro te conduce hacia la sala donde esperan los tres jefes de sector.)',
+    initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D1S1_ARRIVAL',
       'MLQ5X_D1S1_SOFIA_WELCOME',
@@ -406,6 +505,7 @@ export const sequences: MeetingSequence[] = [
       'MLQ5X_D1S1_N5_SOFIA_PRIORITY',
     ],
     finalDialogue: 'Queda definida la primera visita de seguimiento. Revise tambien su correo: hay una solicitud de reserva de box del Sector Azul.',
+    finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 3, slot: 'mañana' },
     isInevitable: true,

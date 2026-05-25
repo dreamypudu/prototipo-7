@@ -7,7 +7,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Jefa Sector Rojo',
         participantIds: ['eduardo-naranjo', 'claudia-morales'],
         dialogue: 'Director. Que bueno que vino. Supongo que Sofia ya le informo que nuestra planificacion esta siendo vulnerada por la improvisacion de los otros sectores.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'ROJO_NEGOTIATION_2',
@@ -26,7 +26,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 10,
               supportChange: 5,
               reputationChange: 10,
-              dialogueResponse: 'Me tranquiliza ver que la direccion respeta los protocolos sanitarios. Entonces daremos por resguardado ese box.',
+              bridgeResponse: 'Me tranquiliza ver que la direccion respeta los protocolos sanitarios. Entonces daremos por resguardado ese box.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -55,7 +55,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -10,
               supportChange: -10,
               reputationChange: -15,
-              dialogueResponse: 'Entonces queda bajo su responsabilidad directa que el Sector Rojo llegue sin auditoria a una revision sanitaria. Voy a dejar constancia.',
+              bridgeResponse: 'Entonces queda bajo su responsabilidad directa que el Sector Rojo llegue sin auditoria a una revision sanitaria. Voy a dejar constancia.',
             },
           },
           {
@@ -68,7 +68,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: 0,
               reputationChange: -5,
-              dialogueResponse: 'El margen es minimo, Director. Y las auditorias no se negocian como si fueran favores.',
+              bridgeResponse: 'El margen es minimo, Director. Y las auditorias no se negocian como si fueran favores.',
             },
           },
         ],
@@ -79,7 +79,7 @@ export const nodes: ScenarioNode[] = [
         stakeholderRole: 'Médico Sector Rojo',
         participantIds: ['marcela-soto', 'claudia-morales'],
         dialogue: '(El Dr. Naranjo se acomoda en su silla con gesto de dolor). Director... también esta el viernes. Si me sacan del Box 5, pierdo la unica silla ergonomica que tengo autorizada por mi discopatia.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'ROJO_NEGOTIATION_4',
@@ -98,7 +98,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 10,
               supportChange: 5,
               reputationChange: 5,
-              dialogueResponse: 'Es lo minimo que corresponde. Revisaremos que la asignacion quede bien registrada antes de cerrar el borrador.',
+              bridgeResponse: 'Es lo minimo que corresponde. Revisaremos que la asignacion quede bien registrada antes de cerrar el borrador.',
               expected_actions: [
                 {
                   mechanic_id: 'scheduler',
@@ -127,7 +127,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -10,
               supportChange: -10,
               reputationChange: -15,
-              dialogueResponse: 'Entonces despues no se sorprenda cuando aparezca una licencia medica y una denuncia por ergonomia laboral. Tambien voy a dejar eso por escrito.',
+              bridgeResponse: 'Entonces despues no se sorprenda cuando aparezca una licencia medica y una denuncia por ergonomia laboral. Tambien voy a dejar eso por escrito.',
             },
           },
           {
@@ -140,7 +140,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: -5,
               supportChange: -5,
               reputationChange: -5,
-              dialogueResponse: 'La salud del trabajador no se deja para el final de la planilla, Director. Es una obligacion basica.',
+              bridgeResponse: 'La salud del trabajador no se deja para el final de la planilla, Director. Es una obligacion basica.',
             },
           },
         ],

@@ -236,6 +236,7 @@ export default function GestionEnSaludApp({
 
   const [characterInFocus, setCharacterInFocus] = useState<Stakeholder | null>(null);
   const [currentDialogue, setCurrentDialogue] = useState<string>("");
+  const [isCurrentDialogueNarration, setIsCurrentDialogueNarration] = useState(false);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
   const [pendingDialogueQueue, setPendingDialogueQueue] = useState<PendingDialogueQueue | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -448,8 +449,9 @@ export default function GestionEnSaludApp({
     }
   }, [isDeveloperUnlocked, showLogPanel]);
 
-  const setPersonalizedDialogue = useCallback((dialogue: string) => {
+  const setPersonalizedDialogue = useCallback((dialogue: string, options?: { isNarration?: boolean }) => {
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
+    setIsCurrentDialogueNarration(Boolean(options?.isNarration));
   }, [gameState.playerName]);
 
   const buildContinueDialogueAction = (): PlayerAction => ({
@@ -459,12 +461,16 @@ export default function GestionEnSaludApp({
   });
 
   const presentDialogueLine = useCallback((line: DialogueLine) => {
+    if (line.preserveCurrentSpeaker) {
+      setPersonalizedDialogue(line.text);
+      return;
+    }
     const speaker = resolveStakeholderByRef(gameState.stakeholders, {
       stakeholderId: line.stakeholderId,
       stakeholderRole: line.stakeholderRole,
     });
     setCharacterInFocus(speaker ?? null);
-    setPersonalizedDialogue(line.text);
+    setPersonalizedDialogue(line.text, { isNarration: !speaker });
   }, [gameState.stakeholders, setPersonalizedDialogue]);
 
   const beginDialogueQueue = useCallback((lines: DialogueLine[], finalActions: PlayerAction[]) => {
@@ -684,7 +690,7 @@ export default function GestionEnSaludApp({
     setCharacterInFocus(stakeholder);
     setPendingDialogueQueue(null);
     setCurrentMeeting({ sequence, nodeIndex: 0 });
-    setPersonalizedDialogue(sequence.initialDialogue);
+    setPersonalizedDialogue(sequence.initialDialogue, { isNarration: Boolean(sequence.initialDialogueIsNarration) });
     setConversationMode('pre_sequence');
     const allowQuestions = hasCompletedSequenceForStakeholder(stakeholder, gameState.completedSequences);
     setPlayerActions(buildPreSequenceActions(stakeholder, actionLabel, actionCost, allowQuestions));
@@ -1045,7 +1051,7 @@ export default function GestionEnSaludApp({
     }
     setCharacterInFocus(activeStakeholder ?? null);
 
-    setPersonalizedDialogue(scenario.dialogue);
+    setPersonalizedDialogue(scenario.dialogue, { isNarration: Boolean(scenario.dialogueIsNarration) });
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
@@ -1507,7 +1513,7 @@ export default function GestionEnSaludApp({
             case 'NEXT': {
                 const nextNodeIndex = nodeIndex + 1;
                 if (nextNodeIndex >= sequence.nodes.length) {
-                    setPersonalizedDialogue(sequence.finalDialogue);
+                    setPersonalizedDialogue(sequence.finalDialogue, { isNarration: Boolean(sequence.finalDialogueIsNarration) });
                     setConversationMode('post_sequence');
                     const postSequenceActions =
                       selectedVersion === 'CESFAM' && sequence.sequence_id === 'AGENDA_CRISIS_RESOLUTION_SEQ'
@@ -1534,7 +1540,7 @@ export default function GestionEnSaludApp({
                 return;
             }
             case 'end_meeting_sequence':
-                setPersonalizedDialogue(sequence.finalDialogue);
+                setPersonalizedDialogue(sequence.finalDialogue, { isNarration: Boolean(sequence.finalDialogueIsNarration) });
                 setConversationMode('post_sequence');
                 setPlayerActions(
                   selectedVersion === 'CESFAM' && sequence.sequence_id === 'AGENDA_CRISIS_RESOLUTION_SEQ'
@@ -1996,6 +2002,7 @@ export default function GestionEnSaludApp({
     variant: 'default',
     characterInFocus,
     currentDialogue,
+    isDialogueNarration: isCurrentDialogueNarration,
     playerActions,
     conversationMode,
     isLoading,

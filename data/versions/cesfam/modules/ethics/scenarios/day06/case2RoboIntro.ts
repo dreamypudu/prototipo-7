@@ -6,28 +6,28 @@ export const nodes: ScenarioNode[] = [
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Director, disculpe que lo interrumpa de nuevo. Con la agenda ya publicada, ahora tenemos un quiebre grave de convivencia entre dos sectores y esta a punto de escalar al Servicio de Salud.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_INTRO_2',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Se trata de insumos. Marcela Soto tiene la llave subrogante de la bodega central y acusa a Daniel Rios de haber entrado a escondidas con una copia antigua para sacar antibioticos pediatricos.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_INTRO_3',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Marcela exige que usted abra hoy mismo un sumario administrativo por sustracción de bienes fiscales. Daniel no niega haber sacado las cajas, pero insiste en que Marcela las tenia retenidas por un error de firma mientras los pacientes seguian esperando.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_INTRO_4',
         stakeholderId: 'sofia-castro',
         stakeholderRole: 'Asistente Administrativa',
         dialogue: 'Le advierto algo importante: la pestaña de Planificacion de Horarios sigue bloqueada por mantencion externa del Servicio. No volvera a estar operativa hasta el miercoles.',
-        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { dialogueResponse: '' } }],
+        options: [{ option_id: 'NEXT', cardTitle: 'Siguiente', cardEmoji: '➡️', text: 'Siguiente', tags: {}, consequences: { bridgeResponse: '' } }],
       },
   {
         node_id: 'CASO2_ROBO_INTRO_5',
@@ -45,7 +45,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 5,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Le avisare que va en camino. Sigue atrincherada en su oficina redactando la denuncia, asi que vaya preparado.',
+              bridgeResponse: 'Le avisare que va en camino. Sigue atrincherada en su oficina redactando la denuncia, asi que vaya preparado.',
               expected_actions: [
                 {
                   mechanic_id: 'map',
@@ -74,7 +74,7 @@ export const nodes: ScenarioNode[] = [
               trustChange: 5,
               supportChange: 0,
               reputationChange: 0,
-              dialogueResponse: 'Bien. Daniel esta repartiendo los medicamentos en el patio del Sector Amarillo. Le envio un mensaje para que lo espere.',
+              bridgeResponse: 'Bien. Daniel esta repartiendo los medicamentos en el patio del Sector Amarillo. Le envio un mensaje para que lo espere.',
               expected_actions: [
                 {
                   mechanic_id: 'map',

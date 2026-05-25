@@ -64,6 +64,16 @@ def _extract_global_delta(decision: dict, consequences: dict, field: str, legacy
     )
 
 
+def _bridge_response_text(value):
+    if isinstance(value, list):
+        parts = []
+        for entry in value:
+            if isinstance(entry, dict) and entry.get("text"):
+                parts.append(str(entry.get("text")))
+        return "\n".join(parts) if parts else None
+    return value
+
+
 def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: str | None, decisions: list, stakeholders_state: list):
     for index, decision in enumerate(decisions, start=1):
         node_id = first_present(decision.get("node_id"), decision.get("nodeId"))
@@ -93,7 +103,11 @@ def insert_explicit_decisions(conn, session_id: str, user_id: str, version_id: s
         project_progress_delta = _zero_if_missing(
             first_present(consequences.get("project_progress_delta"), consequences.get("projectProgressChange"))
         )
-        dialogue_response = first_present(consequences.get("dialogue_response"), consequences.get("dialogueResponse"))
+        dialogue_response = _bridge_response_text(first_present(
+            consequences.get("dialogue_response"),
+            consequences.get("bridgeResponse"),
+            consequences.get("dialogueResponse"),
+        ))
 
         ensure_stakeholder(conn, npc_id, npc_name, npc_role)
         ensure_decision_reference(
