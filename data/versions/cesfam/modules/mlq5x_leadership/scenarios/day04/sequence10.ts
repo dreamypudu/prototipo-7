@@ -57,6 +57,12 @@ export const nodes: ScenarioNode[] = [
           stakeholder_effects: {
             'andres-guzman': { supportChange: -10 },
           },
+          reactions: [
+            {
+              stakeholder_id: 'andres-guzman',
+              text: 'Entiendo, director. Venia saliendo de una atencion que se extendio mas de lo esperado, pero tomare el punto.',
+            },
+          ],
           dialogueResponse: 'Yo quiero mencionar algo.',
           response_stakeholder_id: 'daniel-rios',
         },

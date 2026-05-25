@@ -15,6 +15,7 @@ import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, res
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { applyContentUnlocks, isEmailUnlocked } from '../../services/contentUnlocks';
+import { buildConsequenceDialogueLines, type DialogueLine } from '../../services/dialogueReactions';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
 import { API_BASE_URL } from '../../services/apiConfig';
 import {
@@ -73,6 +74,11 @@ interface PendingDayReviewState {
   resolution: DailyResolution | null;
   reviewData: CesfamDayReviewData;
   deferredEmailIds: string[];
+}
+
+interface PendingDialogueQueue {
+  lines: DialogueLine[];
+  finalActions: PlayerAction[];
 }
 
 const PERIOD_DURATION = 90;
@@ -231,6 +237,7 @@ export default function GestionEnSaludApp({
   const [characterInFocus, setCharacterInFocus] = useState<Stakeholder | null>(null);
   const [currentDialogue, setCurrentDialogue] = useState<string>("");
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
+  const [pendingDialogueQueue, setPendingDialogueQueue] = useState<PendingDialogueQueue | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('interaction');
 
@@ -445,6 +452,34 @@ export default function GestionEnSaludApp({
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
   }, [gameState.playerName]);
 
+  const buildContinueDialogueAction = (): PlayerAction => ({
+    label: 'Continuar...',
+    cost: 'Continuar',
+    action: 'continue_dialogue_queue',
+  });
+
+  const presentDialogueLine = useCallback((line: DialogueLine) => {
+    const speaker = resolveStakeholderByRef(gameState.stakeholders, {
+      stakeholderId: line.stakeholderId,
+      stakeholderRole: line.stakeholderRole,
+    });
+    setCharacterInFocus(speaker ?? null);
+    setPersonalizedDialogue(line.text);
+  }, [gameState.stakeholders, setPersonalizedDialogue]);
+
+  const beginDialogueQueue = useCallback((lines: DialogueLine[], finalActions: PlayerAction[]) => {
+    const [firstLine, ...remainingLines] = lines;
+    if (!firstLine) {
+      setPendingDialogueQueue(null);
+      setPlayerActions(finalActions);
+      return;
+    }
+
+    presentDialogueLine(firstLine);
+    setPendingDialogueQueue({ lines: remainingLines, finalActions });
+    setPlayerActions(remainingLines.length > 0 ? [buildContinueDialogueAction()] : finalActions);
+  }, [presentDialogueLine]);
+
   const handleActionHover = useCallback((effects: ActionEffectsPreview | null) => {
     setHoveredGlobalEffects(effects?.global ?? null);
   }, []);
@@ -647,6 +682,7 @@ export default function GestionEnSaludApp({
     const actionCost = options?.actionCost ?? "Tiempo";
     setActiveTab('interaction');
     setCharacterInFocus(stakeholder);
+    setPendingDialogueQueue(null);
     setCurrentMeeting({ sequence, nodeIndex: 0 });
     setPersonalizedDialogue(sequence.initialDialogue);
     setConversationMode('pre_sequence');
@@ -995,6 +1031,7 @@ export default function GestionEnSaludApp({
   );
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
+    setPendingDialogueQueue(null);
     const hasSpeakerRef = Boolean(scenario.stakeholderId || scenario.stakeholderRole);
     const activeStakeholder = resolveStakeholderByRef(gameState.stakeholders, {
       stakeholderId: scenario.stakeholderId,
@@ -1377,6 +1414,18 @@ export default function GestionEnSaludApp({
   const handlePlayerAction = async (action: PlayerAction) => {
     if (gameStatus !== 'playing' || pendingDayReview || isPreparingDayReview) return;
     if (action.action === 'open_conflicted_schedule') { handleSetupScheduleWar(); return; }
+    if (action.action === 'continue_dialogue_queue' && pendingDialogueQueue) {
+      const [nextLine, ...remainingLines] = pendingDialogueQueue.lines;
+      if (!nextLine) {
+        setPendingDialogueQueue(null);
+        setPlayerActions(pendingDialogueQueue.finalActions);
+        return;
+      }
+      presentDialogueLine(nextLine);
+      setPendingDialogueQueue({ ...pendingDialogueQueue, lines: remainingLines });
+      setPlayerActions(remainingLines.length > 0 ? [buildContinueDialogueAction()] : pendingDialogueQueue.finalActions);
+      return;
+    }
 
     if (action.action === 'ask_questions' && characterInFocus) {
         const origin = conversationMode === 'pre_sequence' || conversationMode === 'post_sequence'
@@ -1760,27 +1809,18 @@ export default function GestionEnSaludApp({
                 return adminDecision ? mergeMechanicFlushIntoState(nextStateWithDueEmails) : nextStateWithDueEmails;
             });
 
-            const responseStakeholder = consequences.response_stakeholder_id
-              ? gameState.stakeholders.find(stakeholder => stakeholder.id === consequences.response_stakeholder_id)
-              : null;
-            if (responseStakeholder) {
-              setCharacterInFocus(responseStakeholder);
+            const dialogueLines = buildConsequenceDialogueLines(consequences);
+            const finalActions: PlayerAction[] = currentMeeting
+              ? currentMeeting.nodeIndex >= currentMeeting.sequence.nodes.length - 1
+                ? [{ label: "Finalizar Discusion", cost: "Continuar", action: "end_meeting_sequence" }]
+                : [{ label: "Continuar...", cost: "Continuar", action: "continue_meeting_sequence" }]
+              : hasQuestionsFor(characterInFocus)
+                ? buildPostSequenceActions(characterInFocus)
+                : [{ label: "Concluir Reunion", cost: "Finalizar", action: "conclude_meeting" }];
+            if (!currentMeeting && hasQuestionsFor(characterInFocus)) {
+                setConversationMode('post_sequence');
             }
-            setPersonalizedDialogue(consequences.dialogueResponse);
-            if (currentMeeting) {
-                if (currentMeeting.nodeIndex >= currentMeeting.sequence.nodes.length - 1) {
-                    setPlayerActions([{ label: "Finalizar Discusión", cost: "Continuar", action: "end_meeting_sequence" }]);
-                } else {
-                    setPlayerActions([{ label: "Continuar...", cost: "Continuar", action: "continue_meeting_sequence" }]);
-                }
-            } else {
-                if (hasQuestionsFor(characterInFocus)) {
-                    setConversationMode('post_sequence');
-                    setPlayerActions(buildPostSequenceActions(characterInFocus));
-                } else {
-                    setPlayerActions([{ label: "Concluir Reunion", cost: "Finalizar", action: "conclude_meeting" }]);
-                }
-            }
+            beginDialogueQueue(dialogueLines, finalActions);
         }
     }
     setIsLoading(false);

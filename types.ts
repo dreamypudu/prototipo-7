@@ -181,6 +181,12 @@ export interface ContentUnlocks {
     documents?: string[];
 }
 
+export interface NarrativeReaction {
+    stakeholder_id?: string;
+    stakeholder_role?: string;
+    text: string;
+}
+
 export interface Consequences {
     budgetChange?: number;
     trustChange?: number;
@@ -189,6 +195,7 @@ export interface Consequences {
     projectProgressChange?: number;
     dialogueResponse: string;
     response_stakeholder_id?: string;
+    reactions?: NarrativeReaction[];
     expected_actions?: Partial<ExpectedAction>[]; // NEW: Actions that "should" happen after this choice
     unlocks?: ContentUnlocks;
     email_event_ids?: string[];
