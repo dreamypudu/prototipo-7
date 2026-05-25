@@ -60,7 +60,7 @@ export const nodes: ScenarioNode[] = [
           reactions: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Entiendo, director. Venia saliendo de una atencion que se extendio mas de lo esperado, pero tomare el punto.',
+              text: 'Entiendo, director. Venia saliendo de una atención que se extendió mas de lo esperado, el Director anterior lo entendía.',
             },
           ],
           dialogueResponse: 'Yo quiero mencionar algo.',
