@@ -55,6 +55,10 @@ export const applyDailyResolutionToState = (
   const resolvedExpectedActionIds = Array.from(
     new Set([...(prev.resolvedExpectedActionIds ?? []), ...(resolution.resolved_expected_action_ids ?? [])])
   );
+  const pendingEmailEvents = [
+    ...(prev.pendingEmailEvents ?? []),
+    ...(resolution.scheduled_email_events ?? []),
+  ];
 
   const summary = `Resolución día ${resolution.day}: presupuesto ${deltaBudget >= 0 ? '+' : ''}${deltaBudget}, reputación ${deltaReputation >= 0 ? '+' : ''}${deltaReputation}`;
   const shouldLogSummary =
@@ -71,6 +75,7 @@ export const applyDailyResolutionToState = (
     comparisons,
     dailyResolutions: upsertDailyResolution(prev.dailyResolutions ?? [], resolution),
     resolvedExpectedActionIds,
+    pendingEmailEvents,
     eventsLog: shouldLogSummary ? [...prev.eventsLog, summary] : prev.eventsLog,
   };
 };

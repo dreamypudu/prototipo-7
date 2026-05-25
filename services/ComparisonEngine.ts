@@ -165,6 +165,7 @@ const resolveEffectStakeholderId = (expected: ExpectedAction) => {
 const applyEffects = (
   globalDeltas: Record<string, number>,
   stakeholderDeltas: Record<string, Record<string, number>>,
+  scheduledEmailEvents: NonNullable<DailyResolution['scheduled_email_events']>,
   expected: ExpectedAction,
   outcome: OutcomeBranch
 ) => {
@@ -172,6 +173,9 @@ const applyEffects = (
   Object.entries(effect.global ?? {}).forEach(([key, value]) => {
     globalDeltas[key] = (globalDeltas[key] ?? 0) + Number(value || 0);
   });
+  if (Array.isArray(effect.scheduled_email_events)) {
+    scheduledEmailEvents.push(...effect.scheduled_email_events);
+  }
 
   const stakeholderId = resolveEffectStakeholderId(expected);
   if (!stakeholderId) return;
@@ -277,6 +281,7 @@ export const resolveDayEffectsLocally = (
   const comparisons: ComparisonResult[] = [];
   const globalDeltas: Record<string, number> = {};
   const stakeholderDeltas: Record<string, Record<string, number>> = {};
+  const scheduledEmailEvents: NonNullable<DailyResolution['scheduled_email_events']> = [];
   const resolvedExpectedActionIds: string[] = [];
   const resolvedAtMs = Date.now();
 
@@ -299,6 +304,7 @@ export const resolveDayEffectsLocally = (
     applyEffects(
       globalDeltas,
       stakeholderDeltas,
+      scheduledEmailEvents,
       expected,
       comparison.outcome ? 'TRUE' : 'FALSE'
     );
@@ -310,6 +316,7 @@ export const resolveDayEffectsLocally = (
     global_deltas: globalDeltas,
     stakeholder_deltas: stakeholderDeltas,
     resolved_expected_action_ids: resolvedExpectedActionIds,
+    scheduled_email_events: scheduledEmailEvents,
     status: 'frontend_applied',
     created_at: new Date(resolvedAtMs).toISOString(),
   };
@@ -363,4 +370,6 @@ export const resolveExpectedActionStatus = (
 };
 
 export const resolutionHasChanges = (resolution: DailyResolution) =>
-  resolution.comparisons.length > 0 || hasAnyDelta(resolution.global_deltas, resolution.stakeholder_deltas);
+  resolution.comparisons.length > 0 ||
+  hasAnyDelta(resolution.global_deltas, resolution.stakeholder_deltas) ||
+  Boolean(resolution.scheduled_email_events?.length);

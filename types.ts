@@ -93,6 +93,7 @@ export interface DailyResolution {
   global_deltas: Record<string, number>;
   stakeholder_deltas: Record<string, Record<string, number>>;
   resolved_expected_action_ids: string[];
+  scheduled_email_events?: { event_id: string; day: number; slot: TimeSlotType }[];
   status?: string;
   created_at?: string;
 }
@@ -180,7 +181,11 @@ export interface Consequences {
     reputationChange?: number;
     projectProgressChange?: number;
     dialogueResponse: string;
+    response_stakeholder_id?: string;
     expected_actions?: Partial<ExpectedAction>[]; // NEW: Actions that "should" happen after this choice
+    email_event_ids?: string[];
+    scheduled_email_events?: { event_id: string; day: number; slot: TimeSlotType }[];
+    stakeholder_effects?: Record<string, { trustChange?: number; supportChange?: number }>;
     global_effects_ui?: GlobalEffectsUI;
     global_effects_real?: GlobalEffectsReal;
 }
@@ -329,6 +334,7 @@ export interface GameState {
   questionLog: QuestionLogEntry[];
   processLog: ProcessLogEntry[];
   inbox: InboxEmail[];
+  pendingEmailEvents?: { event_id: string; day: number; slot: TimeSlotType }[];
   stakeholder_preferences: { [stakeholderId: string]: string };
   readDocuments: string[];
   playerActionsLog: PlayerActionLogEntry[];
@@ -378,8 +384,8 @@ export interface ScenarioOption {
 
 export interface ScenarioNode {
   node_id: string;
-  stakeholderId: string;
-  stakeholderRole: string;
+  stakeholderId?: string;
+  stakeholderRole?: string;
   participantIds?: string[];
   dialogue: string;
   options: ScenarioOption[];
@@ -387,8 +393,8 @@ export interface ScenarioNode {
 
 export interface MeetingSequence {
     sequence_id: string;
-    stakeholderId: string;
-    stakeholderRole: string;
+    stakeholderId?: string;
+    stakeholderRole?: string;
     initialDialogue: string;
     nodes: string[];
     finalDialogue: string;

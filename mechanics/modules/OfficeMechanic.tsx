@@ -48,15 +48,17 @@ const OfficeMechanic: React.FC = () => {
     }
   }
 
+  const isDialogueActive = Boolean(characterInFocus || currentMeeting);
+
   const renderCentralPanel = () => {
-    if (characterInFocus) {
+    if (isDialogueActive) {
       const isIntroHospital =
         !gameState.completedSequences.includes('OFFICE_INTRO_SEQ') ||
         !gameState.completedSequences.includes('SCHEDULE_WAR_SEQ');
       const backgroundKey = isIntroHospital ? 'hospital' : 'box';
       return (
         <DialogueArea
-          key={characterInFocus.name}
+          key={characterInFocus?.name ?? currentNodeId ?? 'narration'}
           stakeholder={characterInFocus}
           participants={sceneParticipants}
           allStakeholders={gameState.stakeholders}
@@ -85,7 +87,7 @@ const OfficeMechanic: React.FC = () => {
           <div className="w-full min-h-[520px] max-h-[75vh] bg-gray-800/50 rounded-xl border border-gray-700 overflow-visible">
             {renderCentralPanel()}
           </div>
-          {characterInFocus && (
+          {isDialogueActive && (
             <div className="mt-3 bg-gray-800/50 p-4 rounded-xl border border-gray-700 relative flex-shrink-0 max-h-[32vh] overflow-visible">
               {isLoading && (
                 <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center rounded-xl z-10">

@@ -6,12 +6,23 @@ export const appendTimeBlockEmails = (
   day: number,
   slot: TimeSlotType
 ): GameState => {
+  const pendingEmailEvents = state.pendingEmailEvents ?? [];
+  const dueEventIds = new Set(
+    pendingEmailEvents
+      .filter((event) => event.day === day && event.slot === slot)
+      .map((event) => event.event_id)
+  );
+
   const newInboxEntries = emailTemplates
     .filter(
       (template) =>
-        template.trigger.type === 'ON_TIME_BLOCK' &&
-        template.trigger.day === day &&
-        template.trigger.slot === slot &&
+        (
+          template.trigger.type === 'ON_TIME_BLOCK' &&
+          template.trigger.day === day &&
+          template.trigger.slot === slot ||
+          template.trigger.type === 'ON_CASE_EVENT' &&
+          dueEventIds.has(template.trigger.event_id)
+        ) &&
         !state.inbox.some((entry) => entry.email_id === template.email_id)
     )
     .map((template) => ({
@@ -19,11 +30,17 @@ export const appendTimeBlockEmails = (
       dayReceived: day,
       isRead: false,
     }));
+  const remainingPendingEvents = pendingEmailEvents.filter(
+    (event) => !(event.day === day && event.slot === slot)
+  );
 
-  if (newInboxEntries.length === 0) return state;
+  if (newInboxEntries.length === 0 && remainingPendingEvents.length === pendingEmailEvents.length) {
+    return state;
+  }
 
   return {
     ...state,
     inbox: [...state.inbox, ...newInboxEntries],
+    pendingEmailEvents: remainingPendingEvents,
   };
 };

@@ -146,6 +146,7 @@ const createInitialGameState = (contentPack: VersionContentPack): GameState => {
       comparisons: [],
       dailyResolutions: [],
       resolvedExpectedActionIds: [],
+      pendingEmailEvents: [],
       questionLog: []
   };
 };
@@ -488,7 +489,7 @@ export default function GestionEnSaludApp({
   };
 
   const buildPreSequenceActions = (
-    stakeholder: Stakeholder,
+    stakeholder: Stakeholder | null,
     actionLabel: string,
     actionCost: string,
     allowQuestions: boolean
@@ -502,7 +503,7 @@ export default function GestionEnSaludApp({
   };
 
   const buildPostSequenceActions = (
-    stakeholder: Stakeholder,
+    stakeholder: Stakeholder | null,
     options?: { concludeLabel?: string; concludeCost?: string }
   ): PlayerAction[] => {
     const actions: PlayerAction[] = [];
@@ -591,7 +592,8 @@ export default function GestionEnSaludApp({
     return { label: 'Comenzar Reunion', cost: 'Tiempo' };
   };
 
-  const hasCompletedSequenceForStakeholder = (stakeholder: Stakeholder, completedSequences: string[]) => {
+  const hasCompletedSequenceForStakeholder = (stakeholder: Stakeholder | null, completedSequences: string[]) => {
+    if (!stakeholder) return false;
     return scenarioData.sequences.some(
       seq => sequenceBelongsToStakeholder(seq, stakeholder) && completedSequences.includes(seq.sequence_id)
     );
@@ -635,7 +637,7 @@ export default function GestionEnSaludApp({
     return true;
   }, []);
 
-  const startSequence = useCallback((sequence: MeetingSequence, stakeholder: Stakeholder, options?: { pauseTimer?: boolean; actionLabel?: string; actionCost?: string }) => {
+  const startSequence = useCallback((sequence: MeetingSequence, stakeholder: Stakeholder | null, options?: { pauseTimer?: boolean; actionLabel?: string; actionCost?: string }) => {
     const actionLabel = options?.actionLabel ?? "Comenzar Reunion";
     const actionCost = options?.actionCost ?? "Tiempo";
     setActiveTab('interaction');
@@ -743,7 +745,7 @@ export default function GestionEnSaludApp({
       stakeholderId: sequenceToStart.stakeholderId,
       stakeholderRole: sequenceToStart.stakeholderRole,
     });
-    if (stakeholder) {
+    if (stakeholder || (!sequenceToStart.stakeholderId && !sequenceToStart.stakeholderRole)) {
       const label = sequenceToStart.isContingent ? "Atender Evento Contingente" : "Atender Situacion Inevitable";
       startSequence(sequenceToStart, stakeholder, { pauseTimer: true, actionLabel: label, actionCost: "Obligatorio" });
     } else {
@@ -988,23 +990,24 @@ export default function GestionEnSaludApp({
   );
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
+    const hasSpeakerRef = Boolean(scenario.stakeholderId || scenario.stakeholderRole);
     const activeStakeholder = resolveStakeholderByRef(gameState.stakeholders, {
       stakeholderId: scenario.stakeholderId,
       stakeholderRole: scenario.stakeholderRole,
     });
-    if (!activeStakeholder) {
+    if (hasSpeakerRef && !activeStakeholder) {
       console.error(`[Content] Scenario ${scenario.node_id} references unknown stakeholderId="${scenario.stakeholderId}"`);
       setPersonalizedDialogue('Contenido invalido: no se pudo resolver el NPC de este escenario.');
       setPlayerActions([{ label: 'Concluir Reunion', cost: 'Finalizar', action: 'conclude_meeting' }]);
       return;
     }
-    setCharacterInFocus(activeStakeholder);
+    setCharacterInFocus(activeStakeholder ?? null);
 
     setPersonalizedDialogue(scenario.dialogue);
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
-        const preview = resolveActionEffectsPreview(opt.consequences, activeStakeholder.name);
+        const preview = resolveActionEffectsPreview(opt.consequences, activeStakeholder?.name ?? 'Narracion');
         return {
           label: opt.cardTitle || opt.text,
           description: opt.text,
@@ -1434,7 +1437,7 @@ export default function GestionEnSaludApp({
     const processLog = finalizeLogging(action.action);
     setIsLoading(true);
 
-    if (!characterInFocus) { setIsLoading(false); return; }
+    if (!characterInFocus && !currentMeeting) { setIsLoading(false); return; }
 
     if (currentMeeting) {
         const { sequence, nodeIndex } = currentMeeting;
@@ -1620,6 +1623,12 @@ export default function GestionEnSaludApp({
                       : null
                 : null;
             const globalEffects = resolveGlobalEffects(consequences);
+            const scenarioStakeholder = resolveStakeholderByRef(gameState.stakeholders, {
+              stakeholderId: scenario.stakeholderId,
+              stakeholderRole: scenario.stakeholderRole,
+            });
+            const decisionStakeholder = scenarioStakeholder ?? characterInFocus;
+            const decisionStakeholderName = decisionStakeholder?.name ?? 'Narracion';
             setHoveredGlobalEffects(null);
 
             // PSYCHOMETRIC REGISTRATION
@@ -1629,7 +1638,7 @@ export default function GestionEnSaludApp({
                 day: gameState.day,
                 timeSlot: gameState.timeSlot,
               });
-              const toastText = characterInFocus?.name ? `${characterInFocus.name} recordará eso` : 'NPC recordará eso';
+              const toastText = decisionStakeholder?.name ? `${decisionStakeholder.name} recordará eso` : 'Compromiso registrado';
               showToast(toastText);
             }
             if (adminDecision) {
@@ -1675,10 +1684,23 @@ export default function GestionEnSaludApp({
               node_id: scenario.node_id,
               option_id: option.option_id
             });
-            setRecentInternalResolution(resolveInternalEffectsPreview(consequences, characterInFocus.name));
+            setRecentInternalResolution(resolveInternalEffectsPreview(consequences, decisionStakeholderName));
 
             setGameState(prev => {
-                const newStakeholders = prev.stakeholders.map(sh => sh.name === characterInFocus.name ? { ...sh, trust: Math.max(0, Math.min(100, sh.trust + (consequences.trustChange ?? 0))), support: Math.max(sh.minSupport, Math.min(sh.maxSupport, sh.support + (consequences.supportChange ?? 0))) } : sh);
+                const stakeholderEffects = consequences.stakeholder_effects ?? {};
+                const newStakeholders = prev.stakeholders.map(sh => {
+                    const directEffects = stakeholderEffects[sh.id] ?? {};
+                    const focusTrustDelta = decisionStakeholder && sh.name === decisionStakeholder.name ? consequences.trustChange ?? 0 : 0;
+                    const focusSupportDelta = decisionStakeholder && sh.name === decisionStakeholder.name ? consequences.supportChange ?? 0 : 0;
+                    const trustDelta = focusTrustDelta + (directEffects.trustChange ?? 0);
+                    const supportDelta = focusSupportDelta + (directEffects.supportChange ?? 0);
+                    if (trustDelta === 0 && supportDelta === 0) return sh;
+                    return {
+                        ...sh,
+                        trust: Math.max(0, Math.min(100, sh.trust + trustDelta)),
+                        support: Math.max(sh.minSupport, Math.min(sh.maxSupport, sh.support + supportDelta))
+                    };
+                });
                 const globalEffectsBefore = { budget: prev.budget, reputation: prev.reputation };
                 const nextBudget = prev.budget + globalEffects.deltas.budget;
                 const nextReputation = clampReputation(prev.reputation + globalEffects.deltas.reputation);
@@ -1687,12 +1709,12 @@ export default function GestionEnSaludApp({
                     decision_order: prev.decisionLog.length + 1,
                     sequence_id: currentMeeting?.sequence.sequence_id,
                     node_title: scenario.node_id,
-                    npc_id: characterInFocus.id,
-                    npc_role: characterInFocus.role,
-                    npc_name: characterInFocus.name,
+                    npc_id: decisionStakeholder?.id,
+                    npc_role: decisionStakeholder?.role,
+                    npc_name: decisionStakeholder?.name,
                     day: prev.day,
                     timeSlot: prev.timeSlot,
-                    stakeholder: characterInFocus.name,
+                    stakeholder: decisionStakeholderName,
                     nodeId: scenario.node_id,
                     choiceId: option.option_id,
                     choiceText: option.text,
@@ -1715,9 +1737,27 @@ export default function GestionEnSaludApp({
                     processLog: processLog ? [...prev.processLog, processLog] : prev.processLog,
                     decisionLog: [...prev.decisionLog, decisionEntry]
                 };
-                return adminDecision ? mergeMechanicFlushIntoState(nextState) : nextState;
+                const nextStateWithScheduledEmails = consequences.scheduled_email_events?.length
+                  ? {
+                      ...nextState,
+                      pendingEmailEvents: [
+                        ...(nextState.pendingEmailEvents ?? []),
+                        ...consequences.scheduled_email_events,
+                      ],
+                    }
+                  : nextState;
+                const nextStateWithEmails = consequences.email_event_ids
+                  ? appendCaseEventEmails(nextStateWithScheduledEmails, contentPack.emails, consequences.email_event_ids, prev.day)
+                  : nextStateWithScheduledEmails;
+                return adminDecision ? mergeMechanicFlushIntoState(nextStateWithEmails) : nextStateWithEmails;
             });
 
+            const responseStakeholder = consequences.response_stakeholder_id
+              ? gameState.stakeholders.find(stakeholder => stakeholder.id === consequences.response_stakeholder_id)
+              : null;
+            if (responseStakeholder) {
+              setCharacterInFocus(responseStakeholder);
+            }
             setPersonalizedDialogue(consequences.dialogueResponse);
             if (currentMeeting) {
                 if (currentMeeting.nodeIndex >= currentMeeting.sequence.nodes.length - 1) {
