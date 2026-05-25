@@ -27,6 +27,7 @@ import {
   resolveStakeholderByRef,
   sequenceBelongsToStakeholder,
 } from '../../services/stakeholderResolver';
+import { getBlockingSequenceQueue, getNextBlockingSequence } from '../../services/blockingSequenceQueue';
 
 import Header from '../../components/Header';
 import EndGameScreen from '../../components/EndGameScreen';
@@ -35,7 +36,7 @@ import SplashScreen from '../../components/SplashScreen';
 import Sidebar from '../../components/Sidebar';
 import ObjectivesPanel from '../../components/ui/ObjectivesPanel';
 import { useCommitmentsTracker } from '../../hooks/useCommitmentsTracker';
-import { buildCommitmentTextTemplates } from '../../services/commitments_text_generator';
+import { buildCommitmentTextTemplates, evaluateConditionGroup } from '../../services/commitments_text_generator';
 
 type ActiveTab = string;
 type SchedulingState = 'none' | 'selecting_slot' | 'selecting_stakeholder' | 'confirming_schedule';
@@ -166,6 +167,18 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     roomDefinitions,
   });
   const effectiveTimerPaused = isTimerPaused || isDialogueTyping;
+  const hasScheduledScenarioInCurrentBlock = gameState.calendar.some(
+    (meeting) => meeting.day === gameState.day && meeting.slot === gameState.timeSlot
+  );
+  const advanceScenarioHint =
+    isGameStarted &&
+    gameStatus === 'playing' &&
+    !currentMeeting &&
+    !isLoading &&
+    (!characterInFocus || characterInFocus.role === SECRETARY_ROLE) &&
+    !hasScheduledScenarioInCurrentBlock
+      ? 'avanza para activar más escenarios'
+      : null;
   const stageTabs = [
     { id: 'stage_1', label: 'Etapa 1: Descubrimiento', status: 'active' as const },
     { id: 'stage_2', label: 'Etapa 2: Ejecucion', status: 'upcoming' as const },
@@ -528,22 +541,94 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     mechanicEngine.emitEvent('dialogue', 'scenario_presented', { node_id: scenario.node_id });
   }, [setPersonalizedDialogue]);
 
-  const startSequence = useCallback((sequence: MeetingSequence, stakeholder: Stakeholder) => {
+  const startSequence = useCallback((sequence: MeetingSequence, stakeholder: Stakeholder, options?: { pauseTimer?: boolean }) => {
     setCharacterInFocus(stakeholder);
     setCurrentMeeting({ sequence, nodeIndex: 0 });
     setPersonalizedDialogue(sequence.initialDialogue);
     setConversationMode('pre_sequence');
     const allowQuestions = hasCompletedSequenceForStakeholder(stakeholder, gameState.completedSequences);
     setPlayerActions(buildPreSequenceActions(stakeholder, allowQuestions));
+    if (options?.pauseTimer) {
+      setIsTimerPaused(true);
+    }
   }, [setPersonalizedDialogue, buildPreSequenceActions, gameState.completedSequences]);
 
   const isInteractionBlockingTimeout = Boolean(
     characterInFocus && characterInFocus.role !== SECRETARY_ROLE
   );
 
+  const isSequenceWindowOpen = useCallback((sequence: MeetingSequence, state: GameState) => {
+    if (!sequence.triggerMap) return true;
+    if (state.day > sequence.triggerMap.day) return true;
+    if (state.day < sequence.triggerMap.day) return false;
+    return TIME_SLOTS.indexOf(state.timeSlot) >= TIME_SLOTS.indexOf(sequence.triggerMap.slot);
+  }, []);
+
+  const shouldTriggerContingentSequence = useCallback((sequence: MeetingSequence, state: GameState) => {
+    if (!sequence.isContingent) return false;
+    if (sequence.contingentConditions && !evaluateConditionGroup(state, sequence.contingentConditions)) {
+      return false;
+    }
+
+    if (!sequence.contingentRules) {
+      return Boolean(sequence.contingentConditions);
+    }
+
+    const rules = sequence.contingentRules;
+
+    if (typeof rules.budgetBelow === 'number' && state.budget >= rules.budgetBelow) {
+      return false;
+    }
+
+    if (typeof rules.trustBelow === 'number' || typeof rules.supportBelow === 'number') {
+      const stakeholder = resolveStakeholderByRef(state.stakeholders, {
+        stakeholderId: rules.stakeholderId ?? sequence.stakeholderId,
+        stakeholderRole: rules.stakeholderRole ?? sequence.stakeholderRole,
+      });
+      if (!stakeholder) return false;
+
+      if (typeof rules.trustBelow === 'number' && stakeholder.trust >= rules.trustBelow) {
+        return false;
+      }
+      if (typeof rules.supportBelow === 'number' && stakeholder.support >= rules.supportBelow) {
+        return false;
+      }
+    }
+
+    return true;
+  }, []);
+
+  const getPendingBlockingQueue = useCallback((state: GameState) =>
+    getBlockingSequenceQueue(scenarioData.sequences, state, {
+      isSequenceWindowOpen,
+      shouldTriggerContingentSequence,
+    }),
+    [isSequenceWindowOpen, shouldTriggerContingentSequence]
+  );
+
+  useEffect(() => {
+    if (gameStatus !== 'playing' || !isGameStarted || currentMeeting) return;
+
+    const sequenceToStart = getNextBlockingSequence(scenarioData.sequences, gameState, {
+      isSequenceWindowOpen,
+      shouldTriggerContingentSequence,
+    });
+    if (!sequenceToStart) return;
+
+    const stakeholder = resolveStakeholderByRef(gameState.stakeholders, {
+      stakeholderId: sequenceToStart.stakeholderId,
+      stakeholderRole: sequenceToStart.stakeholderRole,
+    });
+    if (stakeholder) {
+      startSequence(sequenceToStart, stakeholder, { pauseTimer: true });
+    } else {
+      console.error(`[Content] Sequence ${sequenceToStart.sequence_id} references unknown stakeholderId="${sequenceToStart.stakeholderId}"`);
+    }
+  }, [currentMeeting, gameState, gameStatus, isGameStarted, isSequenceWindowOpen, scenarioData.sequences, shouldTriggerContingentSequence, startSequence]);
+
   const advanceTimeAndUpdateFocus = useCallback((
     justCompletedSequenceId?: string,
-    options?: { forceResumeTimer?: boolean }
+    options?: { forceResumeTimer?: boolean; skipTimeAdvance?: boolean }
   ) => {
     let currentState = { ...gameState };
 
@@ -586,8 +671,9 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
             sh.name === previousCharacter.name ? { ...sh, lastMetDay: currentState.day } : sh
         );
     }
-    let newState = advanceTime(stateAfterMeetingEnd);
-    const completedDay = (newState as any).__completedDay as number | null;
+    const skipTimeAdvance = Boolean(options?.skipTimeAdvance);
+    let newState = skipTimeAdvance ? stateAfterMeetingEnd : advanceTime(stateAfterMeetingEnd);
+    const completedDay = !skipTimeAdvance ? ((newState as any).__completedDay as number | null) : null;
     delete (newState as any).__completedDay;
     setGameState(newState);
     syncLogs();
@@ -597,6 +683,11 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
         syncDayWithBackend(completedDay, snapshot);
     }
     setIsTimerPaused(false);
+
+    if (skipTimeAdvance) {
+        returnToSecretary(`El bloque de ${newState.timeSlot} del dÃ­a ${newState.day} sigue activo. Hay otro evento pendiente.`);
+        return;
+    }
 
     // Check for next meeting
     const upcomingMeeting = newState.calendar.find(m => m.day === newState.day && m.slot === newState.timeSlot);
@@ -985,12 +1076,23 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     if (action.action === 'conclude_meeting') {
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
         const shouldForceAdvanceBlock = countdown <= 0;
+        const completedSequenceState =
+          justCompletedSequenceId && !gameState.completedSequences.includes(justCompletedSequenceId)
+            ? {
+                ...gameState,
+                completedSequences: [...gameState.completedSequences, justCompletedSequenceId],
+              }
+            : gameState;
+        const hasPendingBlockingAfterThisSequence =
+          Boolean(currentMeeting?.sequence?.isContingent || currentMeeting?.sequence?.isInevitable) &&
+          getPendingBlockingQueue(completedSequenceState).length > 0;
         setCurrentMeeting(null);
         setConversationMode('idle');
         setQuestionsOrigin(null);
         setQuestionsBaseDialogue('');
         advanceTimeAndUpdateFocus(justCompletedSequenceId, {
-            forceResumeTimer: shouldForceAdvanceBlock
+            forceResumeTimer: shouldForceAdvanceBlock,
+            skipTimeAdvance: hasPendingBlockingAfterThisSequence
         });
         setIsLoading(false);
         return;
@@ -1374,6 +1476,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
           title="COMPASS"
           subtitle="Innovatec (Proyecto Quantum Leap)"
           logoUrl="/assets/common/logos/icono-compass.svg"
+          advanceHint={advanceScenarioHint}
         />
 
         <div className="mt-4 max-w-md">

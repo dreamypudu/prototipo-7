@@ -18,9 +18,10 @@ interface HeaderProps {
   title?: string;
   subtitle?: string;
   logoUrl?: string;
+  advanceHint?: string | null;
 }
 
-const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true }) => {
+const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; advanceHint?: string | null; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true, advanceHint }) => {
     const progress = ((periodDuration - countdown) / periodDuration) * 100;
     const { week, dayName } = getGameDate(day);
     const slotLabel = slot === 'mañana' ? 'Mañana' : slot === 'tarde' ? 'Tarde' : 'Noche';
@@ -48,9 +49,22 @@ const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType;
                       {isPaused ? <PlayIcon /> : <PauseIcon />}
                   </button>
                 )}
-                <button onClick={onAdvance} className="p-2 rounded-full bg-white/10 border border-white/10 hover:border-teal-300/60 text-teal-200 transition-colors" title="Avanzar al Siguiente Bloque">
-                   <ForwardIcon />
-                </button>
+                <div className="relative flex items-center">
+                  {advanceHint && (
+                    <div className="advance-hint pointer-events-none absolute right-0 top-full mt-4 w-64 rounded-lg border border-yellow-300/60 bg-yellow-950/95 px-4 py-3 text-left text-sm font-bold text-yellow-50 shadow-[0_18px_46px_rgba(0,0,0,0.46),0_0_34px_rgba(250,204,21,0.28)] backdrop-blur-md">
+                      <div className="absolute -top-1.5 right-3 h-3 w-3 rotate-45 border-l border-t border-yellow-300/60 bg-yellow-950/95" />
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-yellow-300 text-yellow-950 shadow-[0_0_18px_rgba(250,204,21,0.85)]">
+                          <CheckIcon />
+                        </span>
+                        <span>{advanceHint}</span>
+                      </div>
+                    </div>
+                  )}
+                  <button onClick={onAdvance} className="p-2 rounded-full bg-white/10 border border-white/10 hover:border-teal-300/60 text-teal-200 transition-colors" title="Avanzar al Siguiente Bloque">
+                     <ForwardIcon />
+                  </button>
+                </div>
             </div>
         </div>
     );
@@ -404,7 +418,7 @@ const ResolutionStat: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl }) => {
+const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl, advanceHint }) => {
   const reputationHighlight = globalEffectsHighlight?.reputation;
   const displayTitle = title || 'Compass';
   const displaySubtitle = subtitle || 'Simulador de decisiones';
@@ -447,6 +461,7 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
                     onAdvance={onAdvanceTime}
                     periodDuration={periodDuration}
                     showPauseControl={showPauseControl}
+                    advanceHint={advanceHint}
                  />
             </div>
         </div>
@@ -459,6 +474,15 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
         @keyframes header-arrow-float-down {
           0%, 100% { transform: translateY(-2px); opacity: 0.7; }
           50% { transform: translateY(2px); opacity: 1; }
+        }
+        @keyframes advance-hint-float {
+          0% { transform: translateY(-4px) scale(0.98); opacity: 0; }
+          18% { transform: translateY(0) scale(1); opacity: 1; }
+          50% { transform: translateY(3px) scale(1); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .advance-hint {
+          animation: advance-hint-float 2.4s ease-out infinite;
         }
       `}</style>
     </header>
@@ -482,6 +506,12 @@ const PauseIcon = () => (
 const ForwardIcon = () => (
      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path d="M4.555 5.168A1 1 0 003 6.006v7.988a1 1 0 001.555.832l6.197-3.994a1 1 0 000-1.664L4.555 5.168zM10.555 5.168A1 1 0 009 6.006v7.988a1 1 0 001.555.832l6.197-3.994a1 1 0 000-1.664l-6.197-3.994z" />
+    </svg>
+);
+
+const CheckIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fillRule="evenodd" d="M16.704 5.296a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3.25-3.25a1 1 0 111.414-1.414l2.543 2.543 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd" />
     </svg>
 );
 

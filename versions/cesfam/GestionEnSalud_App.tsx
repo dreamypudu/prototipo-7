@@ -40,6 +40,7 @@ import {
   getCesfamWeekInfo,
   wasCesfamScheduleSubmittedThisWeek,
 } from './services/scheduleTiming';
+import { getBlockingSequenceQueue, getNextBlockingSequence } from '../../services/blockingSequenceQueue';
 import { buildDefaultWeeklySchedule } from '../../data/versions/cesfam/defaults';
 
 import Header from '../../components/Header';
@@ -567,11 +568,11 @@ export default function GestionEnSaludApp({
   };
 
   const getSequenceActionMeta = (sequence: MeetingSequence) => {
-    if (sequence.isInevitable) {
-      return { label: 'Atender Situacion Inevitable', cost: 'Obligatorio' };
-    }
     if (sequence.isContingent) {
       return { label: 'Atender Evento Contingente', cost: 'Obligatorio' };
+    }
+    if (sequence.isInevitable) {
+      return { label: 'Atender Situacion Inevitable', cost: 'Obligatorio' };
     }
     return { label: 'Comenzar Reunion', cost: 'Tiempo' };
   };
@@ -586,7 +587,7 @@ export default function GestionEnSaludApp({
     characterInFocus && characterInFocus.role !== secretaryRole
   );
 
-  const shouldTriggerContingentSequence = (sequence: MeetingSequence, state: GameState) => {
+  const shouldTriggerContingentSequence = useCallback((sequence: MeetingSequence, state: GameState) => {
     if (!sequence.isContingent) return false;
     if (sequence.contingentConditions && !evaluateConditionGroup(state, sequence.contingentConditions)) {
       return false;
@@ -618,7 +619,7 @@ export default function GestionEnSaludApp({
     }
 
     return true;
-  };
+  }, []);
 
   const startSequence = useCallback((sequence: MeetingSequence, stakeholder: Stakeholder, options?: { pauseTimer?: boolean; actionLabel?: string; actionCost?: string }) => {
     const actionLabel = options?.actionLabel ?? "Comenzar Reunion";
@@ -657,6 +658,14 @@ export default function GestionEnSaludApp({
     if (state.day < sequence.triggerMap.day) return false;
     return timeSlots.indexOf(state.timeSlot) >= timeSlots.indexOf(sequence.triggerMap.slot);
   }, [timeSlots]);
+
+  const getPendingBlockingQueue = useCallback((state: GameState) =>
+    getBlockingSequenceQueue(scenarioData.sequences, state, {
+      isSequenceWindowOpen,
+      shouldTriggerContingentSequence,
+    }),
+    [scenarioData, isSequenceWindowOpen, shouldTriggerContingentSequence]
+  );
 
   useEffect(() => {
     if (gameStatus === 'playing') return;
@@ -710,19 +719,10 @@ export default function GestionEnSaludApp({
     if (pendingDayReview || isPreparingDayReview) return;
     if (appStep !== 'game' || gameStatus !== 'playing' || currentMeeting) return;
 
-    const inevitableSeq = scenarioData.sequences.find(seq =>
-      seq.isInevitable &&
-      !gameState.completedSequences.includes(seq.sequence_id) &&
-      isSequenceWindowOpen(seq, gameState)
-    );
-
-    const contingentSeq = scenarioData.sequences.find(seq =>
-      seq.isContingent &&
-      !gameState.completedSequences.includes(seq.sequence_id) &&
-      shouldTriggerContingentSequence(seq, gameState)
-    );
-
-    const sequenceToStart = inevitableSeq ?? contingentSeq;
+    const sequenceToStart = getNextBlockingSequence(scenarioData.sequences, gameState, {
+      isSequenceWindowOpen,
+      shouldTriggerContingentSequence,
+    });
     if (!sequenceToStart) return;
 
     const stakeholder = resolveStakeholderByRef(gameState.stakeholders, {
@@ -730,12 +730,12 @@ export default function GestionEnSaludApp({
       stakeholderRole: sequenceToStart.stakeholderRole,
     });
     if (stakeholder) {
-      const label = sequenceToStart.isInevitable ? "Atender Situacion Inevitable" : "Atender Evento Contingente";
+      const label = sequenceToStart.isContingent ? "Atender Evento Contingente" : "Atender Situacion Inevitable";
       startSequence(sequenceToStart, stakeholder, { pauseTimer: true, actionLabel: label, actionCost: "Obligatorio" });
     } else {
       console.error(`[Content] Sequence ${sequenceToStart.sequence_id} references unknown stakeholderId="${sequenceToStart.stakeholderId}"`);
     }
-  }, [pendingDayReview, isPreparingDayReview, gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData, isSequenceWindowOpen]);
+  }, [pendingDayReview, isPreparingDayReview, gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData, isSequenceWindowOpen, shouldTriggerContingentSequence]);
 
   const advanceTime = useCallback((currentState: GameState): GameState => {
     let nextSlotIndex = timeSlots.indexOf(currentState.timeSlot) + 1;
@@ -1221,22 +1221,13 @@ export default function GestionEnSaludApp({
       });
       if (timeAdvanced) { advanceTimeAndUpdateFocus(); return false; }
 
-      const blockingInevitable = scenarioData.sequences.find(seq =>
-          seq.isInevitable &&
-          !gameState.completedSequences.includes(seq.sequence_id) &&
-          isSequenceWindowOpen(seq, gameState)
-      );
-      if (blockingInevitable) {
-          setWarningPopupMessage("Hay un evento inevitable pendiente. Debes atenderlo antes de iniciar uno proactivo.");
-          return false;
-      }
-      const blockingContingent = scenarioData.sequences.find(seq =>
-          seq.isContingent &&
-          !gameState.completedSequences.includes(seq.sequence_id) &&
-          shouldTriggerContingentSequence(seq, gameState)
-      );
-      if (blockingContingent) {
-          setWarningPopupMessage("Hay un evento contingente pendiente. Debes atenderlo antes de iniciar uno proactivo.");
+      const blockingSequence = getPendingBlockingQueue(gameState)[0];
+      if (blockingSequence) {
+          setWarningPopupMessage(
+            blockingSequence.isContingent
+              ? "Hay un evento contingente pendiente. Debes atenderlo antes de iniciar uno proactivo."
+              : "Hay un evento inevitable pendiente. Debes atenderlo antes de iniciar uno proactivo."
+          );
           return false;
       }
 
@@ -1545,13 +1536,26 @@ export default function GestionEnSaludApp({
           return;
         }
         const shouldForceAdvanceBlock = countdown <= 0;
-        const shouldAdvanceForConsumedSequence = currentMeeting?.sequence?.consumesTime === true;
+        const completedSequenceState =
+          justCompletedSequenceId && !gameState.completedSequences.includes(justCompletedSequenceId)
+            ? {
+                ...gameState,
+                completedSequences: [...gameState.completedSequences, justCompletedSequenceId],
+              }
+            : gameState;
+        const hasPendingBlockingAfterThisSequence =
+          Boolean(currentMeeting?.sequence?.isContingent || currentMeeting?.sequence?.isInevitable) &&
+          getPendingBlockingQueue(completedSequenceState).length > 0;
+        const shouldAdvanceForConsumedSequence =
+          currentMeeting?.sequence?.consumesTime === true && !hasPendingBlockingAfterThisSequence;
         const shouldAdvanceAfterInitialChiefsSequence =
           selectedVersion === 'CESFAM' &&
           gameState.day === 3 &&
           gameState.timeSlot === morningSlot &&
-          currentMeeting?.sequence?.sequence_id === 'SCHEDULE_WAR_SEQ';
+          currentMeeting?.sequence?.sequence_id === 'SCHEDULE_WAR_SEQ' &&
+          !hasPendingBlockingAfterThisSequence;
         const skipTimeAdvance =
+          hasPendingBlockingAfterThisSequence ||
           !shouldForceAdvanceBlock &&
           !shouldAdvanceAfterInitialChiefsSequence &&
           !shouldAdvanceForConsumedSequence;
@@ -1920,6 +1924,20 @@ export default function GestionEnSaludApp({
     return [...ids];
   }, [scenarioData, gameState, isSequenceWindowOpen]);
 
+  const hasAvailableScenarioInCurrentBlock =
+    availableProactiveStakeholderIds.length > 0 ||
+    getPendingBlockingQueue(gameState).length > 0;
+  const advanceScenarioHint =
+    appStep === 'game' &&
+    gameStatus === 'playing' &&
+    !currentMeeting &&
+    !pendingDayReview &&
+    !isPreparingDayReview &&
+    !isLoading &&
+    !hasAvailableScenarioInCurrentBlock
+      ? 'avanza para activar más escenarios'
+      : null;
+
   const collapsedMechanicIndicators = useMemo(() => {
     const unreadEmails = gameState.inbox.filter((entry) => !entry.isRead).length;
     const unreadDocuments = (contentPack.documents ?? []).filter(
@@ -2078,6 +2096,7 @@ export default function GestionEnSaludApp({
           title="COMPASS"
           subtitle={getVersionSubtitle(selectedVersion, config?.title)}
           logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
+          advanceHint={advanceScenarioHint}
         />
       </div>
       <div className="fixed bottom-36 right-6 z-40">
