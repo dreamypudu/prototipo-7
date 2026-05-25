@@ -58,13 +58,13 @@ const DayReviewScreen: React.FC<DayReviewScreenProps> = ({ data, resolution, onC
             <section className="rounded-2xl border border-blue-950/80 bg-white/[0.04] p-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-semibold">Decisiones tomadas</h3>
-                  <p className="text-sm text-slate-400">{data.decisionCount} decisiones registradas durante el día.</p>
+                  <h3 className="text-lg font-semibold">Decisiones y acciones tomadas</h3>
+                  <p className="text-sm text-slate-400">{data.decisionCount} registros durante el día.</p>
                 </div>
               </div>
               {data.decisions.length === 0 ? (
                 <div className="rounded-xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-slate-400">
-                  No registraste decisiones con impacto directo durante este día.
+                  No registraste decisiones o acciones estructuradas durante este día.
                 </div>
               ) : (
                 <div className="space-y-3">

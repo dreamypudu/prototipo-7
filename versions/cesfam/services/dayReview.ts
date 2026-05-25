@@ -1,4 +1,4 @@
-import { DailyResolution, DecisionLogEntry, GameState, QuestionLogEntry, Stakeholder } from '../../../types';
+import { CanonicalAction, DailyResolution, DecisionLogEntry, GameState, QuestionLogEntry, Stakeholder } from '../../../types';
 
 export interface DayReviewDecisionItem {
   id: string;
@@ -64,6 +64,28 @@ const mapDecision = (entry: DecisionLogEntry, index: number): DayReviewDecisionI
   supportDelta: Number(entry.consequences.supportChange ?? 0),
 });
 
+const getEntryDay = (entry: { day?: number | string | null; committed_day?: number | string | null; context?: Record<string, any> }) => {
+  const rawDay = entry.day ?? entry.committed_day ?? entry.context?.day;
+  const day = Number(rawDay);
+  return Number.isFinite(day) ? day : null;
+};
+
+const getActionLabel = (action: CanonicalAction) => {
+  if (action.summary) return action.summary;
+  const targetLabel = action.target_label || action.target_ref;
+  const mechanicLabel = action.mechanic_id ? `${action.mechanic_id}: ` : '';
+  return `${mechanicLabel}${action.action_type}${targetLabel ? ` (${targetLabel})` : ''}`;
+};
+
+const mapCanonicalAction = (action: CanonicalAction, index: number): DayReviewDecisionItem => ({
+  id: `canonical-${action.canonical_action_id}-${index}`,
+  stakeholderName: action.target_label || action.target_ref || action.mechanic_id,
+  choiceText: getActionLabel(action),
+  reputationDelta: 0,
+  trustDelta: 0,
+  supportDelta: 0,
+});
+
 const appendSpokenStakeholder = (
   result: DayReviewSpokenStakeholder[],
   seen: Set<string>,
@@ -91,9 +113,21 @@ export const buildCesfamDayReviewData = (
   nextDay: number,
   resolution: DailyResolution | null
 ): CesfamDayReviewData => {
-  const decisions = gameState.decisionLog
-    .filter((entry) => entry.day === completedDay)
-    .map(mapDecision);
+  const completedDayNumber = Number(completedDay);
+  const explicitDecisionEntries = gameState.decisionLog
+    .filter((entry) => getEntryDay(entry) === completedDayNumber && entry.is_decision !== false);
+  const explicitDecisions = explicitDecisionEntries.map(mapDecision);
+  const explicitDecisionKeys = new Set(
+    explicitDecisionEntries.map((entry) => `${entry.nodeId}:${entry.choiceId}`)
+  );
+  const mechanicActions = gameState.canonicalActions
+    .filter((action) => getEntryDay(action) === completedDayNumber)
+    .filter((action) => {
+      if (!action.source_node_id || !action.source_option_id) return true;
+      return !explicitDecisionKeys.has(`${action.source_node_id}:${action.source_option_id}`);
+    })
+    .map(mapCanonicalAction);
+  const decisions = [...explicitDecisions, ...mechanicActions];
 
   const questions = gameState.questionLog.filter((entry) => entry.day === completedDay);
   const stakeholderById = new Map(gameState.stakeholders.map((stakeholder) => [stakeholder.id, stakeholder]));

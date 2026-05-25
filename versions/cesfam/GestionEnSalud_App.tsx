@@ -801,8 +801,43 @@ export default function GestionEnSaludApp({
     [roomDefinitions]
   );
 
+  const persistSessionSnapshotInBackground = useCallback(
+    (stateToPersist: GameState, source: string) => {
+      void (async () => {
+        try {
+          const exportPayload = buildSessionExport({
+            gameState: stateToPersist,
+            config,
+            sessionId: sessionIdRef.current,
+            anonymousUserId: anonymousUserIdRef.current,
+            startedAt: sessionStartRef.current ?? Date.now(),
+            endedAt: Date.now(),
+            roomDefinitions,
+          });
+
+          const resp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/sessions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(exportPayload),
+          });
+
+          if (!resp.ok) {
+            console.warn(`[Backend] POST /sessions failed from ${source} with status ${resp.status}`);
+          }
+        } catch (err: any) {
+          console.error(`[Backend] ${source} persistence error:`, {
+            error: err?.message || String(err),
+            apiUrl: API_BASE_URL,
+            type: err?.name,
+          });
+        }
+      })();
+    },
+    [config, roomDefinitions]
+  );
+
   const resolveCompletedDayTransition = useCallback(
-    async (completedDay: number, snapshot: GameState) => {
+    (completedDay: number, snapshot: GameState) => {
       const localResult = applyLocalDailyResolution(snapshot, completedDay);
       const summary = localResult.resolution
         ? summarizeDeltas(
@@ -812,41 +847,14 @@ export default function GestionEnSaludApp({
           )
         : null;
 
-      try {
-        const exportPayload = buildSessionExport({
-          gameState: localResult.nextState,
-          config,
-          sessionId: sessionIdRef.current,
-          anonymousUserId: anonymousUserIdRef.current,
-          startedAt: sessionStartRef.current ?? Date.now(),
-          endedAt: Date.now(),
-          roomDefinitions,
-        });
-
-        const firstResp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/sessions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(exportPayload),
-        });
-
-        if (!firstResp.ok) {
-          console.warn(`[Backend] POST /sessions failed with status ${firstResp.status}`);
-        }
-      } catch (err: any) {
-        console.error('[Backend] resolveCompletedDayTransition error:', {
-          error: err?.message || String(err),
-          apiUrl: API_BASE_URL,
-          type: err?.name,
-        });
-        showToast(`Error de conexión: ${err?.message || 'No se pudo conectar al servidor'}`);
-      }
+      persistSessionSnapshotInBackground(localResult.nextState, 'resolveCompletedDayTransition');
       return {
         nextState: localResult.nextState,
         resolution: localResult.resolution,
         summary,
       };
     },
-    [applyLocalDailyResolution, config, roomDefinitions, showToast]
+    [applyLocalDailyResolution, persistSessionSnapshotInBackground]
   );
 
   const advanceToCase1Monday = useCallback((
@@ -1079,8 +1087,8 @@ export default function GestionEnSaludApp({
       setCountdown(PERIOD_DURATION);
       setIsPreparingDayReview(true);
 
-      void (async () => {
-        const resolved = await resolveCompletedDayTransition(completedDay, snapshot);
+      try {
+        const resolved = resolveCompletedDayTransition(completedDay, snapshot);
         const reviewData = buildCesfamDayReviewData(
           resolved.nextState,
           completedDay,
@@ -1095,8 +1103,14 @@ export default function GestionEnSaludApp({
           reviewData,
           deferredEmailIds,
         });
+      } catch (err) {
+        console.error('[DayReview] failed to prepare daily review', err);
+        setGameState(snapshot);
+        setCountdown(PERIOD_DURATION);
+        setIsTimerPaused(false);
+      } finally {
         setIsPreparingDayReview(false);
-      })();
+      }
       return;
     }
 
