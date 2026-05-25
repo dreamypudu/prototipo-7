@@ -1,4 +1,4 @@
-import { ActivityType, GameState, TimeSlotType, DirectorObjectives, StaffMember, ScheduleAssignment, DayOfWeek, ScheduleBlock, RoomDefinition } from '../../../types';
+import { ActivityType, GameState, TimeSlotType, DirectorObjectives, StaffMember, ScheduleAssignment, DayOfWeek, ScheduleBlock, RoomDefinition } from '../../../../../types';
 import { CESFAM_STAKEHOLDERS } from './stakeholders';
 
 export const TIME_SLOTS: TimeSlotType[] = ['mañana', 'tarde'];
@@ -387,14 +387,4 @@ export const INITIAL_GAME_STATE: GameState = {
   resolvedExpectedActionIds: []
 };
 
-export const buildInitialGameStateWithStakeholders = (
-  stakeholders: GameState['stakeholders'],
-  overrides: Partial<GameState> = {}
-): GameState => ({
-  ...structuredClone(INITIAL_GAME_STATE),
-  stakeholders: structuredClone(stakeholders),
-  ...structuredClone(overrides),
-});
-
-export const buildInitialGameState = (): GameState =>
-  buildInitialGameStateWithStakeholders(CESFAM_STAKEHOLDERS);
+export const buildInitialGameState = (): GameState => structuredClone(INITIAL_GAME_STATE);

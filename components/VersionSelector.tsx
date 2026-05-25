@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SimulatorVersion } from '../types';
+import { CESFAM_NARRATIVE_MODULES, type CesfamNarrativeModuleId } from '../data/versions/cesfam';
 
 interface VersionSelectorProps {
-  onSelect: (version: SimulatorVersion) => void;
+  onSelect: (version: SimulatorVersion, options?: { cesfamModuleId?: CesfamNarrativeModuleId }) => void;
 }
 
 interface VersionOption {
@@ -53,6 +54,7 @@ const VERSIONS: VersionOption[] = [
 
 const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
   const [logoRefreshKey, setLogoRefreshKey] = useState(0);
+  const [isCesfamModuleDialogOpen, setIsCesfamModuleDialogOpen] = useState(false);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -122,7 +124,14 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
             return (
               <button
                 key={version.id}
-                onClick={() => version.active && onSelect(version.id)}
+                onClick={() => {
+                  if (!version.active) return;
+                  if (version.id === 'CESFAM') {
+                    setIsCesfamModuleDialogOpen(true);
+                    return;
+                  }
+                  onSelect(version.id);
+                }}
                 disabled={!version.active}
                 className={`group relative text-left rounded-3xl border-2 transition-all duration-300 h-full flex flex-col overflow-hidden backdrop-blur-md ${
                   version.active
@@ -185,6 +194,45 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
           Competency & Profiling Simulation System © 2026
         </p>
       </div>
+
+      {isCesfamModuleDialogOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/15 bg-slate-900/95 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.55)]">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">CESFAM</p>
+                <h2 className="mt-2 text-3xl font-black tracking-tight text-white">¿Qué estamos midiendo hoy?</h2>
+              </div>
+              <button
+                onClick={() => setIsCesfamModuleDialogOpen(false)}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm font-bold text-slate-200 transition hover:border-cyan-300/60 hover:text-white"
+              >
+                Cerrar
+              </button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {CESFAM_NARRATIVE_MODULES.map((module) => (
+                <button
+                  key={module.id}
+                  onClick={() => onSelect('CESFAM', { cesfamModuleId: module.id })}
+                  className="group rounded-xl border border-white/12 bg-white/[0.06] p-5 text-left transition hover:-translate-y-0.5 hover:border-cyan-300/70 hover:bg-cyan-950/35 hover:shadow-[0_18px_42px_rgba(34,211,238,0.14)]"
+                >
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-300 text-lg font-black text-slate-950 shadow-[0_0_18px_rgba(34,211,238,0.45)]">
+                      {module.id === 'ethics' ? 'E' : 'L'}
+                    </span>
+                    <span className="text-lg font-black text-white">{module.title}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-300">{module.description}</p>
+                  <div className="mt-4 text-xs font-bold uppercase tracking-[0.18em] text-cyan-300 group-hover:text-cyan-100">
+                    Iniciar modulo
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }

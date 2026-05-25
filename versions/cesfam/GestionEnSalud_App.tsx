@@ -62,6 +62,7 @@ type AppStep = 'splash' | 'game';
 
 interface GestionEnSaludAppProps {
   version: SimulatorVersion;
+  contentPack?: VersionContentPack;
   onExitToHome?: () => void;
 }
 
@@ -200,9 +201,13 @@ const resolveMechanics = (config: SimulatorConfig | null): ResolvedMechanicConfi
 
 export default function GestionEnSaludApp({
   version,
+  contentPack: providedContentPack,
   onExitToHome,
 }: GestionEnSaludAppProps): React.ReactElement {
-  const initialContentPack = useMemo(() => getVersionContentPack(version), [version]);
+  const initialContentPack = useMemo(
+    () => providedContentPack ?? getVersionContentPack(version),
+    [providedContentPack, version]
+  );
   const initialConfig = SIMULATOR_CONFIGS[version];
   const initialState = useMemo(() => createInitialGameState(initialContentPack), [initialContentPack]);
   const sessionIdRef = useRef<string>(crypto.randomUUID());
@@ -265,6 +270,15 @@ export default function GestionEnSaludApp({
   const directorObjectives = contentPack.defaults.directorObjectives;
   const secretaryRole = contentPack.defaults.secretaryRole;
   const emailTemplates = contentPack.emails;
+  const usesEthicsCaseFlow = useMemo(
+    () =>
+      scenarioData.sequences.some((sequence) =>
+        sequence.sequence_id === CASE1_INTRO_SEQUENCE_ID ||
+        sequence.sequence_id === 'SCHEDULE_WAR_SEQ' ||
+        CASE1_ENDING_SEQUENCE_IDS.has(sequence.sequence_id)
+      ),
+    [scenarioData]
+  );
   const enabledMechanics = useMemo(() => resolveMechanics(config), [config]);
   const commitmentTextTemplates = useMemo(() => buildCommitmentTextTemplates(enabledMechanics), [enabledMechanics]);
   const commitmentTracker = useCommitmentsTracker(gameState, roomDefinitions, gameStatus, commitmentTextTemplates);
@@ -1026,6 +1040,7 @@ export default function GestionEnSaludApp({
     const deferredEmailIds = getSequenceCompletionEmailIds(justCompletedSequenceId);
     const shouldBlockFridayClose =
       selectedVersion === 'CESFAM' &&
+      usesEthicsCaseFlow &&
       !skipTimeAdvance &&
       !pendingCase1EndingRef.current &&
       stateAfterMeetingEnd.day === CASE1_FRIDAY_DAY &&
@@ -1046,6 +1061,7 @@ export default function GestionEnSaludApp({
 
     const shouldAdvanceFromInitialChiefsSequence =
       selectedVersion === 'CESFAM' &&
+      usesEthicsCaseFlow &&
       justCompletedSequenceId === 'SCHEDULE_WAR_SEQ' &&
       stateAfterMeetingEnd.day === 3 &&
       stateAfterMeetingEnd.timeSlot === morningSlot;
@@ -1128,7 +1144,7 @@ export default function GestionEnSaludApp({
     }
     setCharacterInFocus(null);
     syncLogs();
-  }, [gameState, characterInFocus, advanceTime, secretaryRole, syncLogs, selectedVersion, emailTemplates, mergeMechanicFlushIntoState, resolveCompletedDayTransition, syncDayWithBackend, morningSlot]);
+  }, [gameState, characterInFocus, advanceTime, secretaryRole, syncLogs, selectedVersion, emailTemplates, mergeMechanicFlushIntoState, resolveCompletedDayTransition, syncDayWithBackend, morningSlot, usesEthicsCaseFlow]);
 
   useEffect(() => {
     if (effectiveTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
@@ -1295,7 +1311,7 @@ export default function GestionEnSaludApp({
 
           const { week } = getCesfamWeekInfo(gameState.day);
 
-          if (week === 1) {
+          if (usesEthicsCaseFlow && week === 1) {
               const outcome = resolveCase1SubmissionOutcome(gameState, roomDefinitions);
               pendingCase1EndingRef.current = {
                   sequenceId: outcome.sequenceId,
@@ -1478,6 +1494,7 @@ export default function GestionEnSaludApp({
         const justCompletedSequenceId = currentMeeting?.sequence.sequence_id;
         if (
           selectedVersion === 'CESFAM' &&
+          usesEthicsCaseFlow &&
           justCompletedSequenceId === 'CASO2_ROBO_VEREDICTO_SEQ'
         ) {
           setGameState(prev => ({
@@ -1504,6 +1521,7 @@ export default function GestionEnSaludApp({
         }
         if (
           selectedVersion === 'CESFAM' &&
+          usesEthicsCaseFlow &&
           justCompletedSequenceId === 'AGENDA_CRISIS_RESOLUTION_SEQ'
         ) {
           setGameState(prev => ({
@@ -1550,6 +1568,7 @@ export default function GestionEnSaludApp({
           currentMeeting?.sequence?.consumesTime === true && !hasPendingBlockingAfterThisSequence;
         const shouldAdvanceAfterInitialChiefsSequence =
           selectedVersion === 'CESFAM' &&
+          usesEthicsCaseFlow &&
           gameState.day === 3 &&
           gameState.timeSlot === morningSlot &&
           currentMeeting?.sequence?.sequence_id === 'SCHEDULE_WAR_SEQ' &&
@@ -1579,7 +1598,7 @@ export default function GestionEnSaludApp({
         if (option) {
             const { consequences } = option;
             const adminDecision =
-              selectedVersion === 'CESFAM' && scenario.node_id === 'CASO2_ROBO_VEREDICTO_3'
+              selectedVersion === 'CESFAM' && usesEthicsCaseFlow && scenario.node_id === 'CASO2_ROBO_VEREDICTO_3'
                 ? action.action === 'A'
                   ? {
                       actionType: 'issue_summary',
