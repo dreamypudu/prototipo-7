@@ -3,7 +3,6 @@ import type { MechanicRuleContext, MechanicRuleEvaluation, MechanicRuleResolutio
 import {
   getMatchingActions,
   isRecord,
-  pickBestMatch,
 } from '../../../services/comparisonRuleUtils';
 
 const BLOCK_HOURS = 4.4;
@@ -329,10 +328,21 @@ export const resolveExecuteWeekRule = (
   const matches = getMatchingActions(expected, ruleContext.canonicalActions);
 
   if (matches.length > 0) {
-    const best = pickBestMatch(expected, matches);
+    const afterExpected = matches
+      .filter((action) => action.committed_at >= expected.created_at)
+      .sort((a, b) => a.committed_at - b.committed_at);
+    const candidates = afterExpected.length > 0
+      ? afterExpected
+      : [...matches].sort((a, b) => a.committed_at - b.committed_at);
+    const evaluated = candidates.map((action) => ({
+      action,
+      evaluation: evaluateExecuteWeekRule(expected, action, ruleContext.staffRoster, ruleContext.roomDefinitions),
+    }));
+    const resolved = evaluated.find((entry) => entry.evaluation.outcome) ?? evaluated[evaluated.length - 1];
+
     return {
-      canonicalAction: best,
-      evaluation: evaluateExecuteWeekRule(expected, best, ruleContext.staffRoster, ruleContext.roomDefinitions),
+      canonicalAction: resolved.action,
+      evaluation: resolved.evaluation,
     };
   }
 

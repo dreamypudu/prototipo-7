@@ -82,7 +82,13 @@ const isExpiredBySchedule = (
 
 const isVisitInsideWindow = (expected: ExpectedAction, actual: CanonicalAction) => {
   const actualValue = actual.value_final && typeof actual.value_final === 'object' ? actual.value_final : {};
-  const actualDay = Number((actualValue as Record<string, any>).day ?? 0);
+  const actualDay = Number(
+    actual.day ??
+    actual.committed_day ??
+    (actualValue as Record<string, any>).day ??
+    (actualValue as Record<string, any>).committed_day ??
+    0
+  );
   const targetDay = resolveWeekdayTargetDay(expected);
   const dueDay = resolveDueDay(expected);
   if (targetDay !== null && (actualDay < targetDay || (dueDay !== null && actualDay > dueDay))) {
@@ -91,7 +97,12 @@ const isVisitInsideWindow = (expected: ExpectedAction, actual: CanonicalAction) 
 
   const expectedSlot = normalizeSlotBlock(expected.constraints?.slot ?? expected.constraints?.time_window);
   if (!expectedSlot) return true;
-  const actualSlot = normalizeSlotBlock((actualValue as Record<string, any>).time_slot);
+  const actualSlot = normalizeSlotBlock(
+    actual.time_slot ??
+    actual.committed_time_slot ??
+    (actualValue as Record<string, any>).time_slot ??
+    (actualValue as Record<string, any>).committed_time_slot
+  );
   return !actualSlot || actualSlot === expectedSlot;
 };
 

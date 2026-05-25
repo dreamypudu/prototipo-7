@@ -14,7 +14,7 @@ import {
   RoomDefinition,
   SimulatorConfig
 } from '../types';
-import { compareExpectedVsActual, finalizePendingComparisonsLocally } from './ComparisonEngine';
+import { compareExpectedVsActual, finalizePendingComparisonsLocally, mergeComparisonResults } from './ComparisonEngine';
 import { COMPARISON_MODE, isFrontendComparisonMode } from './comparisonMode';
 
 export interface SessionExport {
@@ -87,9 +87,7 @@ export const buildSessionExport = ({
           roomDefinitions,
         }
       );
-  const comparisons = newComparisons.length > 0
-    ? [...gameState.comparisons, ...newComparisons]
-    : gameState.comparisons;
+  const comparisons = mergeComparisonResults(gameState.comparisons, newComparisons);
 
   return {
     comparison_mode: COMPARISON_MODE,

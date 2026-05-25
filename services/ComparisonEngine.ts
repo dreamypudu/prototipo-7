@@ -198,8 +198,44 @@ const hasAnyDelta = (
 
 const getResolvedExpectedIds = (gameState: GameState) => {
   const ids = new Set<string>(gameState.resolvedExpectedActionIds ?? []);
-  (gameState.comparisons ?? []).forEach((comparison) => ids.add(comparison.expected_action_id));
+  (gameState.comparisons ?? [])
+    .filter(isTerminalComparison)
+    .forEach((comparison) => ids.add(comparison.expected_action_id));
   return ids;
+};
+
+const hasResolvedDay = (comparison: ComparisonResult) =>
+  comparison.resolved_day !== null && comparison.resolved_day !== undefined;
+
+export const isTerminalComparison = (comparison: ComparisonResult) =>
+  comparison.outcome || hasResolvedDay(comparison);
+
+const shouldReplaceComparison = (
+  current: ComparisonResult,
+  incoming: ComparisonResult
+) => {
+  if (isTerminalComparison(current)) return false;
+  if (isTerminalComparison(incoming)) return true;
+  if (incoming.outcome && !current.outcome) return true;
+  if (incoming.canonical_action_id && !current.canonical_action_id) return true;
+  return Number(incoming.resolved_at_ms ?? 0) >= Number(current.resolved_at_ms ?? 0);
+};
+
+export const mergeComparisonResults = (
+  existingComparisons: ComparisonResult[],
+  incomingComparisons: ComparisonResult[]
+): ComparisonResult[] => {
+  if (incomingComparisons.length === 0) return existingComparisons;
+
+  const byExpectedAction = new Map<string, ComparisonResult>();
+  [...existingComparisons, ...incomingComparisons].forEach((comparison) => {
+    const current = byExpectedAction.get(comparison.expected_action_id);
+    if (!current || shouldReplaceComparison(current, comparison)) {
+      byExpectedAction.set(comparison.expected_action_id, comparison);
+    }
+  });
+
+  return Array.from(byExpectedAction.values());
 };
 
 export const compareExpectedVsActual = (
@@ -208,7 +244,11 @@ export const compareExpectedVsActual = (
   existingComparisons: ComparisonResult[] = [],
   options: CompareOptions = {}
 ): ComparisonResult[] => {
-  const compared = new Set(existingComparisons.map((comparison) => comparison.expected_action_id));
+  const compared = new Set(
+    existingComparisons
+      .filter(isTerminalComparison)
+      .map((comparison) => comparison.expected_action_id)
+  );
   const sessionId = options.sessionId ?? existingComparisons.find((comparison) => comparison.session_id)?.session_id ?? DEFAULT_SESSION_ID;
   const resolvedAtMs = options.resolvedAtMs ?? Date.now();
   const results: ComparisonResult[] = [];
@@ -303,10 +343,11 @@ export const resolveExpectedActionStatus = (
   gameState: GameState,
   roomDefinitions: RoomDefinition[]
 ): 'active' | 'completed' | 'failed' => {
-  const existing = gameState.comparisons.find(
+  const terminal = gameState.comparisons.find(
     (comparison) => comparison.expected_action_id === expected.expected_action_id
+      && isTerminalComparison(comparison)
   );
-  if (existing) return existing.outcome ? 'completed' : 'failed';
+  if (terminal) return terminal.outcome ? 'completed' : 'failed';
 
   const comparison = resolveExpectedComparison(expected, gameState.canonicalActions, {
     sessionId: gameState.comparisons[0]?.session_id ?? DEFAULT_SESSION_ID,

@@ -10,9 +10,8 @@ import { MechanicProvider } from '../../mechanics/MechanicContext';
 import { MechanicDispatchAction, OfficeState } from '../../mechanics/types';
 import { buildSessionExport } from '../../services/sessionExport';
 import { useMechanicLogSync } from '../../hooks/useMechanicLogSync';
-import { compareExpectedVsActual, resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
+import { compareExpectedVsActual, mergeComparisonResults, resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
-import { isFrontendComparisonMode } from '../../services/comparisonMode';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
@@ -282,7 +281,10 @@ export default function GestionEnSaludApp({
   );
   const effectiveTimerPaused = isTimerPaused || isDialogueTyping || isPreparingDayReview || Boolean(pendingDayReview);
   // Sync mechanic engine buffers with React state periodically or on significant events
-  const syncLogs = useMechanicLogSync(setGameState);
+  const syncLogs = useMechanicLogSync(setGameState, {
+    sessionId: sessionIdRef.current,
+    roomDefinitions,
+  });
   const mergeMechanicFlushIntoState = useCallback((baseState: GameState): GameState => {
     const flushed = mechanicEngine.flush();
     if (!flushed.events.length && !flushed.canonical.length && !flushed.expected.length) {
@@ -292,29 +294,26 @@ export default function GestionEnSaludApp({
     const nextExpected = [...baseState.expectedActions, ...flushed.expected];
     const nextCanonical = [...baseState.canonicalActions, ...flushed.canonical];
 
+    const newComparisons = compareExpectedVsActual(
+      nextExpected,
+      nextCanonical,
+      baseState.comparisons,
+      {
+        includeNotDone: false,
+        sessionId: sessionIdRef.current,
+        currentDay: baseState.day,
+        currentTimeSlot: baseState.timeSlot,
+        staffRoster: baseState.staffRoster,
+        roomDefinitions,
+      }
+    );
+
     return {
       ...baseState,
       mechanicEvents: [...baseState.mechanicEvents, ...flushed.events],
       canonicalActions: nextCanonical,
       expectedActions: nextExpected,
-      comparisons: isFrontendComparisonMode
-        ? baseState.comparisons
-        : [
-            ...baseState.comparisons,
-            ...compareExpectedVsActual(
-              nextExpected,
-              nextCanonical,
-              baseState.comparisons,
-              {
-                includeNotDone: false,
-                sessionId: sessionIdRef.current,
-                currentDay: baseState.day,
-                currentTimeSlot: baseState.timeSlot,
-                staffRoster: baseState.staffRoster,
-                roomDefinitions,
-              }
-            ),
-          ],
+      comparisons: mergeComparisonResults(baseState.comparisons, newComparisons),
     };
   }, [roomDefinitions]);
   const stageTabs = [

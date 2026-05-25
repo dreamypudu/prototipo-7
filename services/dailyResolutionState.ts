@@ -1,5 +1,6 @@
 // Aplica una resolución diaria ya calculada sobre GameState y evita duplicar comparaciones/resoluciones.
 import type { ComparisonResult, DailyResolution, GameState } from '../types';
+import { mergeComparisonResults } from './ComparisonEngine';
 
 const clampReputation = (value: number): number => Math.max(0, Math.min(100, value));
 
@@ -50,6 +51,7 @@ export const applyDailyResolutionToState = (
 
   const knownComparisonKeys = new Set(prev.comparisons.map(buildComparisonKey));
   const newComparisons = resolution.comparisons.filter((comparison) => !knownComparisonKeys.has(buildComparisonKey(comparison)));
+  const comparisons = mergeComparisonResults(prev.comparisons, resolution.comparisons);
   const resolvedExpectedActionIds = Array.from(
     new Set([...(prev.resolvedExpectedActionIds ?? []), ...(resolution.resolved_expected_action_ids ?? [])])
   );
@@ -66,7 +68,7 @@ export const applyDailyResolutionToState = (
     budget: prev.budget + deltaBudget,
     reputation: clampReputation(prev.reputation + deltaReputation),
     stakeholders: updatedStakeholders,
-    comparisons: newComparisons.length > 0 ? [...prev.comparisons, ...newComparisons] : prev.comparisons,
+    comparisons,
     dailyResolutions: upsertDailyResolution(prev.dailyResolutions ?? [], resolution),
     resolvedExpectedActionIds,
     eventsLog: shouldLogSummary ? [...prev.eventsLog, summary] : prev.eventsLog,

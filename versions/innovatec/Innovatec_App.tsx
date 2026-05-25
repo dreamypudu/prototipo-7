@@ -161,7 +161,10 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
     [enabledMechanics]
   );
-  const syncLogs = useMechanicLogSync(setGameState);
+  const syncLogs = useMechanicLogSync(setGameState, {
+    sessionId: sessionIdRef.current,
+    roomDefinitions,
+  });
   const effectiveTimerPaused = isTimerPaused || isDialogueTyping;
   const stageTabs = [
     { id: 'stage_1', label: 'Etapa 1: Descubrimiento', status: 'active' as const },
