@@ -84,8 +84,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Thursday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Enf. Marcela Soto - Jueves PM',
-                    description: 'Revision formal de auditorias en Sector Rojo',
+                    title: 'Mapa: visitar a Enf. Marcela Soto en Sector Rojo - Jueves PM',
+                    description: 'Cumplir la visita comprometida para revisar formalmente auditorias y protocolos del Sector Rojo.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },

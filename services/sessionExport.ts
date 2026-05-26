@@ -86,6 +86,7 @@ export const buildSessionExport = ({
           currentTimeSlot: gameState.timeSlot,
           staffRoster: gameState.staffRoster,
           roomDefinitions,
+          decisionLog: gameState.decisionLog,
         }
       );
   const comparisons = mergeComparisonResults(gameState.comparisons, newComparisons);

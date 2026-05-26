@@ -8,6 +8,7 @@ import type {
   PlayerAction,
   ScheduleAssignment,
   CanonicalAction,
+  DecisionLogEntry,
   ExpectedAction,
   RoomDefinition,
   StakeholderQuestion,
@@ -79,6 +80,7 @@ export interface MechanicRuleResolution {
 
 export interface MechanicRuleContext {
   canonicalActions: CanonicalAction[];
+  decisionLog: DecisionLogEntry[];
   currentDay?: number;
   currentTimeSlot?: TimeSlotType;
   staffRoster: StaffMember[];

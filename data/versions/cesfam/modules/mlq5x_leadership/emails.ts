@@ -72,8 +72,18 @@ export const CESFAM_MLQ5X_EMAILS: EmailTemplate[] = [
     subject: 'Confirmacion de cupos',
     body:
       'Director:\n\nHe confirmado los cupos de los internos con la universidad. El horario de supervision quedara para martes AM, tal como conversamos.\n\nDijeron que nos mantendremos en contacto para formalizar el convenio la proxima semana.\n\nSaludos,\nDr. Andres Guzman',
-    trigger: { type: 'ON_TIME_BLOCK', day: 5, slot: 'tarde' },
-    requiresUnlock: true,
+    trigger: {
+      type: 'ON_COMPARISON_OUTCOME',
+      day: 5,
+      slot: 'tarde',
+      condition: {
+        sourceNodeId: 'MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS',
+        sourceOptionId: 'A',
+        ruleId: 'future_decision_consistency_rule_v1',
+        stakeholderId: 'andres-guzman',
+        outcomeIn: [true],
+      },
+    },
   },
   {
     email_id: 'mlq5x-d3-sequence-17-guzman-box1-reversal',
@@ -81,7 +91,113 @@ export const CESFAM_MLQ5X_EMAILS: EmailTemplate[] = [
     subject: 'Cambio de decision BOX 1 AM',
     body:
       'Director:\n\nLe escribo porque necesito entender que paso. Ayer me confirmo que el Box 1 del bloque AM quedaria para la supervision docente, pero hoy me informo que no. En dos dias la misma direccion me dio dos respuestas distintas sobre lo mismo.\n\nEntiendo que gestionar un CESFAM implica tomar muchas decisiones al mismo tiempo y que a veces las cosas cambian. El problema practico lo puedo manejar, aunque me genera trabajo extra con la universidad. Lo que me resulta mas dificil de manejar es la incertidumbre: si las decisiones que se toman esta semana pueden cambiar la semana siguiente, no se sobre que base puedo planificar el trabajo del sector ni los compromisos que adquiero hacia afuera.\n\nEspero que no vuelva a ocurrir. Eso es lo minimo para poder trabajar con confianza.\n\nDr. Andres Guzman',
-    trigger: { type: 'ON_TIME_BLOCK', day: 5, slot: 'tarde' },
-    requiresUnlock: true,
+    trigger: {
+      type: 'ON_COMPARISON_OUTCOME',
+      day: 5,
+      slot: 'tarde',
+      condition: {
+        sourceNodeId: 'MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS',
+        sourceOptionId: 'A',
+        ruleId: 'future_decision_consistency_rule_v1',
+        stakeholderId: 'andres-guzman',
+        outcomeIn: [false],
+      },
+    },
+  },
+  {
+    email_id: 'mlq5x-variable-guzman-positive',
+    from: 'Dr. Andres Guzman',
+    subject: 'Desempeno como director',
+    body:
+      'Director:\n\nLe escribo porque hay cosas que en el pasillo no se dicen bien y prefiero tomarme el tiempo de escribirlas.\n\nEstos dias han sido distintos a lo que estaba acostumbrado. No lo digo porque todo haya salido perfecto, sino porque he sentido que hay alguien al mando que escucha antes de decidir, que no llega con las respuestas ya escritas. Eso parece obvio, pero se agradece mas de lo que uno esperaria.\n\nLlevo muchos anos aqui y he aprendido a no hacerme expectativas con los cambios de direccion. Pero lo que he visto estos dias me hace pensar que vale la pena volver a proponerlas. El equipo lo nota tambien, aunque no lo digan directamente.\n\nGracias por tomarse en serio este lugar. Ojala se mantenga.\n\nDr. Andres Guzman',
+    trigger: {
+      type: 'ON_CONDITION_GROUP',
+      condition: {
+        any: [
+          { kind: 'stakeholder_metric', stakeholderId: 'andres-guzman', metric: 'trust', op: '>=', value: 70 },
+          { kind: 'stakeholder_metric', stakeholderId: 'andres-guzman', metric: 'support', op: '>=', value: 70 },
+        ],
+      },
+    },
+  },
+  {
+    email_id: 'mlq5x-variable-guzman-negative',
+    from: 'Dr. Andres Guzman',
+    subject: 'Desempeno como director',
+    body:
+      'Director:\n\nLe escribo con respeto y sin animo de confrontar, pero debo decirle lo que estoy pensando.\n\nEsta semana esperaba que la nueva direccion marcara un rumbo distinto al que hemos tenido, pero he estado con la sensacion de que las decisiones se tomaron sin considerar a quienes llevamos anos construyendo esto. No hablo solo por mi, sino por lo que percibo en el equipo.\n\nEspero que corrija el curso, sino es probable que un nuevo director ocupe su puesto. Un CESFAM funciona cuando la direccion y los equipos van en la misma direccion, y por ahora estoy bastante seguro de que eso no esta ocurriendo.\n\nDr. Andres Guzman',
+    trigger: {
+      type: 'ON_CONDITION_GROUP',
+      condition: {
+        any: [
+          { kind: 'stakeholder_metric', stakeholderId: 'andres-guzman', metric: 'trust', op: '<=', value: 30 },
+          { kind: 'stakeholder_metric', stakeholderId: 'andres-guzman', metric: 'support', op: '<=', value: 30 },
+        ],
+      },
+    },
+  },
+  {
+    email_id: 'mlq5x-variable-soto-positive',
+    from: 'Enf. Marcela Soto',
+    subject: 'Balance',
+    body:
+      'Director:\n\nNo suelo escribir este tipo de correos, asi que le pido que lo tome como lo que es: un reconocimiento sincero.\n\nEsta semana las cosas se hicieron como deben hacerse. Las decisiones siguieron un orden, se consulto a quienes correspondia y cuando hubo problemas se enfrentaron de frente en lugar de postergarse. Eso genera confianza, tanto en mi como en el equipo del sector, que tambien lo nota aunque no lo exprese.\n\nSoy consciente de que mi forma de trabajar no es facil para todo el mundo y que a veces genero roces. Por eso valoro especialmente cuando la direccion entiende que el rigor no es un obstaculo sino una garantia. Espero que podamos seguir trabajando asi.\n\nEnf. Marcela Soto',
+    trigger: {
+      type: 'ON_CONDITION_GROUP',
+      condition: {
+        any: [
+          { kind: 'stakeholder_metric', stakeholderId: 'marcela-soto', metric: 'trust', op: '>=', value: 70 },
+          { kind: 'stakeholder_metric', stakeholderId: 'marcela-soto', metric: 'support', op: '>=', value: 70 },
+        ],
+      },
+    },
+  },
+  {
+    email_id: 'mlq5x-variable-soto-negative',
+    from: 'Enf. Marcela Soto',
+    subject: 'Balance',
+    body:
+      'Director:\n\nLe escribo porque considero que es mi obligacion ser directa cuando algo no me parece correcto, y esta semana ha habido situaciones que me generan preocupacion genuina.\n\nHe observado decisiones que se tomaron de manera informal, sin seguir los procedimientos que existen precisamente para proteger al equipo y a la institucion. Entiendo que una semana de llegada es compleja y que hay mucho que aprender, pero la informalidad en la gestion tiene consecuencias que no siempre se ven de inmediato y que despues son dificiles de revertir.\n\nUn CESFAM bien gestionado necesita que direccion y jefaturas de sector esten alineadas, y para eso necesito poder confiar en que las decisiones que se toman desde arriba son consistentes y predecibles. Si no puede cumplir con eso, alguien mas debera usar su cargo.\n\nEnf. Marcela Soto',
+    trigger: {
+      type: 'ON_CONDITION_GROUP',
+      condition: {
+        any: [
+          { kind: 'stakeholder_metric', stakeholderId: 'marcela-soto', metric: 'trust', op: '<=', value: 30 },
+          { kind: 'stakeholder_metric', stakeholderId: 'marcela-soto', metric: 'support', op: '<=', value: 30 },
+        ],
+      },
+    },
+  },
+  {
+    email_id: 'mlq5x-variable-rios-positive',
+    from: 'Daniel Rios',
+    subject: 'Sin asunto',
+    body:
+      'Director:\n\nNo soy muy de escribir correos formales, asi que le aviso que esto no va a sonar muy institucional.\n\nQueria decirle que esta semana senti que habia alguien en direccion que realmente esta mirando lo que pasa en el CESFAM, no solo los papeles sino lo que pasa de verdad, con las personas. Eso para el equipo del Amarillo significa mucho, mas de lo que probablemente imagina, porque venimos de un tiempo largo en que la sensacion era que a nadie le importaba demasiado como estabamos.\n\nNo se como van a salir las cosas mas adelante, nadie lo sabe. Pero por ahora quiero que sepa que tiene de este lado a alguien dispuesto a trabajar con usted, no solo para usted.\n\nDaniel Rios',
+    trigger: {
+      type: 'ON_CONDITION_GROUP',
+      condition: {
+        any: [
+          { kind: 'stakeholder_metric', stakeholderId: 'daniel-rios', metric: 'trust', op: '>=', value: 70 },
+          { kind: 'stakeholder_metric', stakeholderId: 'daniel-rios', metric: 'support', op: '>=', value: 70 },
+        ],
+      },
+    },
+  },
+  {
+    email_id: 'mlq5x-variable-rios-negative',
+    from: 'Daniel Rios',
+    subject: 'Sin asunto',
+    body:
+      'Director:\n\nLe escribo porque prefiero decirle las cosas de frente antes de que se enteren por otro lado.\n\nEsta semana el equipo del Amarillo esta desmotivado. No es solo el tema de los turnos o de los horarios, es algo mas general: la sensacion de que las decisiones se toman sin considerar lo que vivimos dia a dia aca adentro. Que hay una logica de escritorio que no siempre calza con lo que necesitan los pacientes ni las personas que los atienden.\n\nYo llevo tiempo en esto y he aprendido a distinguir cuando una direccion realmente quiere cambiar las cosas y cuando solo quiere que los numeros cuadren. Ojala me demuestre que me equivoco y revierta esta situacion, sino probablemente alguien mas usara su puesto.\n\nDaniel Rios',
+    trigger: {
+      type: 'ON_CONDITION_GROUP',
+      condition: {
+        any: [
+          { kind: 'stakeholder_metric', stakeholderId: 'daniel-rios', metric: 'trust', op: '<=', value: 30 },
+          { kind: 'stakeholder_metric', stakeholderId: 'daniel-rios', metric: 'support', op: '<=', value: 30 },
+        ],
+      },
+    },
   },
 ];

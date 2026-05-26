@@ -61,8 +61,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Tuesday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'admin_decision_rule_v1',
                   ui: {
-                    title: 'Respaldar Sumario contra Daniel Rios',
-                    description: 'Guzman espera una senal institucional dura antes del miercoles.',
+                    title: 'Administracion: respaldar apertura de sumario contra Daniel Rios - Martes PM',
+                    description: 'Resolver en la mecanica administrativa antes de cerrar el Martes PM, dejando una senal institucional dura sobre la denuncia.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },

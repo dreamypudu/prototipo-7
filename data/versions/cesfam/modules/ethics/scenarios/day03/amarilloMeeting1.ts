@@ -84,8 +84,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Sr. Daniel Rios - Jueves AM',
-                    description: 'Revision de operativo e insumos del Sector Amarillo',
+                    title: 'Mapa: visitar a Sr. Daniel Rios en Sector Amarillo - Jueves AM',
+                    description: 'Cumplir la visita comprometida para revisar operativo comunitario e insumos del Sector Amarillo.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },

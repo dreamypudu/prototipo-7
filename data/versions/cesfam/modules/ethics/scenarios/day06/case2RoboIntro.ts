@@ -54,7 +54,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Monday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Investigar denuncia con Enf. Marcela Soto - Lunes PM',
+                    title: 'Mapa: investigar denuncia con Enf. Marcela Soto en Sector Rojo - Lunes PM',
+                    description: 'Visitar a Marcela Soto para revisar la denuncia por retiro irregular de antibioticos y la gravedad normativa del caso.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 0 } },
@@ -83,7 +84,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Monday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Interrogar a Sr. Daniel Rios - Lunes PM',
+                    title: 'Mapa: escuchar version de Sr. Daniel Rios en Sector Amarillo - Lunes PM',
+                    description: 'Visitar a Daniel Rios para conocer su explicacion sobre el retiro de antibioticos y el operativo comunitario.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 0 } },

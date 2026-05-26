@@ -47,8 +47,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Tuesday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'admin_decision_rule_v1',
                   ui: {
-                    title: 'Firmar Sumario Administrativo contra Daniel Rios',
-                    description: 'Resolver la denuncia formal antes de cerrar el martes.',
+                    title: 'Administracion: firmar sumario administrativo contra Daniel Rios - Martes PM',
+                    description: 'Resolver en la mecanica administrativa antes de cerrar el Martes PM, formalizando el sumario por la denuncia de antibioticos.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },

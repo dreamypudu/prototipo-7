@@ -15,9 +15,12 @@ const visitStakeholderText: CommitmentTemplate = ({ expected, stakeholders, staf
   const stakeholderName = resolveTargetStakeholderName(expected.target_ref, stakeholders, staffRoster) ?? 'el NPC indicado';
   const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name ?? expected.constraints?.day);
   const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window ?? expected.constraints?.slot);
+  const scheduleDetail = buildCompactDetail(dayLabel, timeWindow);
   return {
-    title: `Visitar a ${stakeholderName}`,
-    description: buildCompactDetail(dayLabel, timeWindow) || 'Seguimiento pendiente.',
+    title: `Mapa: visitar a ${stakeholderName}${scheduleDetail ? ` - ${scheduleDetail}` : ''}`,
+    description: scheduleDetail
+      ? `Ir al mapa y visitar a ${stakeholderName} en el bloque indicado.`
+      : `Ir al mapa y visitar a ${stakeholderName}.`,
   };
 };
 
@@ -25,9 +28,12 @@ const visitPriorityText: CommitmentTemplate = ({ expected, stakeholders, staffRo
   const stakeholderName = resolveTargetStakeholderName(expected.target_ref, stakeholders, staffRoster) ?? 'el NPC indicado';
   const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name ?? expected.constraints?.day);
   const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window ?? expected.constraints?.slot);
+  const scheduleDetail = buildCompactDetail(dayLabel, timeWindow);
   return {
-    title: `Priorizar reunion con ${stakeholderName}`,
-    description: buildCompactDetail(dayLabel, timeWindow) || 'Visita prioritaria.',
+    title: `Mapa: primera reunion con ${stakeholderName}${scheduleDetail ? ` - ${scheduleDetail}` : ''}`,
+    description: scheduleDetail
+      ? `La primera visita de seguimiento debe ser con ${stakeholderName} en el bloque indicado.`
+      : `La primera visita de seguimiento debe ser con ${stakeholderName}.`,
   };
 };
 

@@ -35,7 +35,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { staff_id: 'francisca-solis', room_id: 'BOX_6', activity: 'CLINICAL', day_name: 'Miércoles', time_window: 'PM' },
                   rule_id: 'research_hours_rule_v1',
                   ui: {
-                    title: 'Asignar a Enf. Francisca Solis en Box 6 - Miércoles PM',
+                    title: 'Planificacion: asignar a Enf. Francisca Solis en Box 6 para triaje respiratorio - Miercoles PM',
+                    description: 'En la grilla semanal, ubicar a Francisca Solis en el Box 6 el Miercoles PM para cubrir la urgencia respiratoria del Sector Amarillo.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },
@@ -107,7 +108,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { staff_id: 'javier-castro', room_id: 'TERRENO', activity: 'TERRAIN', day_name: 'Lunes', time_window: 'AM' },
                   rule_id: 'research_hours_rule_v1',
                   ui: {
-                    title: 'Asignar a Javier Castro a Terreno con el Sector Amarillo - Lunes AM',
+                    title: 'Planificacion: asignar a Javier Castro a terreno con Sector Amarillo - Lunes AM',
+                    description: 'En la grilla semanal, poner a Javier Castro en Terreno el Lunes AM para reforzar el operativo comunitario del Sector Amarillo.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 10 } },

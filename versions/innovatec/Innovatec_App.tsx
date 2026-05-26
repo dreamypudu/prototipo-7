@@ -11,6 +11,7 @@ import { applyContentUnlocks } from '../../services/contentUnlocks';
 import { buildConsequenceDialogueLines, type DialogueLine } from '../../services/dialogueReactions';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
+import { resolveScenarioDialogue } from '../../services/contextualDialogue';
 import { API_BASE_URL } from '../../services/apiConfig';
 import {
   clearSessionSnapshot,
@@ -209,7 +210,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   useEffect(() => {
     if (!isGameStarted) return;
     setGameState((prev) => appendTimeBlockEmails(prev, EMAIL_TEMPLATES, prev.day, prev.timeSlot));
-  }, [isGameStarted, gameState.day, gameState.timeSlot]);
+  }, [isGameStarted, gameState.day, gameState.timeSlot, gameState.comparisons.length]);
 
   const setPersonalizedDialogue = useCallback((dialogue: string, options?: { isNarration?: boolean }) => {
     setCurrentDialogue(dialogue.replace(/{playerName}/g, gameState.playerName));
@@ -563,7 +564,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
 
   const presentScenario = useCallback((scenario: ScenarioNode) => {
     setPendingDialogueQueue(null);
-    setPersonalizedDialogue(scenario.dialogue, { isNarration: Boolean(scenario.dialogueIsNarration) });
+    setPersonalizedDialogue(resolveScenarioDialogue(scenario, gameState), { isNarration: Boolean(scenario.dialogueIsNarration) });
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
@@ -581,7 +582,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     );
     startLogging(scenario.node_id);
     mechanicEngine.emitEvent('dialogue', 'scenario_presented', { node_id: scenario.node_id });
-  }, [setPersonalizedDialogue]);
+  }, [setPersonalizedDialogue, gameState]);
 
   const startSequence = useCallback((sequence: MeetingSequence, stakeholder: Stakeholder, options?: { pauseTimer?: boolean }) => {
     setCharacterInFocus(stakeholder);

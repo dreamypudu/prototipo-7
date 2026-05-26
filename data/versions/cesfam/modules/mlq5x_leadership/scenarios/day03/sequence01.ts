@@ -328,10 +328,7 @@ export const nodes: ScenarioNode[] = [
               stakeholder_id: 'marcela-soto',
               text: 'Lo preparo. Es importante que direccion vea que el cumplimiento del Sector Rojo no es casualidad.',
             },
-            {
-              stakeholder_id: 'marcela-soto',
-              text: 'No hay problema, director.',
-            }
+            
           ]
         },
       },
@@ -347,10 +344,6 @@ export const nodes: ScenarioNode[] = [
             {
               stakeholder_id: 'marcela-soto',
               text: 'Ese estandar se puede extender, siempre que no se relativicen los protocolos para hacerlo mas comodo.',
-            },
-            {
-              stakeholder_id: 'marcela-soto',
-              text: 'No hay problema, director.',
             }
           ]
         },
@@ -361,7 +354,7 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D1S1_N5_SOFIA_PRIORITY',
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
-    dialogue: 'Director, con que jefe de sector prefiere reunirse primero en su oficina?',
+    dialogue: 'Director, ¿con que jefe de sector prefiere reunirse primero en su oficina?',
     options: [
       {
         option_id: 'A',
@@ -386,8 +379,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'visit_priority_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Priorizar reunion con Dr. Andres Guzman',
-                description: 'Miercoles PM - primera visita de seguimiento',
+                title: 'Mapa: primera visita a Dr. Andres Guzman en Sector Azul - Miercoles PM',
+                description: 'Cumplir la prioridad elegida: reunirse primero con Guzman durante el bloque Miercoles PM.',
               },
               effects: {
                 TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -425,8 +418,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'visit_priority_rule_v1',
               stakeholder_id: 'marcela-soto',
               ui: {
-                title: 'Priorizar reunion con Enf. Marcela Soto',
-                description: 'Miercoles PM - primera visita de seguimiento',
+                title: 'Mapa: primera visita a Enf. Marcela Soto en Sector Rojo - Miercoles PM',
+                description: 'Cumplir la prioridad elegida: reunirse primero con Soto durante el bloque Miercoles PM.',
               },
               effects: {
                 TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -464,8 +457,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'visit_priority_rule_v1',
               stakeholder_id: 'daniel-rios',
               ui: {
-                title: 'Priorizar reunion con Daniel Rios',
-                description: 'Miercoles PM - primera visita de seguimiento',
+                title: 'Mapa: primera visita a Sr. Daniel Rios en Sector Amarillo - Miercoles PM',
+                description: 'Cumplir la prioridad elegida: reunirse primero con Rios durante el bloque Miercoles PM.',
               },
               effects: {
                 TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -506,6 +499,7 @@ export const sequences: MeetingSequence[] = [
     ],
     finalDialogue: 'Queda definida la primera visita de seguimiento. Revise tambien su correo: hay una solicitud de reserva de box del Sector Azul.',
     finalDialogueIsNarration: true,
+    backgroundKey: 'hospital',
     consumesTime: false,
     triggerMap: { day: 3, slot: 'mañana' },
     isInevitable: true,

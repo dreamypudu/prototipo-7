@@ -405,12 +405,20 @@ export interface ScenarioTag {
   tag_score: number;
 }
 
+export interface ContextualDialogueSegment {
+  when: ConditionGroup;
+  text: string;
+  position?: 'before' | 'after';
+}
+
 export interface ScenarioNode {
   node_id: string;
   stakeholderId?: string;
   stakeholderRole?: string;
   participantIds?: string[];
   dialogue: string;
+  contextualDialogue?: ContextualDialogueSegment[];
+  backgroundKey?: 'hospital' | 'box';
   dialogueIsNarration?: boolean;
   options: ScenarioOption[];
 }
@@ -424,6 +432,7 @@ export interface MeetingSequence {
     nodes: string[];
     finalDialogue: string;
     finalDialogueIsNarration?: boolean;
+    backgroundKey?: 'hospital' | 'box';
     consumesTime?: boolean;
     triggerMap?: {
         day: number;
@@ -496,13 +505,21 @@ export interface PromiseOutcomeCondition {
   minCount?: number;
 }
 
+export interface DecisionChoiceCondition {
+  kind: 'decision_choice';
+  sequenceId?: string;
+  nodeId?: string;
+  optionId?: string;
+}
+
 export type NarrativeCondition =
   | GlobalMetricCondition
   | StakeholderMetricCondition
   | CompletedSequenceCondition
   | CompletedScenarioCondition
   | ExpectedActionCondition
-  | PromiseOutcomeCondition;
+  | PromiseOutcomeCondition
+  | DecisionChoiceCondition;
 
 export interface ConditionGroup {
   all?: NarrativeCondition[];
@@ -534,6 +551,16 @@ export interface EmailTemplate {
         type: 'ON_TIME_BLOCK';
         day: number;
         slot: TimeSlotType;
+      }
+    | {
+        type: 'ON_COMPARISON_OUTCOME';
+        day: number;
+        slot: TimeSlotType;
+        condition: Omit<PromiseOutcomeCondition, 'kind'>;
+      }
+    | {
+        type: 'ON_CONDITION_GROUP';
+        condition: ConditionGroup;
       };
   from: string;
   subject: string;

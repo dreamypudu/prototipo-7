@@ -61,7 +61,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Dr. Andres Guzman - Jueves AM',
+                    title: 'Mapa: negociar agenda con Dr. Andres Guzman en Sector Azul - Jueves AM',
+                    description: 'Visitar al Dr. Andres Guzman para abordar los cruces de Box 5 Viernes AM y Javier Castro Lunes AM.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },
@@ -90,7 +91,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Enf. Marcela Soto - Jueves AM',
+                    title: 'Mapa: negociar agenda con Enf. Marcela Soto en Sector Rojo - Jueves AM',
+                    description: 'Visitar a Marcela Soto para abordar el cruce del Box 6 Miercoles PM y las auditorias del Sector Rojo.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },
@@ -119,7 +121,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Thursday', time_window: 'AM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Sr. Daniel Rios - Jueves AM',
+                    title: 'Mapa: negociar agenda con Sr. Daniel Rios en Sector Amarillo - Jueves AM',
+                    description: 'Visitar a Daniel Rios para abordar el cruce del Box 6 Miercoles PM y la disputa por Javier Castro Lunes AM.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },

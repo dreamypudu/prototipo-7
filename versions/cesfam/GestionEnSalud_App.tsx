@@ -14,9 +14,11 @@ import { compareExpectedVsActual, mergeComparisonResults, resolveDayEffectsLocal
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
 import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
+import { syncOfficeDecisionComparisons } from '../../mechanics/office/services/officeDecisionComparison';
 import { applyContentUnlocks, isEmailUnlocked } from '../../services/contentUnlocks';
 import { buildConsequenceDialogueLines, type DialogueLine } from '../../services/dialogueReactions';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
+import { resolveScenarioDialogue } from '../../services/contextualDialogue';
 import { API_BASE_URL } from '../../services/apiConfig';
 import {
   clearSessionSnapshot,
@@ -314,8 +316,7 @@ export default function GestionEnSaludApp({
     sessionId: sessionIdRef.current,
     roomDefinitions,
   });
-  const mergeMechanicFlushIntoState = useCallback((baseState: GameState): GameState => {
-    const flushed = mechanicEngine.flush();
+  const mergeMechanicFlushDataIntoState = useCallback((baseState: GameState, flushed: ReturnType<typeof mechanicEngine.flush>): GameState => {
     if (!flushed.events.length && !flushed.canonical.length && !flushed.expected.length) {
       return baseState;
     }
@@ -334,6 +335,7 @@ export default function GestionEnSaludApp({
         currentTimeSlot: baseState.timeSlot,
         staffRoster: baseState.staffRoster,
         roomDefinitions,
+        decisionLog: baseState.decisionLog,
       }
     );
 
@@ -345,6 +347,9 @@ export default function GestionEnSaludApp({
       comparisons: mergeComparisonResults(baseState.comparisons, newComparisons),
     };
   }, [roomDefinitions]);
+  const mergeMechanicFlushIntoState = useCallback((baseState: GameState): GameState => {
+    return mergeMechanicFlushDataIntoState(baseState, mechanicEngine.flush());
+  }, [mergeMechanicFlushDataIntoState]);
   const stageTabs = [
     { id: 'stage_1', label: 'Etapa 1: Inicio', status: 'active' as const },
     { id: 'stage_2', label: 'Etapa 2: Progreso', status: 'upcoming' as const },
@@ -1051,7 +1056,7 @@ export default function GestionEnSaludApp({
     }
     setCharacterInFocus(activeStakeholder ?? null);
 
-    setPersonalizedDialogue(scenario.dialogue, { isNarration: Boolean(scenario.dialogueIsNarration) });
+    setPersonalizedDialogue(resolveScenarioDialogue(scenario, gameState), { isNarration: Boolean(scenario.dialogueIsNarration) });
     setPlayerActions(
       scenario.options.map(opt => {
         const effects = resolveGlobalEffects(opt.consequences);
@@ -1070,7 +1075,7 @@ export default function GestionEnSaludApp({
     startLogging(scenario.node_id);
 
     mechanicEngine.emitEvent('dialogue', 'scenario_presented', { node_id: scenario.node_id });
-  }, [setPersonalizedDialogue, gameState.stakeholders]);
+  }, [setPersonalizedDialogue, gameState]);
 
   const advanceTimeAndUpdateFocus = useCallback((
     justCompletedSequenceId?: string,
@@ -1234,8 +1239,25 @@ export default function GestionEnSaludApp({
 
   useEffect(() => {
     if (appStep !== 'game' || pendingDayReview || isPreparingDayReview) return;
-    setGameState((prev) => appendTimeBlockEmails(prev, emailTemplates, prev.day, prev.timeSlot));
-  }, [appStep, pendingDayReview, isPreparingDayReview, gameState.day, gameState.timeSlot, emailTemplates]);
+    setGameState((prev) => {
+      const syncedState = syncOfficeDecisionComparisons(prev, {
+        sessionId: sessionIdRef.current,
+        roomDefinitions,
+      });
+      return appendTimeBlockEmails(syncedState, emailTemplates, syncedState.day, syncedState.timeSlot);
+    });
+  }, [
+    appStep,
+    pendingDayReview,
+    isPreparingDayReview,
+    gameState.day,
+    gameState.timeSlot,
+    gameState.decisionLog.length,
+    gameState.expectedActions.length,
+    gameState.comparisons.length,
+    emailTemplates,
+    roomDefinitions,
+  ]);
 
   const handleUpdateSchedule = (newSchedule: ScheduleAssignment[]) => {
     setGameState(prev => ({ ...prev, weeklySchedule: newSchedule }));
@@ -1745,6 +1767,7 @@ export default function GestionEnSaludApp({
               node_id: scenario.node_id,
               option_id: option.option_id
             });
+            const flushedMechanicData = mechanicEngine.flush();
             setRecentInternalResolution(resolveInternalEffectsPreview(consequences, decisionStakeholderName));
 
             setGameState(prev => {
@@ -1811,8 +1834,13 @@ export default function GestionEnSaludApp({
                 const nextStateWithEmails = consequences.email_event_ids
                   ? appendCaseEventEmails(nextStateWithScheduledEmails, contentPack.emails, consequences.email_event_ids, prev.day)
                   : nextStateWithScheduledEmails;
-                const nextStateWithDueEmails = appendTimeBlockEmails(nextStateWithEmails, contentPack.emails, prev.day, prev.timeSlot);
-                return adminDecision ? mergeMechanicFlushIntoState(nextStateWithDueEmails) : nextStateWithDueEmails;
+                const nextStateWithMechanicFlush = mergeMechanicFlushDataIntoState(nextStateWithEmails, flushedMechanicData);
+                const nextStateWithComparisons = syncOfficeDecisionComparisons(nextStateWithMechanicFlush, {
+                  sessionId: sessionIdRef.current,
+                  roomDefinitions,
+                });
+                const nextStateWithDueEmails = appendTimeBlockEmails(nextStateWithComparisons, contentPack.emails, prev.day, prev.timeSlot);
+                return nextStateWithDueEmails;
             });
 
             const dialogueLines = buildConsequenceDialogueLines(consequences);

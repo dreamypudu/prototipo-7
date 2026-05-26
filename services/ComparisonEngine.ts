@@ -4,6 +4,7 @@ import type {
   ContentUnlocks,
   ComparisonResult,
   DailyResolution,
+  DecisionLogEntry,
   ExpectedAction,
   GameState,
   RoomDefinition,
@@ -29,6 +30,7 @@ interface CompareOptions {
   currentTimeSlot?: TimeSlotType;
   staffRoster?: StaffMember[];
   roomDefinitions?: RoomDefinition[];
+  decisionLog?: DecisionLogEntry[];
 }
 
 const DEFAULT_RULE_EFFECTS: Record<string, Record<OutcomeBranch, Record<string, any>>> = {
@@ -115,6 +117,7 @@ const resolveExpectedComparison = (
   const resolvedAtMs = options.resolvedAtMs ?? Date.now();
   const ruleContext: MechanicRuleContext = {
     canonicalActions,
+    decisionLog: options.decisionLog ?? [],
     currentDay: options.currentDay,
     currentTimeSlot: options.currentTimeSlot,
     staffRoster: options.staffRoster ?? [],
@@ -303,6 +306,7 @@ export const resolveDayEffectsLocally = (
       currentTimeSlot: gameState.timeSlot,
       staffRoster: gameState.staffRoster,
       roomDefinitions,
+      decisionLog: gameState.decisionLog,
       includeNotDone: false,
     });
     if (!comparison) return;
@@ -350,6 +354,7 @@ export const finalizePendingComparisonsLocally = (
         currentTimeSlot: gameState.timeSlot,
         staffRoster: gameState.staffRoster,
         roomDefinitions,
+        decisionLog: gameState.decisionLog,
       })
     )
     .filter((comparison): comparison is ComparisonResult => Boolean(comparison));
@@ -372,6 +377,7 @@ export const resolveExpectedActionStatus = (
     currentTimeSlot: gameState.timeSlot,
     staffRoster: gameState.staffRoster,
     roomDefinitions,
+    decisionLog: gameState.decisionLog,
     includeNotDone: false,
   });
 

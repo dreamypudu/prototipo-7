@@ -94,6 +94,13 @@ export const evaluateConditionGroup = (state: GameState, group?: ConditionGroup)
         ).length;
         return count >= minCount;
       }
+      case 'decision_choice':
+        return state.decisionLog.some((entry) => {
+          if (condition.sequenceId && entry.sequence_id !== condition.sequenceId) return false;
+          if (condition.nodeId && entry.nodeId !== condition.nodeId) return false;
+          if (condition.optionId && entry.choiceId !== condition.optionId) return false;
+          return true;
+        });
       default:
         return false;
     }
@@ -188,21 +195,22 @@ export const describeExpectedAction = (
   context: CommitmentTextContext,
   templates: CommitmentTextTemplates = {}
 ) => {
-  if (context.expected.ui?.title) {
-    return {
-      title: context.expected.ui.title,
-      description: context.expected.ui.description ?? '',
-    };
-  }
-
   const ruleTemplates = templates.ruleTemplates ?? {};
   const actionTemplates = templates.actionTemplates ?? {};
 
   const byRule = ruleTemplates[context.expected.rule_id];
-  if (byRule) return byRule(context);
+  const generatedByRule = byRule?.(context);
+  if (context.expected.ui?.title) {
+    return {
+      title: context.expected.ui.title,
+      description: context.expected.ui.description ?? generatedByRule?.description ?? '',
+    };
+  }
+  if (generatedByRule) return generatedByRule;
 
   const byAction = actionTemplates[`${context.expected.mechanic_id ?? 'unknown'}:${context.expected.action_type}`];
-  if (byAction) return byAction(context);
+  const generatedByAction = byAction?.(context);
+  if (generatedByAction) return generatedByAction;
 
   if (context.expected.target_ref.startsWith('stakeholder:')) {
     const stakeholderName = resolveTargetStakeholderName(context.expected.target_ref, context.stakeholders, context.staffRoster) ?? 'el NPC indicado';

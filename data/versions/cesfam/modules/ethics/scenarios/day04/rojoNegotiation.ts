@@ -35,7 +35,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { room_id: 'BOX_6', target_sector_id: 'ROJO', day_name: 'Miércoles', time_window: 'PM' },
                   rule_id: 'reserve_room_for_sector_rule_v1',
                   ui: {
-                    title: 'Asegurar Box 6 para Enf. Marcela Soto - Miércoles PM',
+                    title: 'Planificacion: reservar Box 6 para auditoria IAAS del Sector Rojo - Miercoles PM',
+                    description: 'En la grilla semanal, dejar el Box 6 asignado al Sector Rojo el Miercoles PM para la auditoria IAAS comprometida con Marcela Soto.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },
@@ -107,7 +108,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { room_id: 'BOX_5', target_sector_id: 'ROJO', day_name: 'Viernes', time_window: 'AM' },
                   rule_id: 'reserve_room_for_sector_rule_v1',
                   ui: {
-                    title: 'Asegurar Box 5 para Dr. Eduardo Naranjo - Viernes AM',
+                    title: 'Planificacion: reservar Box 5 para Dr. Eduardo Naranjo / Sector Rojo - Viernes AM',
+                    description: 'En la grilla semanal, dejar el Box 5 asignado al Sector Rojo el Viernes AM para proteger la salud ocupacional de Eduardo Naranjo.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 10 } },

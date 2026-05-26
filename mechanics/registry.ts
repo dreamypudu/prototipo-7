@@ -14,6 +14,7 @@ import ScheduleMechanic from './modules/ScheduleMechanic';
 import SummaryMechanic from './modules/SummaryMechanic';
 import { adminRules } from './admin/rules';
 import { mapRules } from './map/rules';
+import { officeRules } from './office/rules';
 import { schedulerRules } from './scheduler/rules';
 
 export const MECHANIC_REGISTRY: MechanicRegistry = {
@@ -21,7 +22,8 @@ export const MECHANIC_REGISTRY: MechanicRegistry = {
     mechanic_id: 'office',
     label: 'Oficina Central',
     tab_id: 'interaction',
-    Module: OfficeMechanic
+    Module: OfficeMechanic,
+    rules: officeRules
   },
   stakeholders: {
     mechanic_id: 'stakeholders',

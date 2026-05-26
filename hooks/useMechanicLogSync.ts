@@ -32,6 +32,7 @@ export const useMechanicLogSync = (
             currentTimeSlot: prev.timeSlot,
             staffRoster: prev.staffRoster,
             roomDefinitions: options.roomDefinitions ?? [],
+            decisionLog: prev.decisionLog,
           }
         );
 

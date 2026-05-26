@@ -84,8 +84,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { room_id: 'BOX_5', target_sector_id: 'AZUL', day_name: 'Viernes', time_window: 'AM' },
                   rule_id: 'reserve_room_for_sector_rule_v1',
                   ui: {
-                    title: 'Resguardar Box 5 para el Sector Azul - Viernes AM',
-                    description: 'Viernes AM - convenio con Facultad',
+                    title: 'Planificacion: reservar Box 5 para Sector Azul por convenio docente - Viernes AM',
+                    description: 'En la grilla semanal, dejar el Box 5 asignado al Sector Azul el Viernes AM para sostener el convenio con la Facultad.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -148,8 +148,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Thursday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Dr. Andres Guzman - Jueves PM',
-                    description: 'Jueves PM - oficina Sector Azul',
+                    title: 'Mapa: visitar a Dr. Andres Guzman en oficina del Sector Azul - Jueves PM',
+                    description: 'Cumplir la visita comprometida con Guzman para revisar el uso del Box 5 y la operacion del Sector Azul.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -178,8 +178,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Friday', time_window: 'AM', grace_days: 0 },
                   rule_id: 'visit_stakeholder_rule_v1',
                   ui: {
-                    title: 'Visitar a Dr. Andres Guzman - Viernes AM',
-                    description: 'Viernes AM - oficina Sector Azul',
+                    title: 'Mapa: visitar a Dr. Andres Guzman en oficina del Sector Azul - Viernes AM',
+                    description: 'Cumplir la visita alternativa comprometida con Guzman para revisar el uso del Box 5 y la operacion del Sector Azul.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 5, support: 5 } },

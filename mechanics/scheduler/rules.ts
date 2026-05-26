@@ -19,9 +19,10 @@ const scheduleCommitmentText: Record<string, CommitmentTemplate> = {
     const roomName = resolveRoomName(expected.constraints?.room_id, roomDefinitions);
     const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name);
     const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window);
+    const scheduleDetail = buildCompactDetail(roomName, dayLabel, timeWindow, minHours ? `${minHours}h` : undefined);
     return {
-      title: `Reservar ${activityLabel}`,
-      description: buildCompactDetail(staffName, roomName, dayLabel, timeWindow, minHours ? `${minHours}h` : undefined) || 'Bloque pendiente.',
+      title: `Planificacion: asignar ${activityLabel} a ${staffName}${scheduleDetail ? ` - ${scheduleDetail}` : ''}`,
+      description: `En la grilla semanal, ubicar a ${staffName} en la actividad ${activityLabel}${scheduleDetail ? ` con ${scheduleDetail}` : ''}.`,
     };
   },
   training_commitment_rule_v1: ({ expected, stakeholders, staffRoster }) => {
@@ -29,17 +30,22 @@ const scheduleCommitmentText: Record<string, CommitmentTemplate> = {
     const minHours = expected.constraints?.min_hours;
     const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name);
     const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window);
+    const scheduleDetail = buildCompactDetail(dayLabel, timeWindow, minHours ? `${minHours}h` : undefined);
     return {
-      title: 'Programar capacitacion',
-      description: buildCompactDetail(staffName, dayLabel, timeWindow, minHours ? `${minHours}h` : undefined) || 'Capacitacion pendiente.',
+      title: `Planificacion: programar capacitacion para ${staffName}${scheduleDetail ? ` - ${scheduleDetail}` : ''}`,
+      description: `En la grilla semanal, reservar capacitacion para ${staffName}${scheduleDetail ? ` en ${scheduleDetail}` : ''}.`,
     };
   },
   cross_sector_help_rule_v1: ({ expected, stakeholders, staffRoster }) => {
     const staffName = resolveStakeholderName(expected.constraints?.staff_id, stakeholders, staffRoster) ?? 'el funcionario indicado';
     const sectorLabel = resolveSectorLabel(expected.constraints?.target_sector_id) ?? 'el sector indicado';
+    const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name);
+    const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window);
+    const timeDetail = buildCompactDetail(dayLabel, timeWindow);
+    const scheduleDetail = buildCompactDetail(sectorLabel, dayLabel, timeWindow);
     return {
-      title: 'Reasignar apoyo',
-      description: buildCompactDetail(staffName, sectorLabel) || 'Apoyo pendiente.',
+      title: `Planificacion: reasignar apoyo de ${staffName}${scheduleDetail ? ` - ${scheduleDetail}` : ''}`,
+      description: `En la grilla semanal, asignar a ${staffName} como apoyo para ${sectorLabel}${timeDetail ? ` en ${timeDetail}` : ''}.`,
     };
   },
   reserve_room_for_sector_rule_v1: ({ expected, roomDefinitions }) => {
@@ -47,9 +53,10 @@ const scheduleCommitmentText: Record<string, CommitmentTemplate> = {
     const sectorLabel = resolveSectorLabel(expected.constraints?.target_sector_id) ?? 'el sector indicado';
     const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name);
     const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window);
+    const timeDetail = buildCompactDetail(dayLabel, timeWindow);
     return {
-      title: `Reservar ${roomName}`,
-      description: buildCompactDetail(sectorLabel, dayLabel, timeWindow) || 'Reserva pendiente.',
+      title: `Planificacion: reservar ${roomName} para ${sectorLabel}${timeDetail ? ` - ${timeDetail}` : ''}`,
+      description: `En la grilla semanal, dejar ${roomName} asignado a ${sectorLabel}${timeDetail ? ` en ${timeDetail}` : ''}.`,
     };
   },
   keep_staff_in_sector_rule_v1: ({ expected, stakeholders, staffRoster }) => {
@@ -57,9 +64,10 @@ const scheduleCommitmentText: Record<string, CommitmentTemplate> = {
     const sectorLabel = resolveSectorLabel(expected.constraints?.target_sector_id) ?? 'su sector';
     const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name);
     const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window);
+    const timeDetail = buildCompactDetail(dayLabel, timeWindow);
     return {
-      title: `Mantener a ${staffName}`,
-      description: buildCompactDetail(sectorLabel, dayLabel, timeWindow) || 'Permanencia pendiente.',
+      title: `Planificacion: mantener a ${staffName} en ${sectorLabel}${timeDetail ? ` - ${timeDetail}` : ''}`,
+      description: `En la grilla semanal, ${staffName} debe permanecer en ${sectorLabel}${timeDetail ? ` en ${timeDetail}` : ''}.`,
     };
   },
   emergency_room_rule_v1: ({ expected, roomDefinitions }) => {
@@ -67,9 +75,10 @@ const scheduleCommitmentText: Record<string, CommitmentTemplate> = {
     const sectorLabel = resolveSectorLabel(expected.constraints?.target_sector_id) ?? 'el sector indicado';
     const dayLabel = resolveScheduleDayLabel(expected.constraints?.day_name);
     const timeWindow = normalizeTimeWindowBlock(expected.constraints?.time_window);
+    const timeDetail = buildCompactDetail(dayLabel, timeWindow);
     return {
-      title: `Abrir ${roomName} para contingencia`,
-      description: buildCompactDetail(sectorLabel, dayLabel, timeWindow) || 'Contingencia pendiente.',
+      title: `Planificacion: abrir ${roomName} para contingencia de ${sectorLabel}${timeDetail ? ` - ${timeDetail}` : ''}`,
+      description: `En la grilla semanal, habilitar ${roomName} para ${sectorLabel}${timeDetail ? ` en ${timeDetail}` : ''}.`,
     };
   },
 };

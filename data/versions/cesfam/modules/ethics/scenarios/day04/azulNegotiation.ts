@@ -35,7 +35,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { room_id: 'BOX_5', target_sector_id: 'AZUL', day_name: 'Viernes', time_window: 'AM' },
                   rule_id: 'reserve_room_for_sector_rule_v1',
                   ui: {
-                    title: 'Resguardar Box 5 para Dr. Andres Guzman - Viernes AM',
+                    title: 'Planificacion: reservar Box 5 para Sector Azul / Dr. Andres Guzman - Viernes AM',
+                    description: 'En la grilla semanal, dejar el Box 5 asignado al Sector Azul el Viernes AM para proteger el convenio docente.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },
@@ -107,7 +108,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { staff_id: 'javier-castro', day_name: 'Lunes', time_window: 'AM' },
                   rule_id: 'keep_staff_in_sector_rule_v1',
                   ui: {
-                    title: 'Mantener a Javier Castro dentro del Centro - Lunes AM',
+                    title: 'Planificacion: mantener a Javier Castro en Centro de Salud / Sector Azul - Lunes AM',
+                    description: 'En la grilla semanal, evitar que Javier Castro salga a terreno el Lunes AM para que apoye curaciones complejas del Sector Azul.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 10 } },

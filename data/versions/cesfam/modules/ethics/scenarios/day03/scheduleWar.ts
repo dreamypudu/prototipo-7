@@ -60,8 +60,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Wednesday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_priority_rule_v1',
                   ui: {
-                    title: 'Priorizar reunion con Dr. Andres Guzman - Miercoles PM',
-                    description: 'Miercoles PM - primera visita',
+                    title: 'Mapa: primera visita a Dr. Andres Guzman en Sector Azul - Miercoles PM',
+                    description: 'Cumplir la prioridad elegida: reunirse primero con Guzman durante el bloque Miercoles PM.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -89,8 +89,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Wednesday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_priority_rule_v1',
                   ui: {
-                    title: 'Priorizar reunion con Sr. Daniel Rios - Miercoles PM',
-                    description: 'Miercoles PM - primera visita',
+                    title: 'Mapa: primera visita a Sr. Daniel Rios en Sector Amarillo - Miercoles PM',
+                    description: 'Cumplir la prioridad elegida: reunirse primero con Rios durante el bloque Miercoles PM.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -118,8 +118,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Wednesday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'visit_priority_rule_v1',
                   ui: {
-                    title: 'Priorizar reunion con Enf. Marcela Soto - Miercoles PM',
-                    description: 'Miercoles PM - primera visita',
+                    title: 'Mapa: primera visita a Enf. Marcela Soto en Sector Rojo - Miercoles PM',
+                    description: 'Cumplir la prioridad elegida: reunirse primero con Soto durante el bloque Miercoles PM.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -141,6 +141,7 @@ export const sequences: MeetingSequence[] = [
         initialDialogue: '(Las tres jefaturas entran con sus planificaciones.)',
         nodes: ['SCHEDULE_WAR_INTRO', 'SCHEDULE_WAR_SOTO', 'SCHEDULE_WAR_RIOS', 'SCHEDULE_WAR_GUZMAN_RETORT', 'SCHEDULE_WAR_SOTO_FINAL', 'SCHEDULE_WAR_SOFIA_CHOICE'],
         finalDialogue: 'Muy bien. Gracias por su tiempo, director',
+        backgroundKey: 'hospital',
         consumesTime: false,
         triggerMap: { day: 3, slot: 'mañana' },
         isInevitable: true,

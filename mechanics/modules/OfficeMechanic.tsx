@@ -53,10 +53,10 @@ const OfficeMechanic: React.FC = () => {
 
   const renderCentralPanel = () => {
     if (isDialogueActive) {
-      const isIntroHospital =
-        !gameState.completedSequences.includes('OFFICE_INTRO_SEQ') ||
-        !gameState.completedSequences.includes('SCHEDULE_WAR_SEQ');
-      const backgroundKey = isIntroHospital ? 'hospital' : 'box';
+      const backgroundKey =
+        currentNodeDefinition?.backgroundKey ??
+        currentMeeting?.sequence.backgroundKey ??
+        'box';
       return (
         <DialogueArea
           key={characterInFocus?.name ?? currentNodeId ?? 'narration'}
@@ -66,7 +66,7 @@ const OfficeMechanic: React.FC = () => {
           dialogue={currentDialogue}
           isNarration={isDialogueNarration}
           timeSlot={gameState.timeSlot}
-          backgroundKey={backgroundKey as any}
+          backgroundKey={backgroundKey}
           onTypingStateChange={onDialogueTypingChange}
         />
       );

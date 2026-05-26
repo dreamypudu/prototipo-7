@@ -46,6 +46,7 @@ export const sequences: MeetingSequence[] = [
         initialDialogue: 'Director {playerName}. Soy Sofia Castro, su asistente administrativa. Antes de que empiece a correr el reloj, necesito dejarlo orientado.',
         nodes: ['INTRO_S1_SALUDO', 'INTRO_S1_EQUIPOS', 'INTRO_S1_PLANIFICACION', 'INTRO_S1_REVISION', 'INTRO_S1_MECANICAS'],
         finalDialogue: 'Perfecto. Ahora que tiene el contexto, hare pasar a las jefaturas.',
+        backgroundKey: 'hospital',
         consumesTime: false,
         triggerMap: { day: 3, slot: 'mañana' },
         isInevitable: true,

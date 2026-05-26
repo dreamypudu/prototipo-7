@@ -91,11 +91,12 @@ export const nodes: ScenarioNode[] = [
                 target_node_id: 'MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1',
                 accepted_option_ids: ['A', 'B'],
               },
-              rule_id: 'future_dialogue_choice_rule_v1',
+              rule_id: 'future_decision_consistency_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Sostener cupos de practica clinica',
-                description: 'Viernes - en el nodo 22 elegir A o B para mantener una respuesta coherente a Guzman.',
+                title: 'Consistencia: mantener respuesta sobre cupos clinicos con Dr. Andres Guzman - Viernes',
+                description:
+                  'Como se pidio confirmar la mantencion de cupos a la universidad, la decision futura con Guzman debe sostener esa continuidad y no derivar completamente el convenio.',
               },
             },
           ],

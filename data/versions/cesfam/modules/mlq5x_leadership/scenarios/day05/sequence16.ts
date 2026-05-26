@@ -66,7 +66,48 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     dialogue:
-      'Tambien necesito formalizar en un convenio con una universidad que respalde institucionalmente la actividad docente del CESFAM. Sin eso, en seis meses el proximo director lo vuelve a eliminar. Ademas, todavia esta pendiente mi solicitud de reserva de Box 1 del primer dia.',
+      'Para sostener cupos de practica clinica necesito dos cosas: avanzar en el convenio universitario y reservar Box 1 los martes AM para supervision docente. Sin ese bloque, la actividad docente queda dependiendo de improvisaciones semanales.',
+    contextualDialogue: [
+      {
+        when: {
+          all: [
+            {
+              kind: 'decision_choice',
+              nodeId: 'MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS',
+              optionId: 'A',
+            },
+          ],
+        },
+        position: 'before',
+        text: 'Como usted me pidio confirmar a la universidad que mantendriamos los cupos, necesito que esa senal ahora tenga respaldo operativo.',
+      },
+      {
+        when: {
+          all: [
+            {
+              kind: 'decision_choice',
+              nodeId: 'MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS',
+              optionId: 'B',
+            },
+          ],
+        },
+        position: 'before',
+        text: 'Usted me dijo que gestionaria la labor docente; esta es la decision concreta que permite hacerla viable.',
+      },
+      {
+        when: {
+          all: [
+            {
+              kind: 'decision_choice',
+              nodeId: 'MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS',
+              optionId: 'C',
+            },
+          ],
+        },
+        position: 'before',
+        text: 'Como todavia no hubo una respuesta clara para la universidad, necesito saber si vamos a sostener estos cupos o no.',
+      },
+    ],
     options: [
       {
         option_id: 'A',
@@ -78,9 +119,6 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: 10,
           supportChange: 10,
-          unlocks: {
-            emails: ['mlq5x-d3-sequence-17-guzman-practice-confirmation'],
-          },
           expected_actions: [
             {
               mechanic_id: 'scheduler',
@@ -90,7 +128,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'reserve_room_for_sector_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Reservar Box 1 Martes AM para Dr. Andres Guzman',
+                title: 'Planificacion: reservar Box 1 para Sector Azul / supervision docente de Dr. Andres Guzman - Martes AM',
+                description: 'En la grilla semanal, dejar Box 1 asignado al Sector Azul el Martes AM para sostener la supervision docente comprometida con Guzman.',
               },
             },
           ],
@@ -115,9 +154,6 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "DPE-P": 2 }),
         consequences: {
           supportChange: 5,
-          unlocks: {
-            emails: ['mlq5x-d3-sequence-17-guzman-practice-confirmation'],
-          },
           expected_actions: [
             {
               mechanic_id: 'scheduler',
@@ -127,7 +163,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'reserve_room_for_sector_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Reservar Box 1 Martes AM para Dr. Andres Guzman',
+                title: 'Planificacion: reservar Box 1 para Sector Azul / supervision docente de Dr. Andres Guzman - Martes AM',
+                description: 'En la grilla semanal, dejar Box 1 asignado al Sector Azul el Martes AM para sostener la supervision docente comprometida con Guzman.',
               },
             },
           ],
@@ -150,10 +187,8 @@ export const nodes: ScenarioNode[] = [
         text: 'Lamentablemente el convenio depende del SEREMI y no esta en mis manos gestionarlo.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
-          trustChange: -5,
-          unlocks: {
-            emails: ['mlq5x-d3-sequence-17-guzman-box1-reversal'],
-          },
+          trustChange: -15,
+          supportChange: -15,
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',

@@ -51,8 +51,8 @@ export const nodes: ScenarioNode[] = [
                   constraints: { day: 'Tuesday', time_window: 'PM', grace_days: 0 },
                   rule_id: 'admin_decision_rule_v1',
                   ui: {
-                    title: 'Rechazar Sumario contra Daniel Rios',
-                    description: 'Desestimar la denuncia formal antes de cerrar el martes.',
+                    title: 'Administracion: rechazar sumario contra Daniel Rios - Martes PM',
+                    description: 'Resolver en la mecanica administrativa antes de cerrar el Martes PM, desestimando la denuncia formal contra Daniel Rios.',
                   },
                   effects: {
                     TRUE: { stakeholder: { trust: 10, support: 5 } },
