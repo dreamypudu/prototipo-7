@@ -7,14 +7,15 @@ except ImportError:
 
 
 def resolve_anonymous_user_id(session_id, raw_user_id):
-    for candidate in (raw_user_id, session_id):
-        if not candidate:
-            continue
-        try:
-            return str(UUID(str(candidate)))
-        except (ValueError, TypeError, AttributeError):
-            continue
-    return str(UUID(int=0))
+    if not raw_user_id:
+        raise ValueError("session_metadata.user_id missing")
+    try:
+        user_uuid = UUID(str(raw_user_id))
+    except (ValueError, TypeError, AttributeError):
+        raise ValueError("session_metadata.user_id must be a valid UUID v4")
+    if user_uuid.version != 4:
+        raise ValueError("session_metadata.user_id must be a valid UUID v4")
+    return str(user_uuid)
 
 
 def extract_stakeholder_id(target_ref: str | None):

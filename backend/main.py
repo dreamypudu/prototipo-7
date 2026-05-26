@@ -59,8 +59,12 @@ def create_session(session: dict = Body(...)):
     created_at = datetime.now(timezone.utc).isoformat()
     with get_conn() as conn:
         conn.execute("BEGIN")
-        counts = normalize_session(conn, session_id, session, created_at)
-        conn.commit()
+        try:
+            counts = normalize_session(conn, session_id, session, created_at)
+            conn.commit()
+        except ValueError as exc:
+            conn.rollback()
+            raise HTTPException(status_code=400, detail=str(exc))
 
     return {"ok": True, "session_id": session_id, "counts": counts}
 

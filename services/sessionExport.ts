@@ -23,6 +23,7 @@ export interface SessionExport {
     session_id: string;
     simulator_version_id: string;
     user_id?: string;
+    run_mode?: GameState['runMode'];
     start_time: string;
     end_time: string;
   };
@@ -90,13 +91,15 @@ export const buildSessionExport = ({
         }
       );
   const comparisons = mergeComparisonResults(gameState.comparisons, newComparisons);
+  const exportedUserId = gameState.experimentalUserId ?? anonymousUserId;
 
   return {
     comparison_mode: COMPARISON_MODE,
     session_metadata: {
       session_id: sessionId,
       simulator_version_id: config?.version_id ?? 'UNKNOWN',
-      user_id: anonymousUserId,
+      user_id: exportedUserId,
+      run_mode: gameState.runMode ?? 'experiment',
       start_time: startTime,
       end_time: endTime
     },

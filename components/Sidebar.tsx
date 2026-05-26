@@ -19,6 +19,8 @@ interface SidebarProps {
   isTimerPaused?: boolean;
   onToggleBitacora?: () => void;
   hasBitacora?: boolean;
+  experimentalUserId?: string;
+  runMode?: 'experiment' | 'tutorial';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -34,6 +36,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   isTimerPaused = false,
   onToggleBitacora,
   hasBitacora = false,
+  experimentalUserId,
+  runMode = 'experiment',
 }) => {
   const [showDeveloperView, setShowDeveloperView] = React.useState(false);
   const [passwordInput, setPasswordInput] = React.useState('');
@@ -73,6 +77,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const handleCopyExperimentalId = async () => {
+    if (!experimentalUserId) return;
+    try {
+      await navigator.clipboard.writeText(experimentalUserId);
+    } catch {
+      // Clipboard support is best effort.
+    }
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -96,6 +109,29 @@ const Sidebar: React.FC<SidebarProps> = ({
               </svg>
             </button>
           </div>
+          {(experimentalUserId || runMode === 'tutorial') && (
+            <div className="rounded-xl border border-amber-300/30 bg-amber-300/10 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
+                  {runMode === 'tutorial' ? 'Modo tutorial' : 'ID experimental'}
+                </div>
+                {experimentalUserId && (
+                  <button
+                    type="button"
+                    onClick={handleCopyExperimentalId}
+                    className="rounded-md border border-amber-200/30 bg-amber-200/10 px-2 py-1 text-[10px] font-bold uppercase text-amber-100 hover:bg-amber-200/20"
+                  >
+                    Copiar
+                  </button>
+                )}
+              </div>
+              {experimentalUserId && (
+                <div className="mt-2 break-all rounded-lg border border-white/10 bg-black/25 p-2 font-mono text-[11px] leading-relaxed text-amber-50">
+                  {experimentalUserId}
+                </div>
+              )}
+            </div>
+          )}
           <nav>
             <ul className="space-y-2">
               {stages.length > 0 && (
@@ -127,26 +163,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </li>
               )}
-              {onReturnHome && (
-                <li>
-                  <button
-                    onClick={() => { onReturnHome(); onClose(); }}
-                    className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-lg text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
-                  >
-                    <HomeIcon />
-                    <span>Volver al inicio</span>
-                  </button>
-                </li>
-              )}
-              <li>
-                <button
-                  onClick={() => handleNavigation('data_export')}
-                  className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-lg text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
-                >
-                  <DataExportIcon />
-                  <span>Exportar Datos</span>
-                </button>
-              </li>
               <li>
                 <button
                   onClick={handleDeveloperToggle}
@@ -184,6 +200,22 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <div className="mb-1">
                         <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Herramientas de desarrollador</div>
                       </div>
+                      {onReturnHome && (
+                        <button
+                          onClick={() => { onReturnHome(); onClose(); }}
+                          className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-base text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                        >
+                          <HomeIcon />
+                          <span>Volver al inicio</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleNavigation('data_export')}
+                        className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-base text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                      >
+                        <DataExportIcon />
+                        <span>Exportar Datos</span>
+                      </button>
                       {onTogglePause && (
                         <button
                           onClick={onTogglePause}

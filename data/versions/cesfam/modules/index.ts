@@ -1,6 +1,7 @@
 import type { VersionContentPack } from '../../types';
 import { CESFAM_ETHICS_CONTENT } from './ethics';
 import { CESFAM_MLQ5X_CONTENT } from './mlq5x_leadership';
+import { CESFAM_TUTORIAL_CONTENT } from './tutorial';
 
 export const CESFAM_NARRATIVE_MODULES = [
   {
@@ -8,6 +9,7 @@ export const CESFAM_NARRATIVE_MODULES = [
     title: 'Comportamiento ético',
     description: 'Dilemas de gestion, promesas y decisiones bajo tension operacional.',
     instrumentId: 'ETHICS',
+    runMode: 'experiment',
     contentPack: CESFAM_ETHICS_CONTENT,
   },
   {
@@ -15,7 +17,16 @@ export const CESFAM_NARRATIVE_MODULES = [
     title: 'Habilidades de Liderazgo',
     description: 'Conductas de liderazgo observables bajo dimensiones MLQ-5X.',
     instrumentId: 'MLQ-5X',
+    runMode: 'experiment',
     contentPack: CESFAM_MLQ5X_CONTENT,
+  },
+  {
+    id: 'tutorial',
+    title: 'Tutorial',
+    description: 'Exploracion breve sin tiempo ni envio de datos experimentales.',
+    instrumentId: 'TUTORIAL',
+    runMode: 'tutorial',
+    contentPack: CESFAM_TUTORIAL_CONTENT,
   },
 ] as const;
 

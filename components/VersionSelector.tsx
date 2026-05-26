@@ -211,7 +211,7 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
               </button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {CESFAM_NARRATIVE_MODULES.map((module) => (
+              {CESFAM_NARRATIVE_MODULES.filter((module) => module.runMode !== 'tutorial').map((module) => (
                 <button
                   key={module.id}
                   onClick={() => onSelect('CESFAM', { cesfamModuleId: module.id })}
@@ -230,6 +230,23 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
                 </button>
               ))}
             </div>
+            {CESFAM_NARRATIVE_MODULES.filter((module) => module.runMode === 'tutorial').map((module) => (
+              <button
+                key={module.id}
+                onClick={() => onSelect('CESFAM', { cesfamModuleId: module.id })}
+                className="mt-4 w-full rounded-xl border border-amber-300/35 bg-amber-300/10 px-4 py-3 text-left transition hover:border-amber-200/70 hover:bg-amber-300/15"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-black text-amber-100">{module.title}</div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-300">{module.description}</p>
+                  </div>
+                  <span className="rounded-full bg-amber-300 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-slate-950">
+                    Sin tiempo
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       )}

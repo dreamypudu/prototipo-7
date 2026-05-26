@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { ActionEffectsPreview, ConversationMode, DailyResolution, GameState, GlobalEffectsUI, InternalEffectsPreview, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile } from '../../types';
+import { ActionEffectsPreview, ConversationMode, DailyResolution, GameState, GlobalEffectsUI, InternalEffectsPreview, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile, RunMode } from '../../types';
 import { SIMULATOR_CONFIGS } from '../configuration';
 import { getVersionContentPack, type VersionContentPack } from '../../data/versions';
 import { startLogging, finalizeLogging } from '../../services/Timelogger';
@@ -67,6 +67,7 @@ type AppStep = 'splash' | 'game';
 interface GestionEnSaludAppProps {
   version: SimulatorVersion;
   contentPack?: VersionContentPack;
+  runMode?: RunMode;
   onExitToHome?: () => void;
 }
 
@@ -216,6 +217,7 @@ const resolveMechanics = (config: SimulatorConfig | null): ResolvedMechanicConfi
 export default function GestionEnSaludApp({
   version,
   contentPack: providedContentPack,
+  runMode = 'experiment',
   onExitToHome,
 }: GestionEnSaludAppProps): React.ReactElement {
   const initialContentPack = useMemo(
@@ -307,10 +309,19 @@ export default function GestionEnSaludApp({
   const objectivesUnseenCount = commitmentUnseenCount;
   const hasUnseenObjectiveUpdates = hasUnseenCommitmentUpdates;
   const playerVisibleMechanics = useMemo(
-    () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
+    () => enabledMechanics.filter((mechanic) =>
+      mechanic.tab_id !== 'summary' &&
+      mechanic.tab_id !== 'experimental_map' &&
+      mechanic.tab_id !== 'data_export'
+    ),
     [enabledMechanics]
   );
-  const effectiveTimerPaused = isTimerPaused || isDialogueTyping || isPreparingDayReview || Boolean(pendingDayReview);
+  const effectiveTimerPaused =
+    gameState.runMode === 'tutorial' ||
+    isTimerPaused ||
+    isDialogueTyping ||
+    isPreparingDayReview ||
+    Boolean(pendingDayReview);
   // Sync mechanic engine buffers with React state periodically or on significant events
   const syncLogs = useMechanicLogSync(setGameState, {
     sessionId: sessionIdRef.current,
@@ -447,6 +458,11 @@ export default function GestionEnSaludApp({
     if (activeTab !== 'data_export') return;
     syncLogs();
   }, [activeTab, syncLogs]);
+
+  useEffect(() => {
+    if (isDeveloperUnlocked || activeTab !== 'data_export') return;
+    setActiveTab('interaction');
+  }, [activeTab, isDeveloperUnlocked]);
 
   useEffect(() => {
     if (!isDeveloperUnlocked && showLogPanel) {
@@ -867,6 +883,7 @@ export default function GestionEnSaludApp({
 
   const persistSessionSnapshotInBackground = useCallback(
     (stateToPersist: GameState, source: string) => {
+      if (stateToPersist.runMode === 'tutorial') return;
       void (async () => {
         try {
           const exportPayload = buildSessionExport({
@@ -1005,6 +1022,8 @@ export default function GestionEnSaludApp({
       } else {
         setDailySummary(null);
       }
+
+      if (localResult.nextState.runMode === 'tutorial') return;
 
       try {
         const exportPayload = buildSessionExport({
@@ -1888,7 +1907,7 @@ export default function GestionEnSaludApp({
   };
   const handleSidebarNavigate = (tab: any) => { setActiveTab(tab); };
   const handleReturnHome = () => {
-    if (appStep === 'game') {
+    if (appStep === 'game' && gameState.runMode !== 'tutorial') {
       saveSessionSnapshot(sessionExport);
     }
     if (onExitToHome) {
@@ -1942,6 +1961,7 @@ export default function GestionEnSaludApp({
     roomDefinitions,
   });
   const persistFinalSession = useCallback(async () => {
+    if (gameState.runMode === 'tutorial') return;
     const exportPayload = buildSessionExport({
       gameState,
       config,
@@ -1968,7 +1988,7 @@ export default function GestionEnSaludApp({
       console.error('[SessionPersistence] Final session export failed', error);
     }
   }, [gameState, config, roomDefinitions]);
-  const handleStartGame = (name: string) => {
+  const handleStartGame = (name: string, experimentalUserId: string) => {
     sessionStartRef.current = Date.now();
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
@@ -1976,21 +1996,30 @@ export default function GestionEnSaludApp({
     finalPersistAttemptedRef.current = false;
     setFinalPersistStatus('idle');
     setFinalPersistError(null);
-    setGameState(prev => ({...prev, playerName: name}));
+    setGameState(prev => ({
+      ...prev,
+      playerName: name,
+      experimentalUserId,
+      runMode,
+    }));
     setQuestionsBaseDialogue('');
+    setIsTimerPaused(runMode === 'tutorial');
+    setCountdown(PERIOD_DURATION);
     setAppStep('game');
   };
   useEffect(() => {
     if (appStep !== 'game') return;
+    if (gameState.runMode === 'tutorial') return;
     saveSessionSnapshot(sessionExport);
-  }, [appStep, sessionExport]);
+  }, [appStep, gameState.runMode, sessionExport]);
 
   useEffect(() => {
     if (appStep !== 'game' || gameStatus === 'playing') return;
+    if (gameState.runMode === 'tutorial') return;
     if (finalPersistAttemptedRef.current) return;
     finalPersistAttemptedRef.current = true;
     void persistFinalSession();
-  }, [appStep, gameStatus, persistFinalSession]);
+  }, [appStep, gameStatus, gameState.runMode, persistFinalSession]);
 
   const handleUpdateScenarioSchedule = (id: string, day: number, slot: TimeSlotType) => { setGameState(prev => ({ ...prev, scenarioSchedule: { ...prev.scenarioSchedule, [id]: { day, slot } } })); };
   const dispatch = (action: MechanicDispatchAction) => {
@@ -2182,10 +2211,17 @@ export default function GestionEnSaludApp({
          developerUnlocked={isDeveloperUnlocked}
          onUnlockDeveloper={handleDeveloperUnlock}
          onTogglePause={() => setIsTimerPaused((prev) => !prev)}
-         isTimerPaused={isTimerPaused}
+         isTimerPaused={effectiveTimerPaused}
          onToggleBitacora={() => setShowLogPanel((prev) => !prev)}
          hasBitacora
+         experimentalUserId={gameState.experimentalUserId}
+         runMode={gameState.runMode}
       />
+      {gameState.runMode === 'tutorial' && (
+        <div className="fixed left-6 top-6 z-50 rounded-full border border-amber-300/45 bg-amber-300/15 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100 shadow-lg shadow-black/30">
+          Modo tutorial
+        </div>
+      )}
       {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
       {isPreparingDayReview && (
         <div className="fixed inset-0 z-[175] flex items-center justify-center bg-black/75 backdrop-blur-sm">
@@ -2208,6 +2244,8 @@ export default function GestionEnSaludApp({
           message={endGameMessage}
           saveStatus={finalPersistStatus}
           saveError={finalPersistError}
+          experimentalUserId={gameState.experimentalUserId}
+          runMode={gameState.runMode}
           onRetrySave={() => {
             finalPersistAttemptedRef.current = true;
             void persistFinalSession();

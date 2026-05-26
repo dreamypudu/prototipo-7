@@ -31,11 +31,12 @@ const DataExport: React.FC<DataExportProps> = ({
         link.click();
     };
     const hasSessionData = decisionLog.length > 0 || canonicalActions.length > 0 || expectedActions.length > 0 || mechanicEvents.length > 0 || processLog.length > 0 || questionLog.length > 0;
+    const isTutorial = sessionExport.session_metadata.run_mode === 'tutorial';
     const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [sendError, setSendError] = useState<string | null>(null);
 
     const handleSendSession = async () => {
-        if (!hasSessionData || sendStatus === 'sending') return;
+        if (!hasSessionData || sendStatus === 'sending' || isTutorial) return;
         setSendStatus('sending');
         setSendError(null);
         try {
@@ -71,11 +72,14 @@ const DataExport: React.FC<DataExportProps> = ({
                     </button>
                     <button
                         onClick={handleSendSession}
-                        disabled={!hasSessionData || sendStatus === 'sending'}
+                        disabled={!hasSessionData || sendStatus === 'sending' || isTutorial}
                         className="w-full mt-3 bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 rounded-lg disabled:opacity-50"
                     >
                         {sendStatus === 'sending' ? 'Enviando...' : 'Enviar sesión'}
                     </button>
+                    {isTutorial && (
+                        <p className="text-xs text-amber-300 mt-2">Modo tutorial: no se envia al backend.</p>
+                    )}
                     {sendStatus === 'success' && (
                         <p className="text-xs text-green-400 mt-2">Sesion enviada.</p>
                     )}

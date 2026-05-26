@@ -168,7 +168,11 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   const objectivesUnseenCount = commitmentUnseenCount;
   const hasUnseenObjectiveUpdates = hasUnseenCommitmentUpdates;
   const playerVisibleMechanics = React.useMemo(
-    () => enabledMechanics.filter((mechanic) => mechanic.tab_id !== 'summary' && mechanic.tab_id !== 'experimental_map'),
+    () => enabledMechanics.filter((mechanic) =>
+      mechanic.tab_id !== 'summary' &&
+      mechanic.tab_id !== 'experimental_map' &&
+      mechanic.tab_id !== 'data_export'
+    ),
     [enabledMechanics]
   );
   const syncLogs = useMechanicLogSync(setGameState, {
@@ -206,6 +210,11 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     if (activeTab !== 'data_export') return;
     syncLogs();
   }, [activeTab, syncLogs]);
+
+  useEffect(() => {
+    if (isDeveloperUnlocked || activeTab !== 'data_export') return;
+    setActiveTab('interaction');
+  }, [activeTab, isDeveloperUnlocked]);
 
   useEffect(() => {
     if (!isGameStarted) return;
@@ -1348,7 +1357,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     setIsGameStarted(false);
   };
 
-  const handleStartGame = (name: string) => {
+  const handleStartGame = (name: string, experimentalUserId: string) => {
     sessionStartRef.current = Date.now();
     sessionEndRef.current = null;
     sessionIdRef.current = crypto.randomUUID();
@@ -1357,7 +1366,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     setFinalPersistStatus('idle');
     setFinalPersistError(null);
     const baseState = buildInitialState();
-    setGameState({ ...baseState, playerName: name });
+    setGameState({ ...baseState, playerName: name, experimentalUserId, runMode: 'experiment' });
     setConversationMode('idle');
     setQuestionsOrigin(null);
     setQuestionsBaseDialogue('');
@@ -1509,6 +1518,8 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
           onUnlockDeveloper={handleDeveloperUnlock}
           onTogglePause={() => setIsTimerPaused((prev) => !prev)}
           isTimerPaused={isTimerPaused}
+          experimentalUserId={gameState.experimentalUserId}
+          runMode={gameState.runMode}
         />
         {warningPopupMessage && <WarningPopup message={warningPopupMessage} onClose={() => setWarningPopupMessage(null)} />}
         {gameStatus !== 'playing' && (
@@ -1517,6 +1528,8 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
             message={endGameMessage}
             saveStatus={finalPersistStatus}
             saveError={finalPersistError}
+            experimentalUserId={gameState.experimentalUserId}
+            runMode={gameState.runMode}
             onRetrySave={() => {
               finalPersistAttemptedRef.current = true;
               void persistFinalSession();
