@@ -76,6 +76,8 @@ export const nodes: ScenarioNode[] = [
 export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D1_SEQUENCE_3',
+    stakeholderId: 'andres-guzman',
+    stakeholderRole: 'Jefe Sector Azul',
     initialDialogue: '(Llegas a la oficina del Sector Azul para profundizar la conversacion con Andres Guzman.)',
     initialDialogueIsNarration: true,
     nodes: ['MLQ5X_D1S3_N6_GUZMAN_DOCENCIA'],

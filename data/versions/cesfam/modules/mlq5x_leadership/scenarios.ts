@@ -9,6 +9,7 @@ import * as day04Sequence10 from './scenarios/day04/sequence10';
 import * as day04Sequence11 from './scenarios/day04/sequence11';
 import * as day05Sequence14 from './scenarios/day05/sequence14';
 import * as day05Sequence15 from './scenarios/day05/sequence15';
+import * as day05Sequence16 from './scenarios/day05/sequence16';
 
 const scenarioModules = [
   day03Sequence01,
@@ -21,6 +22,7 @@ const scenarioModules = [
   day04Sequence11,
   day05Sequence14,
   day05Sequence15,
+  day05Sequence16,
 ];
 
 export const scenarios: ScenarioFile = {

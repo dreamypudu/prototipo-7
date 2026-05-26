@@ -66,4 +66,22 @@ export const CESFAM_MLQ5X_EMAILS: EmailTemplate[] = [
       'Director, buenas tardes.\n\nSolo queria hacerle saber que esta semana tengo varios turnos agendados, lo que esta por sobre el estandar. Se que es su primera semana y no quiero molestar, pero si hay posibilidad de conversarlo en algun momento, se lo agradeceria.\n\nSaludos,\nTENS Javier Castro',
     trigger: { type: 'ON_TIME_BLOCK', day: 4, slot: 'tarde' },
   },
+  {
+    email_id: 'mlq5x-d3-sequence-17-guzman-practice-confirmation',
+    from: 'Dr. Andres Guzman',
+    subject: 'Confirmacion de cupos',
+    body:
+      'Director:\n\nHe confirmado los cupos de los internos con la universidad. El horario de supervision quedara para martes AM, tal como conversamos.\n\nDijeron que nos mantendremos en contacto para formalizar el convenio la proxima semana.\n\nSaludos,\nDr. Andres Guzman',
+    trigger: { type: 'ON_TIME_BLOCK', day: 5, slot: 'tarde' },
+    requiresUnlock: true,
+  },
+  {
+    email_id: 'mlq5x-d3-sequence-17-guzman-box1-reversal',
+    from: 'Dr. Andres Guzman',
+    subject: 'Cambio de decision BOX 1 AM',
+    body:
+      'Director:\n\nLe escribo porque necesito entender que paso. Ayer me confirmo que el Box 1 del bloque AM quedaria para la supervision docente, pero hoy me informo que no. En dos dias la misma direccion me dio dos respuestas distintas sobre lo mismo.\n\nEntiendo que gestionar un CESFAM implica tomar muchas decisiones al mismo tiempo y que a veces las cosas cambian. El problema practico lo puedo manejar, aunque me genera trabajo extra con la universidad. Lo que me resulta mas dificil de manejar es la incertidumbre: si las decisiones que se toman esta semana pueden cambiar la semana siguiente, no se sobre que base puedo planificar el trabajo del sector ni los compromisos que adquiero hacia afuera.\n\nEspero que no vuelva a ocurrir. Eso es lo minimo para poder trabajar con confianza.\n\nDr. Andres Guzman',
+    trigger: { type: 'ON_TIME_BLOCK', day: 5, slot: 'tarde' },
+    requiresUnlock: true,
+  },
 ];
