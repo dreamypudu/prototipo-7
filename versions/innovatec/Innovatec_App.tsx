@@ -1548,6 +1548,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
           isTimerPaused={effectiveTimerPaused}
           onTogglePause={() => setIsTimerPaused(prev => !prev)}
           onAdvanceTime={handleManualAdvance}
+          advanceDisabled={Boolean(currentMeeting?.sequence?.isInevitable)}
           onOpenSidebar={() => setIsSidebarOpen(true)}
           showPauseControl={false}
           periodDuration={PERIOD_DURATION}

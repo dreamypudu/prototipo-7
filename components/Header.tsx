@@ -9,6 +9,7 @@ interface HeaderProps {
   isTimerPaused: boolean;
   onTogglePause: () => void;
   onAdvanceTime: () => void;
+    advanceDisabled?: boolean;
   onOpenSidebar: () => void;
   showPauseControl?: boolean;
   periodDuration?: number;
@@ -21,7 +22,7 @@ interface HeaderProps {
   advanceHint?: string | null;
 }
 
-const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; advanceHint?: string | null; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true, advanceHint }) => {
+const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; advanceHint?: string | null; advanceDisabled?: boolean; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true, advanceHint, advanceDisabled = false }) => {
     const progress = ((periodDuration - countdown) / periodDuration) * 100;
     const { week, dayName } = getGameDate(day);
     const slotLabel = slot === 'mañana' ? 'Mañana' : slot === 'tarde' ? 'Tarde' : 'Noche';
@@ -61,9 +62,14 @@ const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType;
                       </div>
                     </div>
                   )}
-                  <button onClick={onAdvance} className="p-2 rounded-full bg-white/10 border border-white/10 hover:border-teal-300/60 text-teal-200 transition-colors" title="Avanzar al Siguiente Bloque">
-                     <ForwardIcon />
-                  </button>
+                        <button
+                          onClick={onAdvance}
+                          disabled={advanceDisabled}
+                          className={`p-2 rounded-full bg-white/10 border border-white/10 text-teal-200 transition-colors ${advanceDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-teal-300/60'}`}
+                          title={advanceDisabled ? 'Avance deshabilitado hasta finalizar la secuencia inevitable' : 'Avanzar al Siguiente Bloque'}
+                        >
+                            <ForwardIcon />
+                        </button>
                 </div>
             </div>
         </div>
@@ -418,7 +424,7 @@ const ResolutionStat: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl, advanceHint }) => {
+const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, advanceDisabled = false, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl, advanceHint }) => {
   const reputationHighlight = globalEffectsHighlight?.reputation;
   const displayTitle = title || 'Compass';
   const displaySubtitle = subtitle || 'Simulador de decisiones';
@@ -459,6 +465,7 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
                     isPaused={isTimerPaused}
                     onTogglePause={onTogglePause}
                     onAdvance={onAdvanceTime}
+                    advanceDisabled={advanceDisabled}
                     periodDuration={periodDuration}
                     showPauseControl={showPauseControl}
                     advanceHint={advanceHint}

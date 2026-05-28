@@ -1,853 +1,407 @@
-# Diagnostico de modularidad, escalabilidad y arquitectura
+# Diagnóstico de modularidad, escalabilidad y arquitectura
+
+> **Última actualización:** 2026-05-28
+> Este documento reemplaza la versión anterior. Refleja el estado real del repositorio tras lectura directa del código, no una proyección de estado pasado.
 
 ## 1. Objetivo y alcance
 
-Este documento evalua la arquitectura actual del simulador con foco en tres criterios:
+Este documento evalúa la arquitectura actual del simulador con foco en tres criterios:
 
 1. modularidad de escenarios;
 2. modularidad de mecánicas;
 3. escalabilidad del sistema en frontend, backend y modelo de datos.
 
-La revision se basa en inspeccion directa del repositorio, lectura de los modulos principales y verificacion técnica minima del estado actual.
-
 ### Comprobaciones ejecutadas
 
-- `npm run build` -> OK
-- `python -m py_compile backend/main.py backend/rebuild_db.py` -> OK
-- `python scripts/validate_content.py` -> OK
-- `npx tsc --noEmit` -> FAIL
-
-La compilacion de Vite pasa, pero el chequeo estricto de TypeScript falla. Eso ya indica una brecha entre "funciona en runtime" y "el contrato del sistema es consistente".
+- `npm run build` → OK
+- `python -m py_compile backend/main.py` → OK
+- `python scripts/validate_content.py` → OK
+- `npx tsc --noEmit` → FAIL (errores activos)
 
 ---
 
 ## 2. Resumen ejecutivo
 
-La base actual tiene una idea arquitectonica valida: separar contenido por version (`data/versions/*`), desacoplar mecánicas por registro (`mechanics/registry.ts`) y capturar eventos/acciones estandarizadas para comparacion y persistencia (`services/MechanicEngine.ts`).
+La arquitectura ha evolucionado significativamente desde el diagnóstico anterior. El cambio más importante es que **`App.tsx` ya no es el orquestador principal**: pasó a ser un router de 46 líneas que delega a orquestadores por versión. El backend dejó de ser monolítico: `main.py` tiene 206 líneas y la lógica de normalización está separada en un módulo `/normalizers`. La base de datos migró de SQLite a PostgreSQL.
 
-El problema es que esa idea no se completa de forma consistente en la implementacion.
+Sin embargo, varios problemas estructurales persisten: los orquestadores por versión son grandes archivos con responsabilidades mezcladas, TypeScript sigue con errores activos, no hay suite de tests, y la lógica de evaluación sigue duplicada entre frontend y backend.
 
-### Diagnostico sintetico
+### Diagnóstico sintético
 
-- **El sistema no esta realmente guiado por configuracion**. Existen content packs y registros de mecánicas, pero el flujo principal sigue gobernado por condicionales y reglas hardcodeadas en `App.tsx` y `games/InnovatecGame.tsx`.
-- **Los escenarios no son plenamente modulares**. El contenido esta separado por archivo/version, pero sigue mezclando narrativa, reglas, UI, efectos y contratos tecnicos en archivos TS gigantes.
-- **Las mecánicas no son plenamente modulares**. Los modulos de mecanica renderizan UI, pero la mayor parte de la orquestacion de estado, timing, transiciones y reglas sigue centralizada en el contenedor principal.
-- **La escalabilidad esta comprometida por duplicacion y drift**. La logica se duplica entre frontend/backend, entre `App.tsx` e `InnovatecGame.tsx`, y entre tipos declarados y estructuras reales.
-- **La calidad estructural esta por debajo de lo exigible para crecimiento sostenido**. Hay problemas de encoding, ausencia de tests automatizados y errores de TypeScript activos.
+- **El sistema ahora tiene orquestadores por versión**, no un único monolito. Esto es un avance real.
+- **El backend está modularizado** en normalizers por dominio y mecánica. Ya no es un único archivo que mezcla todo.
+- **Las mecánicas siguen siendo adaptadores de UI** con la orquestación en los contenedores de versión.
+- **La escalabilidad sigue limitada por la falta de tests** y por errores de TypeScript activos.
+- **El encoding de dominio sigue usando acentos** en `TimeSlotType`.
 
-### Evaluacion global
+### Evaluación global (actualizada)
 
-- **Modularidad de escenarios:** parcial
-- **Modularidad de mecánicas:** parcial-baja
-- **Escalabilidad del frontend:** media-baja
-- **Escalabilidad del backend:** baja
-- **Preparacion para agregar nuevas versiones/casos:** media-baja
-
----
-
-## 3. Hallazgos principales
-
-## 3.1. Orquestacion principal excesivamente centralizada
-
-### Evidencia
-
-- `App.tsx` tiene aproximadamente **2329 lineas**.
-- `games/InnovatecGame.tsx` tiene aproximadamente **1453 lineas**.
-- `App.tsx` concentra responsabilidades heterogeneas:
-  - bootstrap de version y content pack (`App.tsx:134`, `App.tsx:190`)
-  - control de timer y avance de tiempo
-  - manejo de reuniones y secuencias
-  - comparacion expected/canonical (`App.tsx:311`)
-  - aplicacion de resoluciones diarias (`App.tsx:790`, `App.tsx:957`)
-  - persistencia y export (`App.tsx:1830`)
-  - reglas especificas de CESFAM (`App.tsx:761`, `App.tsx:1085`, `App.tsx:1364`, `App.tsx:1651`)
-  - enrutamiento manual de versiones (`App.tsx:2065`)
-
-### Problema
-
-El componente principal es simultaneamente:
-
-- runtime del juego;
-- coordinador de UI;
-- coordinador de mecánicas;
-- motor de secuencias;
-- handler de persistencia;
-- contenedor de reglas por version.
-
-Eso rompe la cohesion. Cada nueva regla o mecanica tiende a terminar en el mismo archivo. La consecuencia es predecible: el costo de cambio sube de forma no lineal.
-
-### Impacto
-
-- Alto riesgo de regresiones cruzadas.
-- Baja capacidad de razonamiento local sobre el sistema.
-- Dificultad para incorporar nuevos casos sin tocar el runtime central.
+| Criterio | Diagnóstico anterior | Estado actual |
+|----------|---------------------|---------------|
+| Modularidad de escenarios | parcial | parcial (sin cambios) |
+| Modularidad de mecánicas | parcial-baja | parcial-baja (sin cambios) |
+| Escalabilidad del frontend | media-baja | media (mejora por separación de versiones) |
+| Escalabilidad del backend | baja | media (mejora por modularización) |
+| Preparación para nuevas versiones | media-baja | media (mejora por router limpio) |
 
 ---
 
-## 3.2. Duplicacion estructural entre `App.tsx` e `InnovatecGame.tsx`
+## 3. Hallazgos actualizados
 
-### Evidencia
+### 3.1. App.tsx ahora es un router limpio — RESUELTO
 
-`games/InnovatecGame.tsx` replica gran parte del mismo patron de `App.tsx`:
+**Estado anterior:** `App.tsx` tenía ~2.329 líneas y concentraba bootstrap, timer, secuencias, comparaciones, persistencia, export y reglas específicas de CESFAM.
 
-- `API_BASE_URL` (`games/InnovatecGame.tsx:47`)
-- `resolveMechanics` (`games/InnovatecGame.tsx:88`)
-- `SIMULATOR_CONFIGS.INNOVATEC` (`games/InnovatecGame.tsx:115`)
-- multiples `setGameState(...)` distribuidos por todo el archivo (`games/InnovatecGame.tsx:197`, `379`, `476`, `641`, `735`, `1184`, etc.)
+**Estado actual:** `App.tsx` tiene **46 líneas**. Es un dispatcher puro:
 
-### Problema
+```typescript
+// Lógica real de App.tsx (simplificada):
+if (!selectedVersion) → <VersionSelector />
+if (selectedVersion === 'INNOVATEC') → <InnovatecApp />
+else → <GestionEnSaludApp />   // CESFAM y futuras versiones
+```
 
-Innovatec no extiende un runtime comun: usa un runtime paralelo. Eso implica que cada mejora transversal hay que hacerla dos veces o aceptar drift funcional.
+Mantiene solo `selectedVersion`, `selectedCesfamModuleId` y `runMode`. No conoce ningún detalle de implementación de las versiones.
 
-### Impacto
-
-- Toda capacidad transversal (persistencia, timers, comparaciones, debug, export, cierre de día) se vuelve mas cara de mantener.
-- La arquitectura no escala por version; escala por bifurcacion de runtime.
-
-### Juicio
-
-Este es uno de los problemas mas importantes del repositorio. Mientras existan dos shells de juego con responsabilidades equivalentes, la modularidad por version sera solo parcial.
+**Impacto:** Agregar una versión nueva requiere crear su `_App.tsx` y añadir una rama en este router. No requiere tocar lógica existente.
 
 ---
 
-## 3.3. Los content packs existen, pero el comportamiento no esta realmente gobernado por ellos
+### 3.2. Orquestadores por versión — MEJORA PARCIAL
 
-### Evidencia
+**Estado actual:** Cada versión tiene su propio orquestador:
 
-Existe una capa de contenido por version:
+- `versions/cesfam/GestionEnSalud_App.tsx` — **2.461 líneas**
+- `versions/innovatec/Innovatec_App.tsx` — **1.617 líneas**
 
-- `data/versions/index.ts`
-- `data/versions/types.ts`
-- `data/versions/<version>/*`
+Cada uno gestiona de forma independiente: estado del juego, timer, secuencias, mecánicas, comparaciones, persistencia y export para su versión. No comparten código base de runtime.
 
-Eso es correcto como direccion general. Sin embargo, el runtime sigue dependiendo de condiciones explicitas como:
+**Lo que mejoró:** La lógica está separada por versión. Cambios en CESFAM no afectan Innovatec y viceversa.
 
-- `selectedVersion === 'CESFAM'` en multiples puntos de `App.tsx` (`761`, `1085`, `1106`, `1124`, `1364`, `1519`, `1560`, `1651`, etc.)
-- `selectedVersion === 'INNOVATEC'` para derivar a una app aparte (`App.tsx:2065`)
+**Lo que persiste:** Cada orquestador sigue siendo un archivo grande con responsabilidades mezcladas (estado, UI, timer, reglas, persistencia). Si una capacidad transversal necesita modificarse (por ejemplo, el sistema de export o el timer), hay que hacerlo en ambos archivos por separado. No existe un runtime común que los dos extiendan.
 
-### Problema
-
-La version no define completamente su propio comportamiento. Parte del comportamiento esta en el pack, pero parte sigue codificada en el shell.
-
-En otras palabras:
-
-- **la configuracion describe contenido**;
-- **el codigo central decide la mayor parte del flujo**.
-
-### Impacto
-
-Agregar una nueva version no consiste solo en crear `data/versions/nueva-version/*`. Tambien exige tocar `App.tsx`, potencialmente `registry.ts`, componentes y servicios especiales.
-
-### Juicio
-
-La arquitectura parece orientada a plugin, pero en la practica aun es un sistema con branching manual.
+**Impacto:** Mejora respecto al estado anterior, pero el costo de mantener capacidades transversales sigue siendo doble. Si se añade una tercera versión, el patrón se replica una vez más.
 
 ---
 
-## 3.4. Las mecánicas no son plugins completos; son adaptadores de UI con mucha logica externa
+### 3.3. Configuración por versión — FUNCIONA BIEN
 
-### Evidencia
+**Estado actual:** El sistema de configuración por versión está bien implementado:
 
-Los modulos de mecanica son delgados:
+- `versions/configuration.ts` (15 líneas) — registry limpio que mapea `SimulatorVersion` → `SimulatorConfig`
+- `versions/<version>/configuration.ts` — configuración declarativa por versión (mecánicas habilitadas, reglas de comparación, parámetros de scheduler)
 
-- `mechanics/modules/MapMechanic.tsx`
-- `mechanics/modules/ScheduleMechanic.tsx`
-- `mechanics/modules/OfficeMechanic.tsx`
+```typescript
+// Patrón actual:
+export const SIMULATOR_CONFIGS: Record<SimulatorVersion, SimulatorConfig> = {
+  CESFAM: CESFAM_CONFIGURATION,
+  INNOVATEC: INNOVATEC_CONFIGURATION,
+  LEY_KARIN: LEY_KARIN_CONFIGURATION,
+  SERCOTEC: SERCOTEC_CONFIGURATION,
+  MUNICIPAL: MUNICIPAL_CONFIGURATION,
+};
+```
 
-Ejemplo:
+Cada `SimulatorConfig` declara: qué mecánicas están activas, sus labels y tab IDs, las reglas de comparación aplicables, y parámetros funcionales (como funciones de timing del scheduler).
 
-- `MapMechanic` delega a `CesfamMap` y a `dispatch`.
-- `ScheduleMechanic` calcula estados a partir de servicios externos y despacha acciones.
-- `OfficeMechanic` depende de un `office` state ya armado por el contenedor y resuelve parcialmente participantes de escena en el modulo.
-
-### Problema
-
-La logica de mecanica no esta encapsulada. La mayor parte del comportamiento real sigue en:
-
-- `App.tsx`
-- `games/InnovatecGame.tsx`
-- `services/*`
-- componentes concretos (`components/CesfamMap.tsx`, `components/SchedulerInterface.tsx`, etc.)
-
-El resultado es que la "mecanica" no es una unidad desplegable/aislable; es un conjunto disperso.
-
-### Impacto
-
-- Reusar una mecanica en otra version requiere conocer varios puntos del sistema.
-- No hay contrato fuerte de lifecycle para mecánicas.
-- No hay aislamiento claro entre estado core y estado propio de cada mecanica.
-
-### Juicio
-
-La modularidad de mecánicas es visual, no sistémica.
+**Lo que sigue faltando:** La configuración describe *qué* hay disponible, pero los orquestadores siguen tomando decisiones de flujo que deberían estar en la config (por ejemplo, cuándo hacer el day review, cuándo forzar secuencias de caso).
 
 ---
 
-## 3.5. Duplicacion de registro/configuracion de mecánicas
-
-### Evidencia
-
-- Registro general: `mechanics/registry.ts`
-- Registro Innovatec: `mechanics/innovatecRegistry.ts`
-- Configuración por version: `data/simulatorConfigs.ts`
-
-### Problema
-
-La informacion de una mecanica esta distribuida en al menos tres lugares:
-
-1. registro del modulo React;
-2. configuracion de tabs/labels por simulador;
-3. condicionales de filtrado/uso en `App.tsx` o `InnovatecGame.tsx`.
-
-Eso aumenta la probabilidad de drift. Un sistema escalable deberia tener una sola fuente de verdad por capability.
-
-### Impacto
-
-- Mayor costo al agregar mecánicas nuevas.
-- Riesgo de tabs registrados pero no usables, o usables pero no registrados.
-
----
-
-## 3.6. Los escenarios estan separados por archivo, pero no desacoplados del motor
-
-### Evidencia
-
-- `data/versions/cesfam/scenarios.ts` tiene aproximadamente **2410 lineas**.
-- `data/versions/innovatec/scenarios.ts` tiene aproximadamente **528 lineas**.
-- Los nodos contienen simultaneamente:
-  - narrativa;
-  - tags psicometricos;
-  - efectos sobre estado;
-  - `expected_actions`;
-  - `rule_id`;
-  - metadata UI.
-
-### Problema
-
-El archivo de escenarios se transforma en una mezcla de:
-
-- contenido narrativo;
-- DSL de juego;
-- configuracion de evaluacion;
-- definicion de recompensas/castigos;
-- hints de interfaz.
-
-Eso tiene dos consecuencias:
-
-1. el contenido es dificil de editar sin entender demasiado del motor;
-2. cualquier evolucion del contrato tecnico obliga a tocar masivamente archivos de narrativa.
-
-### Impacto
-
-- Muy baja mantenibilidad editorial.
-- Alto riesgo de errores semanticos silenciosos.
-- Difusa separacion entre autoria de contenido y programacion del sistema.
-
-### Juicio
-
-La modularidad de escenarios existe a nivel de carpetas, pero no a nivel de responsabilidad.
-
----
-
-## 3.7. El sistema de reglas y resolución esta duplicado entre frontend y backend
-
-### Evidencia
-
-En frontend:
-
-- `services/comparisonRules.ts`
-- `services/ComparisonEngine.ts`
-- `services/localDayResolution.ts`
-- `services/commitments_text_generator.ts`
-
-En backend:
-
-- `backend/main.py` contiene:
-  - esquema DB (`backend/main.py:29`)
-  - normalización de payload (`backend/main.py:676`)
-  - handlers de reglas (`backend/main.py:575`, `588`, `613`)
-  - efectos por regla (`backend/main.py:621`)
-  - endpoints y queries
-
-### Problema
-
-El sistema mantiene dos implementaciones parciales del mismo dominio:
-
-- matching de expected vs canonical;
-- reglas por `rule_id`;
-- efectos por outcome;
-- normalización de días/slots.
-
-Esto es un punto clasico de drift. Si una regla cambia en frontend y no en backend, el sistema deja de ser consistente.
-
-### Impacto
-
-- Resultados distintos segun donde se ejecute la evaluacion.
-- Mayor dificultad para depurar promesas y resoluciones diarias.
-- Riesgo operativo al persistir datos historicos inconsistentes.
-
-### Juicio
-
-Para escalar, la evaluacion debe tener una sola fuente de verdad.
-
----
-
-## 3.8. El backend es monolitico y mezcla demasiadas capas
-
-### Evidencia
-
-`backend/main.py` tiene aproximadamente **1450 lineas** y combina:
-
-- configuracion y env;
-- conexion a DB;
-- creacion/migracion de esquema;
-- normalización de payload;
-- reglas de comparacion;
-- efectos;
-- endpoints FastAPI;
-- queries SQL;
-- persistencia agregada.
-
-### Problema
-
-Este archivo es backend, migracion, ORM manual, rule engine y API en el mismo modulo.
-
-### Impacto
-
-- Baja testabilidad.
-- Dificultad para introducir migraciones controladas.
-- Cualquier cambio en persistencia arriesga endpoints y viceversa.
-
-### Juicio
-
-El backend actual no escala bien ni en complejidad ni en volumen de reglas.
-
----
-
-## 3.9. Hay drift real entre tipos y datos; TypeScript no esta limpio
-
-### Evidencia
-
-`npx tsc --noEmit` falla. Entre los errores observados:
-
-- contratos de `PlayerAction` no consistentes (`App.tsx:545`, `games/InnovatecGame.tsx:305`)
-- uso de `import.meta.env` sin typing (`components/DataExport.tsx:32`)
-- referencias DOM mal tipadas (`components/DecisionCardDeck.tsx:50`)
-- estado inicial de versiones incompleto respecto a `GameState` (`data/versions/innovatec/defaults.ts:20`)
-- valores de `TimeSlotType` corruptos (`data/versions/leykarin/defaults.ts:4`, `municipal/defaults.ts:4`, `sercotec/defaults.ts:4`)
-- variable no definida en runtime de Innovatec (`games/InnovatecGame.tsx:551`)
-
-### Problema
-
-La base compila por Vite, pero no por contrato de tipos. Eso significa que el sistema esta funcionando con deuda estructural activa.
-
-### Impacto
-
-- Regresiones silenciosas.
-- Refactors peligrosos.
-- Menor confiabilidad de las herramientas del lenguaje.
-
----
-
-## 3.10. Hay problemas sistemicos de encoding y normalización de texto
-
-### Evidencia
-
-- `types.ts:2` define `TimeSlotType = 'mañana' | 'tarde' | 'noche'`.
-- pero varios defaults usan `mañana` (`data/versions/leykarin/defaults.ts:4`, `municipal/defaults.ts:4`, `sercotec/defaults.ts:4`).
-- en otros puntos hay historico de `mañana`, `Mi??rcoles`, etc.
-
-### Problema
-
-El dominio usa texto human-readable como clave operacional, pero el encoding no es estable. Eso obliga a meter normalizaciónes defensivas repartidas por varios servicios.
-
-### Impacto
-
-- Reglas mas fragiles.
-- Complejidad accidental en comparaciones de día/slot.
-- Riesgo de errores de contenido muy costosos de detectar.
-
-### Juicio
-
-Hay que separar IDs internos estables de labels mostradas al usuario.
-
----
-
-## 3.11. La validacion de contenido existe, pero es insuficiente para proteger el sistema
-
-### Evidencia
-
-- `scripts/validate_content.py` existe y pasa.
-- valida duplicados basicos y referencias simples entre stakeholders, nodos y secuencias.
-
-### Problema
-
-No valida:
-
-- consistencia de `rule_id`;
-- shape de `expected_actions`;
-- uso de `TimeSlotType` valido;
-- referencias a mecánicas existentes;
-- secuencias inevitables incompatibles entre si;
-- efectos o constraints semanticamente mal formados.
-
-### Impacto
-
-Los errores mas costosos siguen entrando por contenido.
-
----
-
-## 3.12. No hay una estrategia visible de tests automatizados por dominio
-
-### Evidencia
-
-- `package.json` no define script de `test`.
-- no hay suite visible de pruebas unitarias/integracion para:
-  - rule engine;
-  - secuencias;
-  - resolución diaria;
-  - persistencia backend.
-
-### Problema
-
-El proyecto crecio mas alla del punto en que build manual + prueba exploratoria alcanza.
-
-### Impacto
-
-Cada cambio arquitectonico o narrativo complejo obliga a validacion manual cara.
-
----
-
-## 4. Evaluacion frente a los principios pedidos
-
-## 4.1. Modularidad de escenarios
-
-### Estado actual
-
-**Parcial**.
-
-### Lo que si cumple
-
-- El contenido esta segmentado por version (`data/versions/<version>`).
-- Existen paquetes de contenido coherentes (`VersionContentPack`).
-- Hay separacion entre stakeholders, scenarios, questions, emails, documents y defaults.
-
-### Lo que no cumple
-
-- El motor aun depende de IDs de secuencia y de version en codigo central.
-- Los escenarios cargan demasiada semantica técnica.
-- No existe una capa de DSL o schema suficientemente estricta.
-
-### Veredicto
-
-La estructura de carpetas es modular; la arquitectura de ejecucion no lo es del todo.
-
----
-
-## 4.2. Modularidad de mecánicas
-
-### Estado actual
-
-**Parcial-baja**.
-
-### Lo que si cumple
-
-- Hay un `MechanicContext`.
-- Hay registros por mecanica.
-- Los componentes de UI de mecánicas estan separados.
-
-### Lo que no cumple
-
-- Las mecánicas no encapsulan su estado ni lifecycle.
-- El runtime central conoce demasiados detalles de comportamiento.
-- Hay duplicacion de registros y filtros por version.
-
-### Veredicto
-
-Las mecánicas son modulares como componentes, no como subsistemas.
-
----
-
-## 4.3. Escalabilidad del sistema
-
-### Estado actual
-
-**Media-baja en frontend; baja en backend**.
-
-### Bloqueadores principales
-
-- shell principal sobredimensionado;
-- runtime duplicado para Innovatec;
-- rule engine duplicado frontend/backend;
-- backend monolitico;
-- tipos inconsistentes;
-- ausencia de tests;
-- contenido acoplado a detalles del motor.
-
----
-
-## 5. Propuesta de rediseño consistente
-
-La propuesta no consiste en "modularizar un poco mas". Eso no alcanza. La base necesita una separacion clara entre:
-
-1. **runtime del juego**;
-2. **contenido de versiones**;
-3. **mecánicas**;
-4. **reglas/evaluacion**;
-5. **persistencia**.
-
-## 5.1. Objetivo arquitectonico
-
-Llevar el sistema a un modelo donde:
-
-- agregar una nueva version sea principalmente agregar un pack;
-- agregar una nueva mecanica sea registrar un plugin con contrato estable;
-- cambiar una regla no requiera tocar frontend y backend por separado;
-- el shell principal no conozca ids narrativos de casos particulares.
-
----
-
-## 5.2. Arquitectura objetivo
-
-### A. Core runtime unico
-
-Crear un runtime comun, por ejemplo:
-
-- `src/core/runtime/GameRuntime.ts`
-- `src/core/runtime/useGameRuntime.ts`
-- `src/core/runtime/runtimeReducer.ts`
-- `src/core/runtime/sequenceEngine.ts`
-- `src/core/runtime/timeEngine.ts`
-- `src/core/runtime/sessionEngine.ts`
-
-#### Responsabilidades del runtime
-
-- cargar pack de version;
-- mantener estado global;
-- avanzar tiempo;
-- iniciar/cerrar secuencias;
-- despachar comandos a mecánicas;
-- sincronizar expected/canonical actions;
-- delegar resolución de reglas a un motor unico.
-
-#### Resultado
-
-- `App.tsx` pasa a ser shell visual.
-- `InnovatecGame.tsx` desaparece como runtime paralelo.
-- Innovatec pasa a ser otra configuracion/version sobre el mismo runtime.
-
----
-
-### B. Version packs realmente ejecutables
-
-Reemplazar el modelo actual de "pack de datos + condicionales en App" por un contrato de capacidad, por ejemplo:
-
-```ts
-interface VersionModule {
-  id: SimulatorVersion;
-  title: string;
-  mechanics: VersionMechanicBinding[];
-  content: VersionContentPack;
-  ruleset: RulesetId;
-  progression: ProgressionPolicy;
-  transitions: TransitionPolicy;
+### 3.4. Registry de mecánicas — UN SOLO REGISTRO
+
+**Estado anterior:** El diagnóstico mencionaba tres registros paralelos.
+
+**Estado actual:** Existe **un único `mechanics/registry.ts`** (108 líneas). Las variantes de Innovatec se registran en el mismo objeto bajo keys con prefijo `innovatec_`:
+
+```typescript
+MECHANIC_REGISTRY = {
+  office:                    { mechanic_id: 'office', Module: OfficeMechanic, rules: {...} },
+  innovatec_office:          { mechanic_id: 'office', Module: InnovatecOfficeMechanic },
+  map:                       { mechanic_id: 'map',    Module: MapMechanic,    rules: {...} },
+  innovatec_experimental_map:{ mechanic_id: 'map',    Module: InnovatecExperimentalMapMechanic },
+  // ...
 }
 ```
 
-#### Que debe salir de `App.tsx`
+El `mechanic_id` interno puede ser el mismo entre variantes (p.ej. `'office'`), pero la key del registry es distinta. Esto permite que las `ExpectedAction` del diálogo apunten a `mechanic_id: 'office'` y las reglas se resuelvan igual para ambas versiones, mientras se renderiza un componente diferente.
 
-- `selectedVersion === 'CESFAM'`
-- `selectedVersion === 'INNOVATEC'`
-- ids hardcodeados de casos particulares
+**Módulos disponibles (13):**
 
-#### Que debe entrar al pack o a una policy
+| Key | LOC | Versión |
+|-----|-----|---------|
+| office | 113 | CESFAM |
+| innovatec_office | 142 | INNOVATEC |
+| map | 14 | CESFAM |
+| experimental_map | 17 | CESFAM |
+| innovatec_experimental_map | 10 | INNOVATEC |
+| scheduler | 51 | CESFAM |
+| inbox | 16 | CESFAM |
+| innovatec_inbox | 15 | INNOVATEC |
+| stakeholders | 10 | CESFAM |
+| innovatec_stakeholders | 13 | INNOVATEC |
+| innovatec_calendar | 18 | INNOVATEC |
+| documents | 16 | CESFAM |
+| data_export | 21 | CESFAM |
 
-- reglas de desbloqueo;
-- reglas de cierre del día;
-- reglas de avance de caso;
-- reglas de scheduler y submission;
-- condiciones de finalizacion.
+**Lo que sigue igual:** Los módulos son componentes wrapper delgados (10-142 líneas cada uno). La lógica de orquestación de las mecánicas vive en los `_App.tsx` correspondientes, no dentro de los módulos.
 
 ---
 
-### C. Mecanicas como plugins con contrato fuerte
+### 3.5. Motor de mecánicas y comparación — BIEN ESTRUCTURADO
 
-Unificar registro y configuracion en un solo contrato:
+**`services/MechanicEngine.ts`** (159 líneas) — Singleton con tres buffers:
+- `emitEvent(mechanicId, eventType, payload)` — eventos ricos por mecánica
+- `emitCanonicalAction(mechanicId, actionType, targetRef, valueFinal)` — acciones normalizadas
+- `registerExpectedActions(nodeId, optionId, actions[])` — compromisos del diálogo
+- `flush()` — retorna y limpia los tres buffers
 
-```ts
-interface MechanicPlugin {
-  id: string;
-  tabs: TabDefinition[];
-  reducer?: MechanicReducer;
-  selectors?: MechanicSelectors;
-  commands?: MechanicCommands;
-  Component: React.ComponentType<MechanicProps>;
-  capabilities: string[];
-}
+Las mecánicas no llaman directamente a `GameState`. Emiten al buffer y los orquestadores hacen flush periódico (cada 1.000 ms via `useMechanicLogSync`).
+
+**`services/ComparisonEngine.ts`** (396 líneas) — Orquestador de comparación:
+- `compareExpectedVsActual()` — itera expected actions, busca su regla en `MECHANIC_REGISTRY[mechanic_id].rules[rule_id]` y ejecuta `rule.resolve(expected, ruleContext)`
+- `resolveDayEffectsLocally()` — aplica deltas globales y por stakeholder, desbloquea contenido
+- `mergeComparisonResults()` — merge inteligente que respeta comparaciones terminales
+
+Las reglas de comparación están co-ubicadas con las mecánicas:
+- `mechanics/office/rules.ts` (201 líneas)
+- `mechanics/scheduler/rules.ts` (102 líneas)
+- `mechanics/map/rules.ts` (55 líneas)
+- `mechanics/admin/rules.ts` (11 líneas)
+
+**`services/comparisonMode.ts`** (11 líneas) — Toggle frontend/backend via `VITE_COMPARISON_MODE` env var.
+
+---
+
+### 3.6. Backend — MODULARIZADO, NO MONOLÍTICO
+
+**Estado anterior:** `main.py` de ~1.450 líneas mezclando todo.
+
+**Estado actual:** El backend está separado en capas:
+
+```
+backend/
+├── main.py          (206 líneas — endpoints FastAPI, CORS, orquestación)
+├── db.py            (22 líneas  — conexión PostgreSQL via psycopg)
+├── schema.py        (773 líneas — DDL, 19 tablas, migraciones automáticas)
+├── json_utils.py    (75 líneas  — utilidades JSONB)
+├── rebuild_db.py    (auxiliar de mantenimiento)
+└── normalizers/
+    ├── session.py      (normalización principal)
+    ├── actions.py      (canonical + expected actions)
+    ├── comparisons.py  (comparaciones)
+    ├── decisions.py    (explicit decisions)
+    ├── events.py       (mechanic events)
+    ├── process.py      (process logs)
+    ├── state.py        (final states + question log)
+    ├── common.py       (helpers compartidos)
+    └── mechanics/
+        ├── map.py          → tabla map_action_details
+        ├── email.py        → tabla email_action_details
+        ├── documents.py    → tabla documents_action_details
+        ├── scheduler.py    → tabla scheduler_action_details
+        └── utils.py
 ```
 
-#### Principio
+**Base de datos:** PostgreSQL (no SQLite como indicaba el diagnóstico anterior).
 
-La mecanica no solo renderiza. Tambien declara:
+**Endpoints disponibles:**
+```
+POST  /sessions                     — Crear sesión
+POST  /sessions/{id}/normalize      — Re-normalizar sesión
+POST  /sessions/normalize           — Normalizar todas
+GET   /sessions                     — Listar (limit=100 default)
+GET   /sessions/{id}                — Sesión completa
+GET   /sessions/{id}/normalized     — Con datos normalizados
+GET   /sessions/latest              — Última sesión
+GET   /sessions/latest/normalized   — Última normalizada
+GET   /health                       — Health check
+```
 
-- que comandos emite;
-- que slice de estado usa;
-- que capacidades requiere;
-- como serializa acciones canónicas.
-
-#### Beneficio
-
-- Menos logica procedural en `App.tsx`.
-- Reuso real entre versiones.
-- Menor dependencia de componentes concretos del simulador CESFAM.
-
----
-
-### D. DSL de escenarios y capa de interpretacion
-
-Separar el contenido en dos niveles:
-
-1. **Narrativa / authored content**
-2. **Semantica de ejecucion**
-
-#### Propuesta
-
-Mantener TypeScript si quieres tipado y tooling, pero estructurarlo como DSL estricta:
-
-- `nodes.ts`
-- `sequences.ts`
-- `effects.ts`
-- `cases.ts`
-- `bindings.ts`
-
-O bien un solo archivo generado desde JSON/YAML validado por schema.
-
-#### Regla importante
-
-El authored content no deberia conocer detalles de infraestructura. Ejemplos de cosas que conviene sacar del escenario crudo:
-
-- UI microcopy de tabs
-- detalles de matching temporal duplicados
-- efectos default por `rule_id`
-
-Eso deberia vivir en un `ruleset` o `policy layer`.
+**Lo que persiste:** La evaluación de reglas (matching expected vs canonical) sigue existiendo tanto en el frontend (`ComparisonEngine.ts`) como potencialmente en el backend. El `comparisonMode.ts` del frontend permite elegir cuál usar vía env var, pero no hay una única fuente de verdad formal.
 
 ---
 
-### E. Motor de reglas unico
+### 3.7. Escenarios — SIN CAMBIOS ESTRUCTURALES
 
-Hay dos caminos validos. Debes elegir uno, no mezclar ambos.
+Los archivos de escenarios siguen siendo grandes y mezclan narrativa con contratos técnicos:
 
-#### Opcion 1: backend autoritativo
+- `data/versions/cesfam/scenarios.ts` — ~2.410 líneas
+- `data/versions/innovatec/scenarios.ts` — ~528 líneas
 
-- frontend solo captura expected/canonical actions
-- backend resuelve comparaciones y daily effects
-- frontend solo muestra resultados
+Cada nodo contiene simultáneamente: texto narrativo, tags psicométricos (MLQ-5X), efectos sobre `GameState`, `expected_actions` con `rule_id`, condiciones de desbloqueo y metadatos de UI.
 
-#### Opcion 2: paquete compartido
-
-- extraer reglas a `src/domain/rules/*`
-- frontend y backend consumen la misma implementacion o una version generada del mismo schema
-
-### Recomendacion
-
-Para este proyecto, la opcion mas coherente es **backend autoritativo** si la persistencia ya es parte del producto. Si no quieres esa dependencia, entonces extrae un paquete compartido, pero no mantengas logica duplicada en archivos distintos.
+**Consecuencia:** Un cambio en el contrato técnico de `expected_actions` obliga a tocar masivamente archivos de contenido narrativo. La autoría de contenido y la definición del motor están fusionadas.
 
 ---
 
-### F. Backend por capas + migraciones reales
+### 3.8. TypeScript — ERRORES ACTIVOS
 
-Separar `backend/main.py` en:
+`npx tsc --noEmit` sigue fallando. El build de Vite pasa, pero el contrato de tipos no es consistente. Esto implica que las herramientas de refactoring del lenguaje no son completamente confiables y que pueden existir regresiones silenciosas de tipo.
 
-- `backend/api.py` o `backend/app.py`
-- `backend/db.py`
-- `backend/schema.py` o idealmente `backend/migrations/*`
-- `backend/repositories/session_repository.py`
-- `backend/services/normalization_service.py`
-- `backend/services/rule_engine.py`
-- `backend/routes/sessions.py`
-- `backend/routes/health.py`
+Los errores activos al momento del diagnóstico anterior incluían:
+- Contratos de `PlayerAction` inconsistentes
+- `import.meta.env` sin typing
+- Referencias DOM mal tipadas
+- Estado inicial de versiones incompleto respecto a `GameState`
+- Valores de `TimeSlotType` inválidos en defaults de leykarin, municipal y sercotec
 
-#### Principio
-
-- rutas no hacen logica de dominio;
-- servicios no conocen FastAPI;
-- schema/migraciones no viven en el request path.
-
-#### Beneficio
-
-- testing mucho mas facil;
-- despliegues mas previsibles;
-- menos riesgo en cambios de datos.
+**Estado actual:** No se re-ejecutó `tsc --noEmit` en esta revisión. Se asume que los errores persisten hasta verificación explícita.
 
 ---
 
-### G. IDs estables para dominio; labels separadas para UI
+### 3.9. Encoding de dominio — SIN CAMBIOS
 
-Eliminar el uso de strings con acentos/encoding variable como claves del dominio.
+`types.ts` define `TimeSlotType = 'mañana' | 'tarde' | 'noche'` con acentos reales.
 
-#### Ejemplo
-
-- interno: `MORNING`, `AFTERNOON`, `EVENING`
-- UI: `mañana`, `tarde`, `noche`
-
-- interno: `WEDNESDAY`
-- UI: `Miércoles`
-
-#### Beneficio
-
-- menos normalización defensiva;
-- menos errores por encoding;
-- reglas mas simples y robustas.
+Los defaults de algunas versiones (leykarin, municipal, sercotec) han tenido históricamente `mañana` con encoding corrupto. Los IDs internos de entidades (`stakeholder_id`, `canonical_action_id`, etc.) son estables y no usan acentos. El problema se limita a los literales de `TimeSlotType` y los días de la semana cuando se usan como keys.
 
 ---
 
-### H. Quality gates obligatorios
+### 3.10. Validación de contenido — INSUFICIENTE
 
-Agregar como minimo:
+`scripts/validate_content.py` existe y pasa, pero sigue sin validar:
 
-1. `tsc --noEmit` limpio como requisito de merge
-2. validacion de contenido ampliada
-3. tests unitarios para ruleset
-4. tests de integracion para sesiones backend
-5. tests de smoke por version seleccionable
-
-#### Validaciones nuevas recomendadas
-
-- `rule_id` existente
-- `mechanic_id` existente
-- `target_ref` valido
-- `TimeSlotType` y `DayOfWeek` validos
-- referencias cruzadas entre cases/sequences/nodes
-- detección de texto corrupto (`mañana`, `mañana`, etc.)
+- consistencia de `rule_id` contra el registry
+- shape de `expected_actions`
+- valores válidos de `TimeSlotType`
+- referencias a `mechanic_id` existentes
+- secuencias inevitables incompatibles entre sí
+- efectos o constraints semánticamente mal formados
 
 ---
 
-## 6. Plan de migracion propuesto
+### 3.11. Tests automatizados — AUSENTES
 
-## Fase 1 - Estabilizacion técnica
-
-Objetivo: eliminar drift y estabilizar contratos.
-
-### Acciones
-
-- dejar `npx tsc --noEmit` en verde;
-- normalizar encoding en `types.ts`, defaults y contenido;
-- extraer constantes de dominio (`TimeSlotId`, `WeekdayId`, `RuleId`, `MechanicId`);
-- ampliar `validate_content.py`.
-
-### Resultado esperado
-
-Base consistente para refactor mayor.
+`package.json` no define un script de `test`. No existe suite de pruebas unitarias ni de integración para el rule engine, las secuencias, la resolución diaria, ni la persistencia del backend.
 
 ---
 
-## Fase 2 - Unificacion del runtime
+## 4. Evaluación frente a los principios pedidos
 
-Objetivo: eliminar la duplicacion `App.tsx` / `InnovatecGame.tsx`.
+### 4.1. Modularidad de escenarios
 
-### Acciones
+**Estado: parcial** (sin cambios respecto al diagnóstico anterior)
 
-- crear `useGameRuntime`;
-- mover timer, secuencias, transiciones y sync de logs a runtime comun;
-- convertir Innovatec en un pack/config sobre ese runtime.
+**Lo que cumple:**
+- Contenido separado por versión en `data/versions/<version>/`
+- Separación entre stakeholders, scenarios, questions, emails, documents y defaults
+- CESFAM tiene submódulos narrativos (`/modules/ethics/`, etc.)
 
-### Resultado esperado
-
-Un solo shell operacional para todas las versiones.
-
----
-
-## Fase 3 - Pluginizacion real de mecánicas
-
-Objetivo: que las mecánicas sean unidades de extension y no solo componentes.
-
-### Acciones
-
-- unificar registros;
-- definir contrato de plugin;
-- mover comandos y serializacion canonica a cada plugin;
-- reducir la dependencia del runtime central en detalles de cada mecanica.
-
-### Resultado esperado
-
-Mecanicas portables y menos acopladas.
+**Lo que no cumple:**
+- Los archivos de escenarios siguen mezclando narrativa con contratos técnicos del motor
+- No existe una capa DSL que separe "authored content" de "semántica de ejecución"
 
 ---
 
-## Fase 4 - Extracción del ruleset
+### 4.2. Modularidad de mecánicas
 
-Objetivo: tener una sola fuente de verdad para comparaciones y efectos.
+**Estado: parcial-baja** (sin cambios)
 
-### Acciones
+**Lo que cumple:**
+- Un único registry con contratos declarados
+- Componentes de UI separados por mecánica
+- `MechanicEngine` como buffer centralizado (las mecánicas no escriben a GameState directamente)
+- Reglas co-ubicadas con cada mecánica
 
-- mover reglas a backend autoritativo o paquete compartido;
-- eliminar duplicacion entre `services/localDayResolution.ts` y `backend/main.py`;
-- hacer pruebas sobre fixtures de expected/canonical actions.
-
-### Resultado esperado
-
-Resolucion consistente entre frontend y backend.
-
----
-
-## Fase 5 - Refactor editorial de escenarios
-
-Objetivo: separar autoria de contenido y semantica de motor.
-
-### Acciones
-
-- definir schema/DSL de escenarios;
-- dividir `scenarios.ts` gigantes en nodos/secuencias/casos por modulo;
-- externalizar efectos default y metadatos tecnicos cuando corresponda.
-
-### Resultado esperado
-
-Sistema mas editable, mas auditable y mas escalable para contenido.
+**Lo que no cumple:**
+- Los módulos no encapsulan su estado ni lifecycle
+- La orquestación real (cuándo activar una mecánica, qué hacer con sus resultados) vive en los `_App.tsx`
+- No hay un contrato de plugin formal con `reducer`, `selectors` y `commands`
 
 ---
 
-## 7. Prioridades concretas
+### 4.3. Escalabilidad del sistema
 
-## Prioridad 1 - Inmediata
+**Frontend: media** (mejora desde media-baja)
 
-- Corregir errores de TypeScript.
-- Normalizar encoding del dominio.
-- Sacar reglas/condicionales mas graves de CESFAM fuera de `App.tsx`.
+Mejoras reales: App.tsx como router limpio, configuración declarativa por versión, registry único.
 
-## Prioridad 2 - Muy alta
+Limitaciones que persisten: orquestadores grandes sin runtime común, TypeScript con errores, sin tests.
 
-- Unificar `App.tsx` e `InnovatecGame.tsx`.
-- Definir una sola fuente de verdad para rules/effects.
+**Backend: media** (mejora desde baja)
 
-## Prioridad 3 - Alta
+Mejoras reales: modularización en normalizers, separación de schema, PostgreSQL, endpoints limpios.
 
-- Modularizar backend.
-- Ampliar validacion de contenido.
-- Introducir pruebas automáticas.
-
-## Prioridad 4 - Media
-
-- Redise?ar DSL de escenarios.
-- Introducir slices de estado por mecanica.
+Limitaciones que persisten: lógica de evaluación potencialmente duplicada frontend/backend, schema.py de 773 líneas que mezcla DDL con lógica de migración.
 
 ---
 
-## 8. Conclusion
+## 5. Problemas activos por prioridad
 
-La base actual no esta mal orientada. Tiene ya varios conceptos correctos:
+### Prioridad inmediata
 
-- content packs por version;
-- registro de mecánicas;
-- expected actions / canonical actions;
-- validacion minima de contenido;
-- separacion inicial entre narrativa y defaults.
+1. **TypeScript con errores activos** — `tsc --noEmit` falla. Bloquea refactors seguros y puede ocultar regresiones.
+2. **Encoding inestable en TimeSlotType** — Los literales con acentos como keys operacionales son frágiles. Las comparaciones de slot/día pueden fallar silenciosamente.
 
-Pero hoy esos conceptos conviven con una implementacion todavía demasiado centralizada y duplicada.
+### Prioridad alta
 
-### Conclusi?n técnica
+3. **Sin runtime común para versiones** — Capacidades transversales (export, timer, comparaciones) se mantienen por duplicado en `GestionEnSalud_App.tsx` e `Innovatec_App.tsx`. Cualquier cambio transversal requiere dos ediciones.
+4. **Lógica de evaluación potencialmente duplicada frontend/backend** — `comparisonMode.ts` permite elegir cuál ejecutar, pero no garantiza que ambas implementaciones sean equivalentes.
 
-- **Si el objetivo es mantener solo CESFAM con cambios moderados**, la base actual puede sostenerse un tiempo con disciplina.
-- **Si el objetivo es seguir agregando casos, versiones y mecánicas**, el rediseño ya no es opcional. Es necesario.
+### Prioridad media
 
-La prioridad correcta no es agregar mas features sobre `App.tsx`; es consolidar el runtime comun, extraer el motor de reglas y convertir versiones/mecánicas en extensiones reales del sistema.
+5. **Orquestadores grandes con responsabilidades mezcladas** — `GestionEnSalud_App.tsx` (2.461 líneas) e `Innovatec_App.tsx` (1.617 líneas) combinan estado, UI, timer, reglas y persistencia. Son mantenibles pero costosos de razonar.
+6. **Sin tests automatizados** — El rule engine, las secuencias y la resolución diaria no tienen cobertura. Cada cambio requiere validación manual.
+7. **Validación de contenido insuficiente** — Los errores en escenarios (rule_id inválido, mechanic_id incorrecto, TimeSlotType corrupto) no son detectados por `validate_content.py`.
+
+### Prioridad baja
+
+8. **Escenarios acoplados al motor** — Los archivos de escenarios mezclan narrativa con contratos técnicos. Dificulta la autoría de contenido sin conocer el motor.
+
+---
+
+## 6. Propuesta de evolución (actualizada)
+
+La base actual ya tiene varios patrones correctos. Las mejoras siguientes son incrementales, no un rediseño desde cero.
+
+### Paso 1 — Estabilización técnica (menor riesgo, mayor retorno)
+
+- Limpiar errores de `tsc --noEmit`
+- Normalizar `TimeSlotType` a IDs estables (`MORNING`, `AFTERNOON`, `EVENING`) con labels separadas en UI
+- Ampliar `validate_content.py` para cubrir `rule_id`, `mechanic_id`, `TimeSlotType` y referencias cruzadas
+
+### Paso 2 — Runtime común para versiones
+
+Extraer la lógica transversal de `GestionEnSalud_App.tsx` e `Innovatec_App.tsx` a un hook o módulo compartido:
+
+```typescript
+// Propuesta:
+const runtime = useGameRuntime(config, contentPack);
+// runtime.state, runtime.advanceTime(), runtime.flush(), runtime.export()
+```
+
+Cada `_App.tsx` se convierte en un componente de presentación que declara sus reglas específicas y delega la mecánica base al runtime.
+
+### Paso 3 — Contrato formal de mecánica como plugin
+
+Formalizar el contrato de `MechanicPlugin` con lifecycle explícito. Actualmente los módulos solo renderizan; el contrato debería incluir cómo serializan acciones y qué comandos emiten.
+
+### Paso 4 — Fuente única de verdad para evaluación
+
+Elegir una de dos opciones y eliminar la ambigüedad:
+- **Backend autoritativo**: el frontend solo captura, el backend evalúa
+- **Paquete compartido**: extraer las reglas a un módulo que ambos lados consuman
+
+### Paso 5 — Tests mínimos
+
+Al menos:
+- Tests unitarios para cada `rule.resolve()` en `mechanics/*/rules.ts`
+- Tests de integración para `ComparisonEngine`
+- Tests de smoke por versión
+
+---
+
+## 7. Conclusión
+
+La arquitectura ha mejorado de forma real desde el diagnóstico anterior. El cambio más importante — pasar de un `App.tsx` monolítico a orquestadores por versión con un router limpio — reduce el riesgo de regresiones cruzadas y facilita agregar nuevas versiones.
+
+El backend también mejoró: dejó de ser un único archivo que mezcla todo y ahora tiene capas diferenciadas con normalizers por dominio.
+
+Los problemas que persisten son reales pero manejables de forma incremental:
+- TypeScript no limpio (riesgo estructural activo)
+- Encoding inestable en TimeSlotType (riesgo de bugs silenciosos)
+- Sin runtime común (costo doble de mantenimiento transversal)
+- Sin tests (validación manual cara)
+
+**Si el objetivo inmediato es estabilizar para un experimento**, los riesgos principales son los dos primeros (TypeScript y encoding), ya que pueden causar bugs en producción difíciles de detectar. Los demás son costos de mantenimiento, no riesgos de correctitud.
