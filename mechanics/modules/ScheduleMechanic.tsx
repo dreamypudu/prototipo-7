@@ -16,23 +16,22 @@ interface ScheduleTimingPolicy {
 const ScheduleMechanic: React.FC<MechanicModuleProps> = ({ params }) => {
   const { gameState, dispatch } = useMechanicContext();
   const scheduleTiming = params?.scheduleTiming as ScheduleTimingPolicy | undefined;
-  const submittedThisWeek = scheduleTiming?.wasSubmittedThisWeek?.(
-    gameState.day,
-    gameState.lastScheduleSubmissionDay
-  ) ?? false;
-  const canEditSchedule = scheduleTiming?.canEdit?.(gameState.day) ?? true;
-  const canExecuteWeek = scheduleTiming?.canSubmit?.(
-    gameState.day,
-    gameState.lastScheduleSubmissionDay
-  ) ?? true;
+  // En el tutorial la asignacion de box esta siempre habilitada (sin bloqueo por dia/semana).
+  const isTutorial = gameState.runMode === 'tutorial';
+  const submittedThisWeek = isTutorial
+    ? false
+    : scheduleTiming?.wasSubmittedThisWeek?.(gameState.day, gameState.lastScheduleSubmissionDay) ?? false;
+  const canEditSchedule = isTutorial ? true : scheduleTiming?.canEdit?.(gameState.day) ?? true;
+  const canExecuteWeek = isTutorial
+    ? true
+    : scheduleTiming?.canSubmit?.(gameState.day, gameState.lastScheduleSubmissionDay) ?? true;
   const executeLabel = submittedThisWeek
     ? scheduleTiming?.submittedLabel ?? 'Planificacion enviada'
     : scheduleTiming?.executeLabel ?? 'Ejecutar semana';
-  const executeDisabledReason = scheduleTiming?.getExecuteDisabledReason?.(
-    gameState.day,
-    gameState.lastScheduleSubmissionDay
-  ) ?? null;
-  const editDisabledReason = scheduleTiming?.getEditDisabledReason?.(gameState.day) ?? null;
+  const executeDisabledReason = isTutorial
+    ? null
+    : scheduleTiming?.getExecuteDisabledReason?.(gameState.day, gameState.lastScheduleSubmissionDay) ?? null;
+  const editDisabledReason = isTutorial ? null : scheduleTiming?.getEditDisabledReason?.(gameState.day) ?? null;
 
   return (
     <SchedulerInterface

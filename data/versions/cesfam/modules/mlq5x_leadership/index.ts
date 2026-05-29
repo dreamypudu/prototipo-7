@@ -26,4 +26,9 @@ export const CESFAM_MLQ5X_CONTENT: VersionContentPack = {
     roomDefinitions: CESFAM_ROOMS,
     buildInitialGameState,
   },
+  narrativeClosure: {
+    message:
+      'La simulacion termino.\n\nHas completado todas las situaciones de este modulo.\n\nGracias por participar.',
+  },
+  hiddenMechanicTabs: ['documents'],
 };

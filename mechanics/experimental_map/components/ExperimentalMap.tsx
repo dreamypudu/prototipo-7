@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { scenarios } from '../../../data/versions/cesfam/scenarios';
+import { scenarios } from '../../../data/versions/cesfam/modules/ethics/scenarios';
 import { getGameDate } from '../../../constants';
 import { ScenarioNode, MeetingSequence, ScenarioOption, GameState, DecisionLogEntry, TimeSlotType } from '../../../types';
 

@@ -389,3 +389,12 @@ export const INITIAL_GAME_STATE: GameState = {
 };
 
 export const buildInitialGameState = (): GameState => structuredClone(INITIAL_GAME_STATE);
+
+export const buildInitialGameStateWithStakeholders = (
+  stakeholders: GameState['stakeholders'],
+  overrides: Partial<GameState> = {}
+): GameState => ({
+  ...structuredClone(INITIAL_GAME_STATE),
+  stakeholders,
+  ...overrides,
+});

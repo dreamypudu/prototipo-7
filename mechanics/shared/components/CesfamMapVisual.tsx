@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { DayOfWeek, ScheduleAssignment, ScheduleBlock, StaffMember, Stakeholder } from '../../../types';
 import { CESFAM_ROOMS } from '../../../constants';
+import NpcHover from './NpcHover';
 
 export const MAP_BACKGROUND_URL = "https://i.imgur.com/WxYN5Nz.jpegava";
 
@@ -18,6 +19,14 @@ interface CesfamMapVisualProps {
     showNames?: boolean;
     compactOccupants?: boolean;
     availableMeetingStaffIds?: string[];
+    /** Habilita arrastrar ocupantes entre salas (HTML5 DnD). */
+    draggable?: boolean;
+    /** Callback al soltar un ocupante sobre una sala. */
+    onStaffDrop?: (staffId: string, roomId: string) => void;
+    /** Salas en choque con animacion amarilla en vez del anillo rojo estatico. */
+    animatedConflict?: boolean;
+    /** Envuelve cada retrato en NpcHover (descripcion al pasar el mouse). */
+    npcHover?: boolean;
 }
 
 const NON_CONFLICT_ROOMS = new Set(['TERRENO', 'AREA_COMUN', 'OFICINA_TECNICA']);
@@ -36,7 +45,42 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
     showNames = true,
     compactOccupants = false,
     availableMeetingStaffIds = [],
+    draggable = false,
+    onStaffDrop,
+    animatedConflict = false,
+    npcHover = false,
 }) => {
+    const [draggedStaffId, setDraggedStaffId] = useState<string | null>(null);
+    const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+    const emptyDragImageRef = useRef<HTMLImageElement | null>(null);
+
+    const getEmptyDragImage = () => {
+        if (!emptyDragImageRef.current) {
+            const img = new Image();
+            img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            emptyDragImageRef.current = img;
+        }
+        return emptyDragImageRef.current;
+    };
+
+    const handleDragStart = (event: React.DragEvent, staff: StaffMember) => {
+        setDraggedStaffId(staff.id);
+        setDragPos({ x: event.clientX, y: event.clientY });
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', staff.id);
+        event.dataTransfer.setDragImage(getEmptyDragImage(), 0, 0);
+    };
+
+    const handleDragMove = (event: React.DragEvent) => {
+        if (event.clientX === 0 && event.clientY === 0) return;
+        setDragPos({ x: event.clientX, y: event.clientY });
+    };
+
+    const handleDragEnd = () => {
+        setDraggedStaffId(null);
+        setDragPos(null);
+    };
+
     const getOccupants = (roomId: string) => {
         return staffRoster.filter(staff => {
             const assignment = weeklySchedule.find(
@@ -98,13 +142,26 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                     : 'flex flex-wrap gap-2 justify-center items-center';
                 const compactVerticalLiftClass = compactOccupants ? '-translate-y-3' : '';
 
+                const conflictClass = hasPhysicalConflict
+                    ? animatedConflict
+                        ? 'border-yellow-300 animate-conflict-glow-yellow'
+                        : 'ring-2 ring-red-500 border-red-400 shadow-red-900/40'
+                    : '';
+
                 return (
                     <div
                         key={room.id}
-                        className={`relative rounded-lg border-2 p-2 flex flex-col transition-all duration-300 ${room.color} backdrop-blur-sm shadow-sm ${
-                            hasPhysicalConflict ? 'ring-2 ring-red-500 border-red-400 shadow-red-900/40' : ''
-                        } ${isHighlightedRoom ? 'ring-2 ring-cyan-300 border-cyan-200 shadow-cyan-500/30 scale-[1.01]' : ''}`}
+                        className={`relative rounded-lg border-2 p-2 flex flex-col transition-all duration-300 ${room.color} backdrop-blur-sm shadow-sm ${conflictClass} ${isHighlightedRoom ? 'ring-2 ring-cyan-300 border-cyan-200 shadow-cyan-500/30 scale-[1.01]' : ''}`}
                         style={{ gridArea: room.gridArea }}
+                        onDragOver={draggable ? (event) => event.preventDefault() : undefined}
+                        onDrop={
+                            draggable && onStaffDrop
+                                ? () => {
+                                      if (draggedStaffId) onStaffDrop(draggedStaffId, room.id);
+                                      setDraggedStaffId(null);
+                                  }
+                                : undefined
+                        }
                     >
                         <span className="text-xs font-bold text-white/95 bg-black/70 px-2 py-1 rounded w-max mb-2 border border-white/20 shadow-sm z-10">
                             {room.name}
@@ -115,7 +172,8 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                 const portrait = getPortraitProps(staff.id, staff.portraitUrl);
                                 const isHighlightedStaff = highlightStaffId === staff.id;
                                 const hasAvailableMeeting = availableMeetingStaffIds.includes(staff.id);
-                                const occupantClass = `group relative ${interactive ? 'cursor-pointer' : 'cursor-default'}`;
+                                const stakeholder = stakeholders.find(s => s.id === staff.id);
+                                const occupantClass = `group relative ${interactive ? 'cursor-pointer' : draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`;
                                 const avatarSizeClass = compactOccupants
                                     ? compactCount <= 3
                                         ? 'w-12 h-12 lg:w-14 lg:h-14'
@@ -185,8 +243,15 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                     );
                                 }
 
-                                return (
-                                    <div key={staff.id} className={occupantClass} title={showNames ? undefined : staff.name}>
+                                const occupantNode = (
+                                    <div
+                                        className={`${occupantClass} ${draggable && draggedStaffId === staff.id ? 'opacity-40' : ''}`}
+                                        title={showNames ? undefined : staff.name}
+                                        draggable={draggable}
+                                        onDragStart={draggable ? (event) => handleDragStart(event, staff) : undefined}
+                                        onDrag={draggable ? handleDragMove : undefined}
+                                        onDragEnd={draggable ? handleDragEnd : undefined}
+                                    >
                                         {occupantBody}
                                         {hasAvailableMeeting && (
                                             <span className="absolute -top-2 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-black text-gray-950 shadow-[0_0_10px_rgba(250,204,21,0.55)] animate-meeting-float">
@@ -201,6 +266,16 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                         )}
                                     </div>
                                 );
+
+                                if (npcHover && stakeholder) {
+                                    return (
+                                        <NpcHover key={staff.id} stakeholder={stakeholder} placement="top" triggerClassName="">
+                                            {occupantNode}
+                                        </NpcHover>
+                                    );
+                                }
+
+                                return <React.Fragment key={staff.id}>{occupantNode}</React.Fragment>;
                             })}
 
                             {occupants.length === 0 && (
@@ -211,6 +286,19 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                 );
             })}
         </div>
+        {draggable && draggedStaffId && dragPos && (() => {
+            const draggedStaff = staffRoster.find(staff => staff.id === draggedStaffId);
+            if (!draggedStaff) return null;
+            const portrait = getPortraitProps(draggedStaff.id, draggedStaff.portraitUrl);
+            return (
+                <div
+                    className="pointer-events-none fixed z-[200] w-14 h-14 rounded-full overflow-hidden border-2 border-yellow-300 shadow-2xl bg-gray-800"
+                    style={{ left: dragPos.x, top: dragPos.y, transform: 'translate(-50%, -50%)' }}
+                >
+                    <img src={portrait.src} alt={draggedStaff.name} className="w-full h-full object-cover" style={portrait.style} />
+                </div>
+            );
+        })()}
         <style>{`
             @keyframes meeting-float {
                 0%, 100% { transform: translateY(0px); }
@@ -218,6 +306,13 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
             }
             .animate-meeting-float {
                 animation: meeting-float 1.8s ease-in-out infinite;
+            }
+            @keyframes conflict-glow-yellow {
+                0%, 100% { box-shadow: 0 0 6px 1px rgba(250,204,21,0.45); border-color: rgba(253,224,71,0.7); }
+                50% { box-shadow: 0 0 20px 6px rgba(250,204,21,0.9); border-color: rgba(253,224,71,1); }
+            }
+            .animate-conflict-glow-yellow {
+                animation: conflict-glow-yellow 1.1s ease-in-out infinite;
             }
         `}</style>
         </>

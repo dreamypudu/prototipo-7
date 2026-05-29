@@ -9,6 +9,7 @@ import InnovatecExperimentalMapMechanic from './modules/InnovatecExperimentalMap
 import InnovatecOfficeMechanic from './modules/InnovatecOfficeMechanic';
 import InnovatecSummaryMechanic from './modules/InnovatecSummaryMechanic';
 import MapMechanic from './modules/MapMechanic';
+import NotesMechanic from './modules/NotesMechanic';
 import OfficeMechanic from './modules/OfficeMechanic';
 import ScheduleMechanic from './modules/ScheduleMechanic';
 import SummaryMechanic from './modules/SummaryMechanic';
@@ -56,6 +57,12 @@ export const MECHANIC_REGISTRY: MechanicRegistry = {
     label: 'Archivos',
     tab_id: 'documents',
     Module: DocumentsMechanic
+  },
+  notes: {
+    mechanic_id: 'notes',
+    label: 'Notas',
+    tab_id: 'notes',
+    Module: NotesMechanic
   },
   data_export: {
     mechanic_id: 'data_export',

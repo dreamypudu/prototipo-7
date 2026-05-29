@@ -1,12 +1,10 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ActivityType, DayOfWeek, GameState, ScheduleAssignment, ScheduleBlock, StaffMember } from '../../../types';
-import { CESFAM_ROOMS, DAYS_OF_WEEK, SCHEDULE_BLOCKS } from '../../../constants';
+import React, { useMemo, useState } from 'react';
+import { ActivityType, DayOfWeek, GameState, ScheduleAssignment, ScheduleBlock } from '../../../types';
+import { DAYS_OF_WEEK, SCHEDULE_BLOCKS } from '../../../constants';
 import { useMechanicContext } from '../../MechanicContext';
-import { getPhysicalConflictData, type PhysicalConflictGroup } from '../services/scheduleConflicts';
+import { getPhysicalConflictData } from '../services/scheduleConflicts';
 import { buildSchedulerExecuteWeekValueFinal } from '../services/scheduleCanonicalExport';
 import CesfamMapVisual from '../../shared/components/CesfamMapVisual';
-import NpcHover from '../../shared/components/NpcHover';
 
 interface SchedulerInterfaceProps {
     gameState: GameState;
@@ -19,218 +17,12 @@ interface SchedulerInterfaceProps {
     editDisabledReason?: string | null;
 }
 
-interface OverlayRect {
-    key: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    cx: number;
-    cy: number;
-}
-
-interface OverlayLine {
-    key: string;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-}
-
-interface OverlayGeometry {
-    width: number;
-    height: number;
-    rects: OverlayRect[];
-    lines: OverlayLine[];
-}
-
-interface AssignmentOverlayProps {
-    staff: StaffMember;
-    day: DayOfWeek;
-    block: ScheduleBlock;
-    selectedActivity: ActivityType;
-    selectedRoomId?: string;
-    resolvedRoomId: string;
-    hasConflict: boolean;
-    onActivityChange: (activity: ActivityType) => void;
-    onRoomChange: (roomId?: string) => void;
-    onSave: () => void;
-    onClose: () => void;
-    previewContent: React.ReactNode;
-}
-
-const ACTIVITY_COLORS: Record<ActivityType, string> = {
-    CLINICAL: 'bg-green-600 hover:bg-green-500',
-    ADMIN: 'bg-blue-600 hover:bg-blue-500',
-    TERRAIN: 'bg-green-600 hover:bg-green-500',
-    TRAINING: 'bg-blue-600 hover:bg-blue-500',
-};
-
-const ACTIVITY_LABELS: Record<ActivityType, string> = {
-    CLINICAL: 'Atención Clínica',
-    ADMIN: 'Trabajo Administrativo',
-    TERRAIN: 'Terreno',
-    TRAINING: 'Capacitación',
-};
-
-const getDefaultClinicalRoom = (staff: StaffMember): string => {
-    if (staff.sectorId === 'AZUL') return 'BOX_1';
-    if (staff.sectorId === 'ROJO') return 'BOX_4';
-    return 'BOX_6';
-};
-
-const resolveRoomId = (staff: StaffMember, activity: ActivityType, selectedRoomId?: string): string => {
-    if (activity === 'ADMIN') return 'OFICINA_TECNICA';
-    if (activity === 'TERRAIN') return 'TERRENO';
-    if (activity === 'TRAINING') return 'AREA_COMUN';
-    return selectedRoomId || getDefaultClinicalRoom(staff);
-};
-
-const AssignmentOverlay: React.FC<AssignmentOverlayProps> = ({
-    staff,
-    day,
-    block,
-    selectedActivity,
-    selectedRoomId,
-    resolvedRoomId,
-    hasConflict,
-    onActivityChange,
-    onRoomChange,
-    onSave,
-    onClose,
-    previewContent,
-}) => {
-    const availableBoxes = CESFAM_ROOMS.filter(room => room.id.startsWith('BOX'));
-    const resolvedRoom = CESFAM_ROOMS.find(room => room.id === resolvedRoomId);
-
-    const overlay = (
-        <div className="fixed inset-0 z-[170] bg-black/80 backdrop-blur-sm p-4 lg:p-6 animate-fade-in">
-            <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 lg:grid lg:grid-cols-[minmax(420px,500px)_minmax(0,1fr)]">
-                <div className="bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl overflow-hidden animate-slide-in-left">
-                    <div className="border-b border-gray-700 bg-gray-900/70 px-6 py-5">
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Asignación</p>
-                                <h3 className="text-2xl font-bold text-white mt-1">{staff.name}</h3>
-                                <p className="text-sm text-gray-400 mt-1">{day} · {block}</p>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="rounded-full border border-gray-600 px-3 py-1 text-sm text-gray-300 transition hover:border-gray-400 hover:text-white"
-                            >
-                                Cerrar
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6 p-6">
-                        <div>
-                            <label className="block text-xs uppercase text-gray-500 font-bold mb-3">Actividad</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(Object.keys(ACTIVITY_LABELS) as ActivityType[]).map(activity => (
-                                    <button
-                                        key={activity}
-                                        onClick={() => onActivityChange(activity)}
-                                        className={`p-3 rounded-lg text-sm font-bold border-2 transition-all ${
-                                            selectedActivity === activity
-                                                ? `border-white ${ACTIVITY_COLORS[activity]}`
-                                                : 'border-gray-700 bg-gray-900/50 text-gray-400 hover:border-gray-500'
-                                        }`}
-                                    >
-                                        {ACTIVITY_LABELS[activity]}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {selectedActivity === 'CLINICAL' && (
-                            <div>
-                                <label className="block text-xs uppercase text-gray-500 font-bold mb-2">Asignar Box</label>
-                                <select
-                                    value={selectedRoomId || ''}
-                                    onChange={(e) => onRoomChange(e.target.value || undefined)}
-                                    className="w-full bg-gray-900 border border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
-                                >
-                                    <option value="">Usar box sugerido</option>
-                                    {availableBoxes.map(room => (
-                                        <option key={room.id} value={room.id}>
-                                            {room.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {selectedActivity !== 'CLINICAL' && (
-                            <div className="rounded-lg border border-gray-700 bg-gray-900/60 p-3 text-sm text-gray-300">
-                                Esta actividad usa automáticamente <span className="font-bold text-white">{resolvedRoom?.name ?? resolvedRoomId}</span>.
-                            </div>
-                        )}
-
-                        <div className="rounded-xl border border-cyan-900/60 bg-cyan-950/30 p-4">
-                            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80 mb-2">Previsualización</p>
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <p className="text-lg font-bold text-white">{resolvedRoom?.name ?? resolvedRoomId}</p>
-                                    <p className="text-sm text-gray-400">El mapa refleja este bloque antes de guardar.</p>
-                                </div>
-                                {hasConflict && (
-                                    <span className="rounded-full border border-red-500/70 bg-red-950/80 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-200 animate-pulse">
-                                        Choque detectado
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 border-t border-gray-700 bg-gray-900/50 px-6 py-4">
-                        <button onClick={onClose} className="px-4 py-2 text-gray-300 transition hover:text-white">Cancelar</button>
-                        <button
-                            onClick={onSave}
-                            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
-                        >
-                            Guardar Asignación
-                        </button>
-                    </div>
-                </div>
-
-                <div className="min-h-[360px] rounded-2xl border border-gray-700 bg-gray-800/90 shadow-2xl overflow-hidden animate-slide-in-right">
-                    <div className="border-b border-gray-700 bg-gray-900/70 px-6 py-5">
-                        <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Mapa de previsualización</p>
-                        <div className="mt-2 flex items-center justify-between gap-4">
-                            <div>
-                                <h4 className="text-2xl font-bold text-white">CESFAM · {day} {block}</h4>
-                                <p className="text-sm text-gray-400">Vista solo lectura del bloque seleccionado.</p>
-                            </div>
-                            <span className="rounded-full border border-gray-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-gray-300">
-                                Cambios sin guardar
-                            </span>
-                        </div>
-                    </div>
-                    <div className="h-[calc(100%-97px)] p-4 lg:p-5">
-                        {previewContent}
-                    </div>
-                </div>
-            </div>
-
-            <style>{`
-                @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-                @keyframes slide-in-left {
-                    from { opacity: 0; transform: translateX(-24px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                @keyframes slide-in-right {
-                    from { opacity: 0; transform: translateX(24px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .animate-fade-in { animation: fade-in 0.25s ease-out forwards; }
-                .animate-slide-in-left { animation: slide-in-left 0.32s ease-out forwards; }
-                .animate-slide-in-right { animation: slide-in-right 0.36s ease-out forwards; }
-            `}</style>
-        </div>
-    );
-
-    return createPortal(overlay, document.body);
+// La sala destino determina la actividad (inverso de resolveRoomId del modal anterior).
+const getActivityForRoom = (roomId: string): ActivityType => {
+    if (roomId === 'OFICINA_TECNICA') return 'ADMIN';
+    if (roomId === 'TERRENO') return 'TERRAIN';
+    if (roomId === 'AREA_COMUN') return 'TRAINING';
+    return 'CLINICAL';
 };
 
 const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
@@ -244,204 +36,50 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
     editDisabledReason,
 }) => {
     const { engine } = useMechanicContext();
-    const [editingCell, setEditingCell] = useState<{ staffId: string; day: DayOfWeek; block: ScheduleBlock } | null>(null);
-    const [selectedActivity, setSelectedActivity] = useState<ActivityType | null>(null);
-    const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(undefined);
-    const [conflictOverlayGeometry, setConflictOverlayGeometry] = useState<OverlayGeometry>({
-        width: 0,
-        height: 0,
-        rects: [],
-        lines: [],
-    });
+    const [selectedSlot, setSelectedSlot] = useState<{ day: DayOfWeek; block: ScheduleBlock } | null>(null);
+    const [draftSchedule, setDraftSchedule] = useState<ScheduleAssignment[] | null>(null);
 
-    const tableWrapperRef = useRef<HTMLDivElement | null>(null);
-    const tableRef = useRef<HTMLTableElement | null>(null);
-    const cellRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+    const conflictBlockKeys = useMemo(() => {
+        const { groups } = getPhysicalConflictData(gameState.weeklySchedule);
+        return new Set(groups.map(group => `${group.day}|${group.block}`));
+    }, [gameState.weeklySchedule]);
 
-    const orderedStaff = useMemo(() => gameState.staffRoster, [gameState.staffRoster]);
-    const stakeholderById = useMemo(
-        () => new Map(gameState.stakeholders.map(stakeholder => [stakeholder.id, stakeholder])),
-        [gameState.stakeholders]
-    );
-
-    const { groups: physicalConflictGroups, conflictedCellKeys } = useMemo(
-        () => getPhysicalConflictData(gameState.weeklySchedule),
-        [gameState.weeklySchedule]
-    );
-
-    const currentEditingStaff = useMemo(
-        () => editingCell ? gameState.staffRoster.find(staff => staff.id === editingCell.staffId) ?? null : null,
-        [editingCell, gameState.staffRoster]
-    );
-
-    const resolvedPreviewRoomId = useMemo(() => {
-        if (!currentEditingStaff || !selectedActivity) return undefined;
-        return resolveRoomId(currentEditingStaff, selectedActivity, selectedRoomId);
-    }, [currentEditingStaff, selectedActivity, selectedRoomId]);
-
-    const previewSchedule = useMemo(() => {
-        if (!editingCell || !currentEditingStaff || !selectedActivity || !resolvedPreviewRoomId) {
-            return gameState.weeklySchedule;
-        }
-
-        return gameState.weeklySchedule.map(assignment => {
-            if (
-                assignment.staffId !== editingCell.staffId ||
-                assignment.day !== editingCell.day ||
-                assignment.block !== editingCell.block
-            ) {
-                return assignment;
-            }
-
-            return {
-                ...assignment,
-                activity: selectedActivity,
-                roomId: resolvedPreviewRoomId,
-            };
-        });
-    }, [currentEditingStaff, editingCell, gameState.weeklySchedule, resolvedPreviewRoomId, selectedActivity]);
-
-    const previewConflictData = useMemo(
-        () => getPhysicalConflictData(previewSchedule),
-        [previewSchedule]
-    );
-
-    const previewHasSelectedConflict = !!(
-        editingCell && previewConflictData.conflictedCellKeys.has(`${editingCell.staffId}-${editingCell.day}-${editingCell.block}`)
-    );
-
-    useLayoutEffect(() => {
-        const wrapper = tableWrapperRef.current;
-        const table = tableRef.current;
-        if (!wrapper || !table) return;
-
-        let frameId = 0;
-
-        const updateOverlay = () => {
-            frameId = 0;
-
-            const wrapperRect = wrapper.getBoundingClientRect();
-            const width = Math.max(wrapper.scrollWidth, table.offsetWidth);
-            const height = Math.max(wrapper.scrollHeight, table.offsetHeight);
-            const rects: OverlayRect[] = [];
-            const lines: OverlayLine[] = [];
-
-            physicalConflictGroups.forEach(group => {
-                const groupRects = group.cellKeys
-                    .map(cellKey => {
-                        const element = cellRefs.current[cellKey];
-                        if (!element) return null;
-
-                        const rect = element.getBoundingClientRect();
-                        const x = rect.left - wrapperRect.left - 4;
-                        const y = rect.top - wrapperRect.top - 4;
-                        const paddedWidth = rect.width + 8;
-                        const paddedHeight = rect.height + 8;
-
-                        return {
-                            key: `${group.key}-${cellKey}`,
-                            x,
-                            y,
-                            width: paddedWidth,
-                            height: paddedHeight,
-                            cx: x + (paddedWidth / 2),
-                            cy: y + (paddedHeight / 2),
-                        };
-                    })
-                    .filter((rect): rect is OverlayRect => rect !== null)
-                    .sort((a, b) => (a.y === b.y ? a.x - b.x : a.y - b.y));
-
-                rects.push(...groupRects);
-
-                if (groupRects.length === 2) {
-                    lines.push({
-                        key: `${group.key}-line-0`,
-                        x1: groupRects[0].cx,
-                        y1: groupRects[0].cy,
-                        x2: groupRects[1].cx,
-                        y2: groupRects[1].cy,
-                    });
-                    return;
-                }
-
-                if (groupRects.length > 2) {
-                    const [anchor, ...rest] = groupRects;
-                    rest.forEach((rect, index) => {
-                        lines.push({
-                            key: `${group.key}-line-${index}`,
-                            x1: anchor.cx,
-                            y1: anchor.cy,
-                            x2: rect.cx,
-                            y2: rect.cy,
-                        });
-                    });
-                }
-            });
-
-            setConflictOverlayGeometry({ width, height, rects, lines });
-        };
-
-        const scheduleUpdate = () => {
-            if (frameId) cancelAnimationFrame(frameId);
-            frameId = requestAnimationFrame(updateOverlay);
-        };
-
-        scheduleUpdate();
-
-        const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(scheduleUpdate) : null;
-        resizeObserver?.observe(wrapper);
-        resizeObserver?.observe(table);
-        window.addEventListener('resize', scheduleUpdate);
-
-        return () => {
-            if (frameId) cancelAnimationFrame(frameId);
-            resizeObserver?.disconnect();
-            window.removeEventListener('resize', scheduleUpdate);
-        };
-    }, [physicalConflictGroups, orderedStaff, gameState.weeklySchedule]);
-
-    const handleCellClick = (staffId: string, day: DayOfWeek, block: ScheduleBlock) => {
-        if (!canEditSchedule) return;
-        const assignment = gameState.weeklySchedule.find(item => item.staffId === staffId && item.day === day && item.block === block);
-        setEditingCell({ staffId, day, block });
-        setSelectedActivity(assignment?.activity ?? 'CLINICAL');
-        setSelectedRoomId(assignment?.activity === 'CLINICAL' ? assignment.roomId : undefined);
+    const openSlot = (day: DayOfWeek, block: ScheduleBlock) => {
+        setSelectedSlot({ day, block });
+        setDraftSchedule(gameState.weeklySchedule.map(assignment => ({ ...assignment })));
     };
 
-    const closeEditor = () => {
-        setEditingCell(null);
-        setSelectedActivity(null);
-        setSelectedRoomId(undefined);
+    const closeSlot = () => {
+        setSelectedSlot(null);
+        setDraftSchedule(null);
+    };
+
+    const handleStaffDrop = (staffId: string, roomId: string) => {
+        if (!selectedSlot || !canEditSchedule) return;
+        setDraftSchedule(prev => {
+            const base = prev ?? gameState.weeklySchedule;
+            return base.map(assignment => {
+                if (
+                    assignment.staffId !== staffId ||
+                    assignment.day !== selectedSlot.day ||
+                    assignment.block !== selectedSlot.block
+                ) {
+                    return assignment;
+                }
+                return { ...assignment, activity: getActivityForRoom(roomId), roomId };
+            });
+        });
     };
 
     const handleSaveAssignment = () => {
-        if (!editingCell || !currentEditingStaff || !selectedActivity) return;
-
-        const finalRoomId = resolveRoomId(currentEditingStaff, selectedActivity, selectedRoomId);
-        const newSchedule = gameState.weeklySchedule.map(assignment => {
-            if (
-                assignment.staffId !== editingCell.staffId ||
-                assignment.day !== editingCell.day ||
-                assignment.block !== editingCell.block
-            ) {
-                return assignment;
-            }
-
-            return {
-                ...assignment,
-                activity: selectedActivity,
-                roomId: finalRoomId,
-            };
-        });
-
-        onUpdateSchedule(newSchedule);
-        engine.emitEvent('scheduler', 'schedule_updated', { assignment_count: newSchedule.length });
-        closeEditor();
+        if (!draftSchedule) return;
+        onUpdateSchedule(draftSchedule);
+        engine.emitEvent('scheduler', 'schedule_updated', { assignment_count: draftSchedule.length });
+        closeSlot();
     };
 
     const handleExecuteWeek = () => {
         const submittedAtMs = Date.now();
-
         engine.emitCanonicalAction(
             'scheduler',
             'execute_week',
@@ -452,232 +90,119 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
         onExecuteWeek();
     };
 
-    const getAssignment = (staffId: string, day: DayOfWeek, block: ScheduleBlock) =>
-        gameState.weeklySchedule.find(a => a.staffId === staffId && a.day === day && a.block === block);
-
-    const calculateLoad = (staff: StaffMember): { hoursAssigned: number; clinicalHours: number; administrativeHours: number } => {
-        const assignments = gameState.weeklySchedule.filter(a => a.staffId === staff.id);
-        const clinicalCount = assignments.filter(a => a.activity === 'CLINICAL').length;
-        const terrainCount = assignments.filter(a => a.activity === 'TERRAIN').length;
-        const trainingCount = assignments.filter(a => a.activity === 'TRAINING').length;
-        const adminCount = assignments.filter(a => a.activity === 'ADMIN').length;
-
-        const clinicalHours = (clinicalCount + terrainCount) * 4.4;
-        const administrativeHours = (trainingCount + adminCount) * 4.4;
-        const hoursAssigned = clinicalHours + administrativeHours;
-
-        return {
-            hoursAssigned,
-            clinicalHours,
-            administrativeHours,
-        };
-    };
-
     const isExecuteDisabled = !canExecuteWeek;
-    const footerMessage = executeDisabledReason;
+
+    if (selectedSlot) {
+        const mapSchedule = draftSchedule ?? gameState.weeklySchedule;
+        return (
+            <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 animate-fade-in h-full flex flex-col">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Asignación de salas</p>
+                        <h2 className="text-3xl font-bold text-blue-300 mt-1">CESFAM · {selectedSlot.day} {selectedSlot.block}</h2>
+                        <p className="text-gray-400">Arrastra a cada funcionario hacia su sala. Las salas en choque parpadean en amarillo.</p>
+                        {!canEditSchedule && editDisabledReason && (
+                            <p className="mt-2 text-sm font-medium text-amber-300">{editDisabledReason}</p>
+                        )}
+                    </div>
+                    <button
+                        onClick={closeSlot}
+                        className="rounded-full border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-400 hover:text-white"
+                    >
+                        Volver
+                    </button>
+                </div>
+
+                <div className="flex-grow min-h-[360px]">
+                    <CesfamMapVisual
+                        weeklySchedule={mapSchedule}
+                        staffRoster={gameState.staffRoster}
+                        stakeholders={gameState.stakeholders}
+                        viewDay={selectedSlot.day}
+                        viewBlock={selectedSlot.block}
+                        draggable={canEditSchedule}
+                        onStaffDrop={handleStaffDrop}
+                        animatedConflict
+                        npcHover
+                        showNames={false}
+                        compactOccupants
+                        className="h-full"
+                    />
+                </div>
+
+                {canEditSchedule && (
+                    <div className="mt-6 flex justify-end gap-3">
+                        <button onClick={closeSlot} className="px-4 py-2 text-gray-300 transition hover:text-white">Cancelar</button>
+                        <button
+                            onClick={handleSaveAssignment}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
+                        >
+                            Guardar Asignación
+                        </button>
+                    </div>
+                )}
+
+                <style>{`
+                    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+                    .animate-fade-in { animation: fade-in 0.35s ease-in forwards; }
+                `}</style>
+            </div>
+        );
+    }
 
     return (
-        <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 animate-fade-in h-full flex flex-col relative">
-            {editingCell && currentEditingStaff && selectedActivity && resolvedPreviewRoomId && (
-                <AssignmentOverlay
-                    staff={currentEditingStaff}
-                    day={editingCell.day}
-                    block={editingCell.block}
-                    selectedActivity={selectedActivity}
-                    selectedRoomId={selectedRoomId}
-                    resolvedRoomId={resolvedPreviewRoomId}
-                    hasConflict={previewHasSelectedConflict}
-                    onActivityChange={setSelectedActivity}
-                    onRoomChange={setSelectedRoomId}
-                    onSave={handleSaveAssignment}
-                    onClose={closeEditor}
-                    previewContent={
-                        <CesfamMapVisual
-                            weeklySchedule={previewSchedule}
-                            staffRoster={gameState.staffRoster}
-                            stakeholders={gameState.stakeholders}
-                            viewDay={editingCell.day}
-                            viewBlock={editingCell.block}
-                            highlightStaffId={editingCell.staffId}
-                            highlightRoomId={resolvedPreviewRoomId}
-                            className="h-full min-h-[340px]"
-                            showNames={false}
-                            compactOccupants
-                        />
-                    }
-                />
-            )}
-
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-3xl font-bold text-blue-300">Planificación Semanal</h2>
-                    <p className="text-gray-400">Asigne actividades. Cuide las horas de contrato vs asignadas.</p>
-                    {!canEditSchedule && editDisabledReason && (
-                        <p className="mt-2 text-sm font-medium text-amber-300">{editDisabledReason}</p>
-                    )}
-                </div>
-                <div className="flex gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-green-600"></div>
-                        <span className="text-xs text-gray-300">Atención Clínica/Terreno</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-blue-600"></div>
-                        <span className="text-xs text-gray-300">Trabajo Administrativo/Capacitación</span>
-                    </div>
-                </div>
+        <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 animate-fade-in h-full flex flex-col">
+            <div className="mb-6">
+                <h2 className="text-3xl font-bold text-blue-300">Planificación Semanal</h2>
+                <p className="text-gray-400">Selecciona un bloque para asignar las salas. Los bloques con choque parpadean en rojo.</p>
             </div>
 
-            <div className="flex-grow overflow-auto">
-                <div ref={tableWrapperRef} className="relative min-w-max">
-                    <svg
-                        className="pointer-events-none absolute left-0 top-0 z-20 overflow-visible"
-                        width={conflictOverlayGeometry.width}
-                        height={conflictOverlayGeometry.height}
-                    >
-                        {conflictOverlayGeometry.lines.map(line => (
-                            <line
-                                key={line.key}
-                                x1={line.x1}
-                                y1={line.y1}
-                                x2={line.x2}
-                                y2={line.y2}
-                                stroke="#facc15"
-                                strokeWidth={3}
-                                strokeLinecap="round"
-                            />
-                        ))}
-                        {conflictOverlayGeometry.rects.map(rect => (
-                            <rect
-                                key={rect.key}
-                                x={rect.x}
-                                y={rect.y}
-                                width={rect.width}
-                                height={rect.height}
-                                rx={10}
-                                fill="rgba(250, 204, 21, 0.08)"
-                                stroke="#facc15"
-                                strokeWidth={2}
-                            />
-                        ))}
-                    </svg>
+            <div className="flex-grow">
+                <div
+                    className="grid gap-2"
+                    style={{ gridTemplateColumns: `72px repeat(${DAYS_OF_WEEK.length}, minmax(0, 1fr))` }}
+                >
+                    <div></div>
+                    {DAYS_OF_WEEK.map(day => (
+                        <div key={day} className="text-center text-sm font-semibold text-gray-300 pb-1">
+                            {day}
+                        </div>
+                    ))}
 
-                    <table ref={tableRef} className="w-full text-left border-collapse relative z-10">
-                        <thead>
-                            <tr>
-                                <th className="p-2 border-b border-gray-600 bg-gray-900/50 text-gray-300 font-semibold w-48">Funcionario</th>
-                                {DAYS_OF_WEEK.map(day => (
-                                    <th key={day} className="p-2 border-b border-gray-600 bg-gray-900/50 text-gray-300 font-semibold text-center" colSpan={2}>
-                                        {day}
-                                    </th>
-                                ))}
-                                <th className="p-2 border-b border-gray-600 bg-gray-900/50 text-gray-300 font-semibold text-center w-24">Carga</th>
-                            </tr>
-                            <tr>
-                                <th className="p-1 bg-gray-900/30 border-b border-gray-700/50"></th>
-                                {DAYS_OF_WEEK.map(day => (
-                                    <React.Fragment key={`${day}-sub`}>
-                                        <th className="text-xs text-center text-gray-500 bg-gray-900/30 p-1 border-b border-gray-700/50">AM</th>
-                                        <th className="text-xs text-center text-gray-500 bg-gray-900/30 p-1 border-b border-gray-700/50">PM</th>
-                                    </React.Fragment>
-                                ))}
-                                <th className="p-1 bg-gray-900/30 border-b border-gray-700/50"></th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {orderedStaff.map(staffMember => {
-                                const { hoursAssigned, clinicalHours, administrativeHours } = calculateLoad(staffMember);
-                                const isOverworked = hoursAssigned > staffMember.contractHours;
-                                const isUnderworked = hoursAssigned < (staffMember.contractHours - 8);
-                                const clinicalWidth = Math.min(100, (clinicalHours / staffMember.contractHours) * 100);
-                                const administrativeWidth = Math.min(
-                                    100 - clinicalWidth,
-                                    Math.max(0, (administrativeHours / staffMember.contractHours) * 100)
-                                );
-                                const stakeholder = stakeholderById.get(staffMember.id);
-
+                    {SCHEDULE_BLOCKS.map(block => (
+                        <React.Fragment key={block}>
+                            <div className="flex items-center justify-center text-sm font-bold text-gray-400">
+                                {block}
+                            </div>
+                            {DAYS_OF_WEEK.map(day => {
+                                const hasConflict = conflictBlockKeys.has(`${day}|${block}`);
                                 return (
-                                    <tr key={staffMember.id} className="border-b border-gray-700/50 hover:bg-gray-800/30">
-                                        <td className="p-3 font-medium text-gray-200">
-                                            <div>
-                                                {stakeholder ? (
-                                                    <NpcHover stakeholder={stakeholder} placement="right">
-                                                        <span>{staffMember.name}</span>
-                                                    </NpcHover>
-                                                ) : (
-                                                    <span>{staffMember.name}</span>
-                                                )}
-                                            </div>
-                                            <div className="text-xs text-gray-500">{staffMember.role} ({staffMember.contractHours}hrs)</div>
-                                        </td>
-
-                                        {DAYS_OF_WEEK.map(day => (
-                                            <React.Fragment key={`${staffMember.id}-${day}`}>
-                                                {SCHEDULE_BLOCKS.map(block => {
-                                                    const assign = getAssignment(staffMember.id, day, block);
-                                                    const roomName = assign?.roomId ? CESFAM_ROOMS.find(room => room.id === assign.roomId)?.name : '';
-                                                    const cellKey = `${staffMember.id}-${day}-${block}`;
-                                                    const isConflict = conflictedCellKeys.has(cellKey);
-
-                                                    return (
-                                                        <td key={cellKey} className="p-1">
-                                                            <button
-                                                                ref={(node) => {
-                                                                    cellRefs.current[cellKey] = node;
-                                                                }}
-                                                                onClick={() => handleCellClick(staffMember.id, day, block)}
-                                                                disabled={!canEditSchedule}
-                                                                className={`w-full h-12 rounded shadow-sm transition-all flex flex-col items-center justify-center p-1 relative ${
-                                                                    assign ? ACTIVITY_COLORS[assign.activity] : 'bg-gray-700'
-                                                                } ${canEditSchedule ? 'transform hover:scale-105 cursor-pointer' : 'cursor-not-allowed opacity-70 saturate-75'} ${isConflict ? 'ring-4 ring-red-500 animate-pulse z-10' : ''}`}
-                                                                title={`${day} ${block}: ${assign ? ACTIVITY_LABELS[assign.activity] : 'Sin asignar'}`}
-                                                            >
-                                                                {isConflict && <span className="text-xs font-bold text-white bg-red-600 px-1 rounded absolute -top-2">CHOQUE</span>}
-                                                                {assign?.activity === 'CLINICAL' && assign.roomId && (
-                                                                    <span className="text-[9px] font-bold text-white bg-black/20 px-1 rounded truncate w-full text-center">
-                                                                        {roomName?.replace('Box ', 'B')}
-                                                                    </span>
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                    );
-                                                })}
-                                            </React.Fragment>
-                                        ))}
-
-                                        <td className="p-2 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <div className={`w-20 h-2 bg-gray-700 rounded-full overflow-hidden mb-1 flex ${isOverworked ? 'ring-1 ring-red-500/80' : isUnderworked ? 'ring-1 ring-yellow-500/70' : ''}`}>
-                                                    <div
-                                                        className="h-full bg-green-600 transition-all duration-500"
-                                                        style={{ width: `${clinicalWidth}%` }}
-                                                        title={`Horas clínicas: ${Math.round(clinicalHours)}h`}
-                                                    ></div>
-                                                    <div
-                                                        className="h-full bg-blue-600 transition-all duration-500"
-                                                        style={{ width: `${administrativeWidth}%` }}
-                                                        title={`Horas administrativas: ${Math.round(administrativeHours)}h`}
-                                                    ></div>
-                                                </div>
-                                                <span className={`text-xs font-mono ${isOverworked ? 'text-red-400 font-bold' : isUnderworked ? 'text-yellow-400 font-bold' : 'text-gray-400'}`}>
-                                                    {Math.round(hoursAssigned)}/{staffMember.contractHours}h
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <button
+                                        key={`${day}-${block}`}
+                                        onClick={() => openSlot(day, block)}
+                                        className={`h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-1 font-semibold transition-all hover:scale-[1.03] ${
+                                            hasConflict
+                                                ? 'border-red-400 text-red-100 animate-conflict-glow-red'
+                                                : 'border-gray-700 bg-gray-900/50 text-gray-300 hover:border-gray-500'
+                                        }`}
+                                        title={`${day} ${block}${hasConflict ? ' · Choque detectado' : ''}`}
+                                    >
+                                        {hasConflict ? (
+                                            <span className="text-xs font-bold uppercase tracking-wide">Choque</span>
+                                        ) : (
+                                            <span className="text-xs text-gray-500">Asignar</span>
+                                        )}
+                                    </button>
                                 );
                             })}
-                        </tbody>
-                    </table>
+                        </React.Fragment>
+                    ))}
                 </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-4 items-center">
-                {footerMessage && (
-                    <p className="text-sm font-bold text-amber-300">
-                        {footerMessage}
-                    </p>
+                {executeDisabledReason && (
+                    <p className="text-sm font-bold text-amber-300">{executeDisabledReason}</p>
                 )}
                 <button
                     onClick={handleExecuteWeek}
@@ -696,6 +221,11 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
             <style>{`
                 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
                 .animate-fade-in { animation: fade-in 0.5s ease-in forwards; }
+                @keyframes conflict-glow-red {
+                    0%, 100% { box-shadow: 0 0 8px 1px rgba(239,68,68,0.5); background-color: rgba(127,29,29,0.55); }
+                    50% { box-shadow: 0 0 22px 6px rgba(239,68,68,0.95); background-color: rgba(185,28,28,0.8); }
+                }
+                .animate-conflict-glow-red { animation: conflict-glow-red 1s ease-in-out infinite; }
             `}</style>
         </div>
     );

@@ -45,7 +45,8 @@ import {
   wasCesfamScheduleSubmittedThisWeek,
 } from './services/scheduleTiming';
 import { getBlockingSequenceQueue, getNextBlockingSequence } from '../../services/blockingSequenceQueue';
-import { buildDefaultWeeklySchedule } from '../../data/versions/cesfam/defaults';
+import { hasReachableSequence } from '../../services/sequenceAvailability';
+import { buildDefaultWeeklySchedule } from '../../data/versions/cesfam/modules/ethics/defaults';
 
 import Header from '../../components/Header';
 import DayReviewScreen from './components/DayReviewScreen';
@@ -297,7 +298,10 @@ export default function GestionEnSaludApp({
       ),
     [scenarioData]
   );
-  const enabledMechanics = useMemo(() => resolveMechanics(config), [config]);
+  const enabledMechanics = useMemo(() => {
+    const hidden = new Set(contentPack.hiddenMechanicTabs ?? []);
+    return resolveMechanics(config).filter((mechanic) => !hidden.has(mechanic.tab_id));
+  }, [config, contentPack]);
   const commitmentTextTemplates = useMemo(() => buildCommitmentTextTemplates(enabledMechanics), [enabledMechanics]);
   const commitmentTracker = useCommitmentsTracker(gameState, roomDefinitions, gameStatus, commitmentTextTemplates);
   const {
@@ -372,6 +376,7 @@ export default function GestionEnSaludApp({
     schedule: '📅',
     emails: '✉️',
     documents: '📁',
+    notes: '📝',
     calendar: '📆',
     data_export: '📤',
   };
@@ -821,6 +826,25 @@ export default function GestionEnSaludApp({
     }
   }, [pendingDayReview, isPreparingDayReview, gameState.day, gameState.timeSlot, gameState.completedSequences, appStep, gameStatus, currentMeeting, gameState.scenarioSchedule, gameState.stakeholders, startSequence, scenarioData, isSequenceWindowOpen, shouldTriggerContingentSequence]);
 
+  // Cierre de simulacion config-driven para modos narrativos (ej. MLQ-5X): cuando se agotan
+  // todas las secuencias jugables, se muestra el mismo EndGameScreen que en etica. Se activa
+  // solo si el contentPack declara narrativeClosure; modos con cierre propio (etica) lo omiten.
+  useEffect(() => {
+    const closure = contentPack.narrativeClosure;
+    if (!closure) return;
+    if (gameStatus !== 'playing' || appStep !== 'game') return;
+    if (currentMeeting || pendingDayReview || isPreparingDayReview || isLoading) return;
+    if (scenarioData.sequences.length === 0) return;
+    if (hasReachableSequence(scenarioData.sequences, gameState, {
+      timeSlots,
+      isSequenceWindowOpen,
+      shouldTriggerContingentSequence,
+    })) return;
+
+    setEndGameMessage(closure.message);
+    setGameStatus('won');
+  }, [contentPack, gameStatus, appStep, currentMeeting, pendingDayReview, isPreparingDayReview, isLoading, scenarioData, gameState, timeSlots, isSequenceWindowOpen, shouldTriggerContingentSequence]);
+
   const advanceTime = useCallback((currentState: GameState): GameState => {
     let nextSlotIndex = timeSlots.indexOf(currentState.timeSlot) + 1;
     let nextDay = currentState.day;
@@ -1222,7 +1246,7 @@ export default function GestionEnSaludApp({
   }, [gameState, characterInFocus, advanceTime, secretaryRole, syncLogs, selectedVersion, emailTemplates, mergeMechanicFlushIntoState, resolveCompletedDayTransition, syncDayWithBackend, morningSlot, usesEthicsCaseFlow]);
 
   useEffect(() => {
-    if (effectiveTimerPaused || activeTab !== 'interaction' || gameStatus !== 'playing' || appStep !== 'game') return;
+    if (effectiveTimerPaused || gameStatus !== 'playing' || appStep !== 'game') return;
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {

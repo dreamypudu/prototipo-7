@@ -1,1 +1,1 @@
-export * from './data/versions/cesfam/defaults';
+export * from './data/versions/cesfam/modules/ethics/defaults';

@@ -222,16 +222,46 @@ GET   /health                       — Health check
 
 ---
 
-### 3.7. Escenarios — SIN CAMBIOS ESTRUCTURALES
+### 3.7. Escenarios CESFAM — ESTRUCTURA MODULAR POR DÍA
 
-Los archivos de escenarios siguen siendo grandes y mezclan narrativa con contratos técnicos:
+**Estado anterior (diagnóstico previo incorrecto):** Se describía un único `scenarios.ts` de ~2.410 líneas.
 
-- `data/versions/cesfam/scenarios.ts` — ~2.410 líneas
-- `data/versions/innovatec/scenarios.ts` — ~528 líneas
+**Estado actual:** Los escenarios de CESFAM están organizados en módulos narrativos independientes. Cada módulo tiene su propio conjunto de archivos de contenido y sus nodos de escenarios distribuidos por día de activación:
 
-Cada nodo contiene simultáneamente: texto narrativo, tags psicométricos (MLQ-5X), efectos sobre `GameState`, `expected_actions` con `rule_id`, condiciones de desbloqueo y metadatos de UI.
+```
+data/versions/cesfam/
+├── index.ts            — re-exporta desde ./modules únicamente
+└── modules/
+    ├── index.ts        — orquestador: define CESFAM_NARRATIVE_MODULES
+    ├── ethics/         — módulo "Comportamiento ético" (instrumento: ETHICS)
+    │   ├── scenarios/
+    │   │   ├── day03/  (officeIntro, scheduleWar, azulMeeting1, rojoMeeting1, amarilloMeeting1)
+    │   │   ├── day04/  (agendaCrisisDetonator, azulNegotiation, rojoNegotiation, amarilloNegotiation)
+    │   │   ├── day05/  (agendaCrisisResolution)
+    │   │   ├── day06/  (contingencies, case2RoboIntro, case2Marcela, case2Guzman, case2Daniel)
+    │   │   └── day07/  (case2Verdict)
+    │   ├── scenarios.ts    — orquestador del módulo (flatMap de nodos/secuencias)
+    │   ├── stakeholders.ts, emails.ts, documents.ts, questions.ts, defaults.ts
+    │   └── index.ts    — exporta CESFAM_ETHICS_CONTENT (VersionContentPack)
+    ├── mlq5x_leadership/   — módulo "Habilidades de Liderazgo" (instrumento: MLQ-5X)
+    │   ├── scenarios/
+    │   │   ├── day03/  (sequence01, sequence03, sequence04, sequence05)
+    │   │   ├── day04/  (sequence08, sequence09, sequence10, sequence11)
+    │   │   ├── day05/  (sequence14, sequence15, sequence16, sequence18)
+    │   │   ├── day06/  (sequence19, sequence20)
+    │   │   └── day07/  (sequence21, sequence22, sequence23)
+    │   ├── scenarios.ts, stakeholders.ts, emails.ts, documents.ts, questions.ts, defaults.ts
+    │   └── index.ts    — exporta CESFAM_MLQ5X_CONTENT
+    └── tutorial/           — módulo de exploración sin datos experimentales
+        ├── scenarios.ts
+        └── index.ts    — reutiliza stakeholders/defaults de ethics
+```
 
-**Consecuencia:** Un cambio en el contrato técnico de `expected_actions` obliga a tocar masivamente archivos de contenido narrativo. La autoría de contenido y la definición del motor están fusionadas.
+Cada módulo es un `VersionContentPack` completo e independiente. El orquestador `modules/index.ts` expone `getCesfamContentPack(moduleId)` que retorna el pack correcto; el `runMode` del módulo (`'experiment'` o `'tutorial'`) determina si se envían datos al backend.
+
+**Archivos huérfanos eliminados (2026-05-28):** Se eliminaron `data/versions/cesfam/scenarios.ts`, el directorio `data/versions/cesfam/scenarios/` completo, y los archivos raíz `stakeholders.ts`, `documents.ts`, `emails.ts`, `questions.ts`, `defaults.ts`, junto con `constants.ts` en la raíz del proyecto. Eran copias de la etapa pre-modular que no estaban conectadas al sistema activo.
+
+**Lo que persiste como deuda:** Cada nodo sigue mezclando narrativa con contratos técnicos del motor (`expected_actions`, `rule_id`, condiciones de desbloqueo). Un cambio en el contrato de `expected_actions` sigue requiriendo editar archivos de contenido. La separación es por módulo/día, no entre capa narrativa y capa técnica.
 
 ---
 

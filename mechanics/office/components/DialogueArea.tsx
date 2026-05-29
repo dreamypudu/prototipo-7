@@ -227,11 +227,13 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
                     `}
               style={{ maxHeight: '70vh', maxWidth: '28vw' }}
             >
-              <img
-                src={p.portraitUrl}
-                alt={p.name}
-                className="max-h-[60vh] w-auto object-contain drop-shadow-2xl"
-              />
+              <NpcHover stakeholder={p} placement="auto" triggerClassName="pointer-events-auto cursor-help">
+                <img
+                  src={p.portraitUrl}
+                  alt={p.name}
+                  className="max-h-[60vh] w-auto object-contain drop-shadow-2xl"
+                />
+              </NpcHover>
             </div>
           );
         })}

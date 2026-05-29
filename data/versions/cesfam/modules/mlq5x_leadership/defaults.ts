@@ -9,7 +9,7 @@ import {
   TIME_SLOTS,
   buildDefaultWeeklySchedule,
   getGameDate,
-} from '../../defaults';
+} from '../ethics/defaults';
 import type { GameState } from '../../../../../types';
 import { CESFAM_MLQ5X_STAKEHOLDERS } from './stakeholders';
 

@@ -11,12 +11,12 @@ export const CESFAM_CONFIGURATION: SimulatorConfig = {
   version_id: 'CESFAM',
   title: 'Gestion Directiva CESFAM',
   mechanics: [
-    { mechanic_id: 'office', label: 'Oficina Central', tab_id: 'interaction' },
+    { mechanic_id: 'office', label: 'Mi Oficina', tab_id: 'interaction' },
     { mechanic_id: 'stakeholders', label: 'Relaciones', tab_id: 'summary' },
-    { mechanic_id: 'map', label: 'Plano Centro', tab_id: 'map' },
+    { mechanic_id: 'map', label: 'Mapa', tab_id: 'map' },
     {
       mechanic_id: 'scheduler',
-      label: 'Agenda Semanal',
+      label: 'Asignación Box',
       tab_id: 'schedule',
       params: {
         scheduleTiming: {
@@ -30,8 +30,9 @@ export const CESFAM_CONFIGURATION: SimulatorConfig = {
         },
       },
     },
-    { mechanic_id: 'inbox', label: 'Correos', tab_id: 'emails' },
-    { mechanic_id: 'documents', label: 'Archivos', tab_id: 'documents' },
+    { mechanic_id: 'inbox', label: 'Mi Correo', tab_id: 'emails' },
+    { mechanic_id: 'documents', label: 'Mi Archivo', tab_id: 'documents' },
+    { mechanic_id: 'notes', label: 'Mis Notas', tab_id: 'notes' },
   ],
   comparison_rules: [
     'visit_priority_rule_v1',
