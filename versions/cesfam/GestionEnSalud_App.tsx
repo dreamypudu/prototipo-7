@@ -2063,6 +2063,15 @@ export default function GestionEnSaludApp({
       case 'update_notes':
         handleUpdateNotes(action.notes);
         return;
+      case 'schedule_email_event':
+        setGameState((prev: GameState) => ({
+          ...prev,
+          pendingEmailEvents: [
+            ...(prev.pendingEmailEvents ?? []),
+            { event_id: action.event_id, day: action.day, slot: action.slot },
+          ],
+        }));
+        return;
       case 'map_interact':
         return handleMapInteract(action.staff);
       case 'call_stakeholder':

@@ -18,6 +18,19 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "EI": 4, "IIC": 2 }),
         consequences: {
           trustChange: 10,
+          expected_actions: [
+            {
+              mechanic_id: 'delegation',
+              action_type: 'delegate_task',
+              target_ref: 'task:formalizar_internos',
+              rule_id: 'delegate_task_rule_v1',
+              stakeholder_id: 'andres-guzman',
+              ui: {
+                title: 'Delegar: formalización de internos no registrados',
+                description: 'Te comprometiste a ayudar a formalizar a los internos. Llama a Sofía Castro (teléfono) para delegar el trámite.',
+              },
+            },
+          ],
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',

@@ -30,7 +30,8 @@ export type MechanicDispatchAction =
   | { type: 'map_interact'; staff: StaffMember }
   | { type: 'call_stakeholder'; stakeholder: Stakeholder }
   | { type: 'update_scenario_schedule'; id: string; day: number; slot: TimeSlotType }
-  | { type: 'navigate_tab'; tabId: string };
+  | { type: 'navigate_tab'; tabId: string }
+  | { type: 'schedule_email_event'; event_id: string; day: number; slot: TimeSlotType };
 
 export type MechanicDispatch = (action: MechanicDispatchAction) => boolean | void;
 

@@ -200,4 +200,36 @@ export const CESFAM_MLQ5X_EMAILS: EmailTemplate[] = [
       },
     },
   },
+  {
+    email_id: 'delegation-confirm-protocolo-urgencias',
+    from: 'Sofia Castro',
+    subject: 'Encargo listo: protocolo de urgencias',
+    body:
+      'Director:\n\nComo me lo encargo, avance con el protocolo formal de actuacion para urgencias sin medico presente. Coordine con enfermeria y deje un borrador ordenado para su revision.\n\nQuedo atenta a sus observaciones para cerrarlo.\n\nSofia Castro\nAsistente Administrativa',
+    trigger: { type: 'ON_CASE_EVENT', event_id: 'delegation-confirm-protocolo-urgencias' },
+  },
+  {
+    email_id: 'delegation-confirm-gestion-docencia',
+    from: 'Sofia Castro',
+    subject: 'Encargo listo: gestion docente',
+    body:
+      'Director:\n\nSegun lo que me delego, gestione la labor docente: contacte a la coordinadora de practicas de la universidad y reuni los antecedentes de los cupos.\n\nLe dejo el tema encaminado y le aviso apenas tengamos respuesta formal.\n\nSofia Castro\nAsistente Administrativa',
+    trigger: { type: 'ON_CASE_EVENT', event_id: 'delegation-confirm-gestion-docencia' },
+  },
+  {
+    email_id: 'delegation-confirm-formalizar-internos',
+    from: 'Sofia Castro',
+    subject: 'Encargo listo: formalizacion de internos',
+    body:
+      'Director:\n\nComo me lo pidio, inicie el tramite para formalizar a los internos no registrados del Sector Azul. Reuni la documentacion y la eleve para regularizar su situacion antes de una eventual auditoria.\n\nLe confirmo en cuanto quede ingresado en el sistema.\n\nSofia Castro\nAsistente Administrativa',
+    trigger: { type: 'ON_CASE_EVENT', event_id: 'delegation-confirm-formalizar-internos' },
+  },
+  {
+    email_id: 'delegation-confirm-protocolo-tens',
+    from: 'Sofia Castro',
+    subject: 'Encargo listo: protocolo TENS',
+    body:
+      'Director:\n\nTramite el protocolo TENS-sin-medico que dejo el Sr. Rios. Lo ordene y lo derive segun corresponde para su revision por las instancias pertinentes.\n\nLe informare cualquier novedad sobre su aprobacion.\n\nSofia Castro\nAsistente Administrativa',
+    trigger: { type: 'ON_CASE_EVENT', event_id: 'delegation-confirm-protocolo-tens' },
+  },
 ];

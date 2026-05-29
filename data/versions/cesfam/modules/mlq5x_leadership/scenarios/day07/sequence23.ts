@@ -19,6 +19,19 @@ export const nodes: ScenarioNode[] = [
         consequences: {
           trustChange: 5,
           supportChange: 5,
+          expected_actions: [
+            {
+              mechanic_id: 'delegation',
+              action_type: 'delegate_task',
+              target_ref: 'task:protocolo_tens',
+              rule_id: 'delegate_task_rule_v1',
+              stakeholder_id: 'daniel-rios',
+              ui: {
+                title: 'Delegar: tramitación del protocolo TENS-sin-médico',
+                description: 'Te comprometiste a tramitar el protocolo TENS de Ríos. Llama a Sofía Castro (teléfono) para delegar su gestión.',
+              },
+            },
+          ],
           bridgeResponse: [
             {
               stakeholder_id: 'daniel-rios',
@@ -36,6 +49,19 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ RC: 2 }),
         consequences: {
           supportChange: 5,
+          expected_actions: [
+            {
+              mechanic_id: 'delegation',
+              action_type: 'delegate_task',
+              target_ref: 'task:protocolo_tens',
+              rule_id: 'delegate_task_rule_v1',
+              stakeholder_id: 'daniel-rios',
+              ui: {
+                title: 'Delegar: tramitación del protocolo TENS-sin-médico',
+                description: 'Te comprometiste a tramitar el protocolo TENS de Ríos. Llama a Sofía Castro (teléfono) para delegar su gestión.',
+              },
+            },
+          ],
           bridgeResponse: [
             {
               stakeholder_id: 'daniel-rios',
@@ -52,6 +78,19 @@ export const nodes: ScenarioNode[] = [
           'Se lo entregare a Soto para que lo revise antes de enviarlo a los superiores para que lo aprueben.',
         tags: mlqTags({ 'DPE-A': 2 }),
         consequences: {
+          expected_actions: [
+            {
+              mechanic_id: 'delegation',
+              action_type: 'delegate_task',
+              target_ref: 'task:protocolo_tens',
+              rule_id: 'delegate_task_rule_v1',
+              stakeholder_id: 'daniel-rios',
+              ui: {
+                title: 'Delegar: tramitación del protocolo TENS-sin-médico',
+                description: 'Te comprometiste a tramitar el protocolo TENS de Ríos. Llama a Sofía Castro (teléfono) para delegar su gestión.',
+              },
+            },
+          ],
           bridgeResponse: [
             {
               stakeholder_id: 'daniel-rios',

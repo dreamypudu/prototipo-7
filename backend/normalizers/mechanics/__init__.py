@@ -1,4 +1,4 @@
-from . import documents, email, map, scheduler
+from . import delegation, documents, email, map, scheduler
 from .utils import as_record
 
 
@@ -7,6 +7,7 @@ MECHANIC_MODULES = [
     email,
     documents,
     scheduler,
+    delegation,
 ]
 
 DETAIL_TABLE_NAMES = [module.TABLE_NAME for module in MECHANIC_MODULES]

@@ -120,6 +120,19 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "MI": 2 }),
         consequences: {
           trustChange: 5,
+          expected_actions: [
+            {
+              mechanic_id: 'delegation',
+              action_type: 'delegate_task',
+              target_ref: 'task:gestion_docencia',
+              rule_id: 'delegate_task_rule_v1',
+              stakeholder_id: 'andres-guzman',
+              ui: {
+                title: 'Delegar: gestión de la labor docente',
+                description: 'Te comprometiste a gestionar la labor docente. Llama a Sofía Castro (teléfono) para delegar su gestión.',
+              },
+            },
+          ],
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',

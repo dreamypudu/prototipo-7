@@ -14,6 +14,7 @@ import OfficeMechanic from './modules/OfficeMechanic';
 import ScheduleMechanic from './modules/ScheduleMechanic';
 import SummaryMechanic from './modules/SummaryMechanic';
 import { adminRules } from './admin/rules';
+import { delegationRules } from './delegation/rules';
 import { mapRules } from './map/rules';
 import { officeRules } from './office/rules';
 import { schedulerRules } from './scheduler/rules';
@@ -111,5 +112,13 @@ export const MECHANIC_REGISTRY: MechanicRegistry = {
     label: 'Administracion',
     tab_id: 'admin',
     rules: adminRules
+  },
+  // Mecanica de delegacion: sin tab propio, se invoca desde el telefono (DirectorDesk).
+  // Registrada para que el ComparisonEngine resuelva sus reglas.
+  delegation: {
+    mechanic_id: 'delegation',
+    label: 'Delegacion',
+    tab_id: 'delegation',
+    rules: delegationRules
   }
 };

@@ -174,6 +174,19 @@ export const nodes: ScenarioNode[] = [
         tags: mlqTags({ "IIC": 2, "DPE-A": 2 }),
         consequences: {
           trustChange: 5,
+          expected_actions: [
+            {
+              mechanic_id: 'delegation',
+              action_type: 'delegate_task',
+              target_ref: 'task:protocolo_urgencias',
+              rule_id: 'delegate_task_rule_v1',
+              stakeholder_id: 'marcela-soto',
+              ui: {
+                title: 'Delegar: protocolo formal de atención de urgencias',
+                description: 'Te comprometiste a un protocolo formal de actuación. Llama a Sofía Castro (teléfono) para delegar su elaboración.',
+              },
+            },
+          ],
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
