@@ -7,7 +7,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     dialogue:
-      'Que bueno que vino, director. Hay algo que le queria comentar. Dos de los internos que tengo en el Sector Azul no estan registrados formalmente. Son de intercambio. El acuerdo fue verbal con el exdirector. Si viene una auditoria eso puede ser un problema.',
+      'Que bueno que vino, director. Hay algo que le quería comentar. Dos de los internos que tengo en el Sector Azul no están registrados formalmente. Son de intercambio. El acuerdo fue verbal con el exdirector. Si viene una auditoría eso puede ser un problema.',
     options: [
       {
         option_id: 'A',
@@ -34,14 +34,14 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'De acuerdo. Formalizarlo protege a los internos, al CESFAM y tambien al proyecto docente.',
+              text: 'De acuerdo. Formalizarlo protege a los internos, al CESFAM y también al proyecto docente.',
             },
           ],
         },
       },
       {
         option_id: 'B',
-        cardTitle: 'Regularizar despues',
+        cardTitle: 'Regularizar después',
         cardEmoji: '⏳',
         text: 'Lo regularizaremos cuando haya tiempo, que esta semana hay muchas cosas.',
         tags: mlqTags({ "DPE-P": 4 }),
@@ -79,7 +79,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     dialogue:
-      'Para sostener cupos de practica clinica necesito dos cosas: avanzar en el convenio universitario y reservar Box 1 los martes AM para supervision docente. Sin ese bloque, la actividad docente queda dependiendo de improvisaciones semanales.',
+      'Para sostener cupos de práctica clínica necesito dos cosas: avanzar en el convenio universitario y reservar Box 1 los martes AM para supervisión docente. Sin ese bloque, la actividad docente queda dependiendo de improvisaciones semanales.',
     contextualDialogue: [
       {
         when: {
@@ -92,7 +92,7 @@ export const nodes: ScenarioNode[] = [
           ],
         },
         position: 'before',
-        text: 'Como usted me pidio confirmar a la universidad que mantendriamos los cupos, necesito que esa senal ahora tenga respaldo operativo.',
+        text: 'Como usted me pidió confirmar a la universidad que mantendríamos los cupos, necesito que esa señal ahora tenga respaldo operativo.',
       },
       {
         when: {
@@ -105,7 +105,7 @@ export const nodes: ScenarioNode[] = [
           ],
         },
         position: 'before',
-        text: 'Usted me dijo que gestionaria la labor docente; esta es la decision concreta que permite hacerla viable.',
+        text: 'Usted me dijo que gestionaria la labor docente; esta es la decisión concreta que permite hacerla viable.',
       },
       {
         when: {
@@ -141,15 +141,15 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'reserve_room_for_sector_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Planificacion: reservar Box 1 para Sector Azul / supervision docente de Dr. Andres Guzman - Martes AM',
-                description: 'En la grilla semanal, dejar Box 1 asignado al Sector Azul el Martes AM para sostener la supervision docente comprometida con Guzman.',
+                title: 'Planificación: reservar Box 1 para Sector Azul / supervisión docente de Dr. Andrés Guzmán - Martes AM',
+                description: 'En la grilla semanal, dejar Box 1 asignado al Sector Azul el Martes AM para sostener la supervisión docente comprometida con Guzmán.',
               },
             },
           ],
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Excelente. Con el box y el convenio alineados, puedo ordenar la supervision sin improvisar cada semana.',
+              text: 'Excelente. Con el box y el convenio alineados, puedo ordenar la supervisión sin improvisar cada semana.',
             },
             {
               stakeholder_id: 'andres-guzman',
@@ -176,8 +176,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'reserve_room_for_sector_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Planificacion: reservar Box 1 para Sector Azul / supervision docente de Dr. Andres Guzman - Martes AM',
-                description: 'En la grilla semanal, dejar Box 1 asignado al Sector Azul el Martes AM para sostener la supervision docente comprometida con Guzman.',
+                title: 'Planificación: reservar Box 1 para Sector Azul / supervisión docente de Dr. Andrés Guzmán - Martes AM',
+                description: 'En la grilla semanal, dejar Box 1 asignado al Sector Azul el Martes AM para sostener la supervisión docente comprometida con Guzmán.',
               },
             },
           ],
@@ -205,7 +205,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Si la direccion no lo empuja, el convenio va a quedar donde siempre quedo: en tierra de nadie.',
+              text: 'Si la dirección no lo empuja, el convenio va a quedar donde siempre quedo: en tierra de nadie.',
             }
           ],
         },
@@ -219,13 +219,13 @@ export const sequences: MeetingSequence[] = [
     sequence_id: 'MLQ5X_D3_SEQUENCE_16',
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
-    initialDialogue: '(Te reunes con Andres Guzman para cerrar temas pendientes de docencia clinica y uso de Box 1.)',
+    initialDialogue: '(Te reunes con Andrés Guzmán para cerrar temas pendientes de docencia clínica y uso de Box 1.)',
     initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS',
       'MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1',
     ],
-    finalDialogue: 'Guzman queda esperando que la planificacion semanal respalde la continuidad docente prometida.',
+    finalDialogue: 'Guzmán queda esperando que la planificación semanal respalde la continuidad docente prometida.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 5, slot: 'tarde' },

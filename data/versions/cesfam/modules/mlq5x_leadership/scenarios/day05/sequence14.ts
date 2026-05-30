@@ -15,7 +15,7 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D3S14_N18_SOFIA_BOX_CONFLICT_INTRO',
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
-    dialogue: 'Director, hay unos conflictos con los box de la proxima semana a los que debe dar respuesta.',
+    dialogue: 'Director, hay unos conflictos con los box de la próxima semana a los que debe dar respuesta.',
     options: [nextOption()],
   },
   {
@@ -31,14 +31,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Segundo: miercoles PM en el Box 6. Marcela Soto lo deja tomado para el Sector Rojo, pero Francisca Solis lo habia solicitado para el Sector Amarillo. Debe resolver estos conflictos para hoy.',
+      'Segundo: miércoles PM en el Box 6. Marcela Soto lo deja tomado para el Sector Rojo, pero Francisca Solís lo había solicitado para el Sector Amarillo. Debe resolver estos conflictos para hoy.',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Responder hoy',
         cardEmoji: '📋',
         text:
-          'Muchas gracias por la informacion. Estoy consciente de que debo revisar y dejar todo eso listo hoy. Entregare una respuesta apropiada.',
+          'Muchas gracias por la información. Estoy consciente de que debo revisar y dejar todo eso listo hoy. Entregare una respuesta apropiada.',
         tags: mlqTags({ "IIA": 4, "CI": 2 }),
         consequences: {
           bridgeResponse: [
@@ -48,25 +48,25 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Lo mantendre informado de cualquier situacion.',
+              text: 'Lo mantendre informado de cualquier situación.',
             }
           ]},
       },
       {
         option_id: 'B',
-        cardTitle: 'Revisar despues',
+        cardTitle: 'Revisar después',
         cardEmoji: '⏳',
-        text: 'Lo tendre en cuenta. Apenas resuelva todo lo pendiente para hoy y tenga algo de tiempo lo revisare.',
+        text: 'Lo tendré en cuenta. Apenas resuelva todo lo pendiente para hoy y tenga algo de tiempo lo revisaré.',
         tags: mlqTags({ 'DPE-P': 2 }),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Entiendo, pero mientras mas tarde lo veamos, mas probable es que el conflicto llegue armado desde los sectores.',
+              text: 'Entiendo, pero mientras más tarde lo veamos, más probable es que el conflicto llegue armado desde los sectores.',
             },
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Lo mantendre informado de cualquier situacion.',
+              text: 'Lo mantendre informado de cualquier situación.',
             }
           ]},
       },
@@ -74,17 +74,17 @@ export const nodes: ScenarioNode[] = [
         option_id: 'C',
         cardTitle: 'Postergar a la tarde',
         cardEmoji: '⏳',
-        text: 'Gracias por la informacion, pero es para hoy en la tarde. Tengo tiempo para revisarlo aun.',
+        text: 'Gracias por la información, pero es para hoy en la tarde. Tengo tiempo para revisarlo aun.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Lo dejare registrado, aunque el margen para avisar bien se reduce rapido.',
+              text: 'Lo dejaré registrado, aunque el margen para avisar bien se reduce rápido.',
             },
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Lo mantendre informado de cualquier situacion.',
+              text: 'Lo mantendre informado de cualquier situación.',
             }
           ]},
       },
@@ -95,7 +95,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Ademas, tengo que comunicarle un problema. Los miercoles AM hay procedimientos cruzados, de manera que los tres sectores comparten el unico ecografo disponible.',
+      'Ademas, tengo que comunicarle un problema. Los miércoles AM hay procedimientos cruzados, de manera que los tres sectores comparten el unico ecografo disponible.',
     options: [nextOption()],
   },
   {
@@ -103,14 +103,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Esto siempre se ha hecho asi y nunca se ha buscado una solucion, ya que nadie lo ha cuestionado. Como quiere abordarlo?',
+      'Esto siempre se ha hecho así y nunca se ha buscado una solución, ya que nadie lo ha cuestionado. ¿Cómo quiere abordarlo?',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Cuestionar uso',
         cardEmoji: '📊',
         text:
-          'Convoca a los jefes de sector para averiguar si hay alguna razon tecnica para que el ecografo este en ese horario o si es tradicion; si no, se puede redistribuir su uso.',
+          'Convoca a los jefes de sector para averiguar si hay alguna razón técnica para que el ecografo este en ese horario o si es tradición; si no, se puede redistribuir su uso.',
         tags: mlqTags({ "EI": 4, "IIC": 2 }),
         consequences: {
           unlocks: {
@@ -119,7 +119,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Los convocare. Si hay una razon tecnica, quedara clara; si no, por fin podremos ordenar ese uso.',
+              text: 'Los convocare. Si hay una razón técnica, quedara clara; si no, por fin podremos ordenar ese uso.',
             },
             {
               stakeholder_id: 'sofia-castro',
@@ -132,7 +132,7 @@ export const nodes: ScenarioNode[] = [
         option_id: 'B',
         cardTitle: 'Mantener esquema',
         cardEmoji: '📋',
-        text: 'Pero si ha funcionado asi, no es necesario que se corrija su uso hasta que haya un conflicto o problema real. Dejemos todo como esta.',
+        text: 'Pero si ha funcionado así, no es necesario que se corrija su uso hasta que haya un conflicto o problema real. Dejemos todo como esta.',
         tags: mlqTags({ 'DPE-P': 4 }),
         consequences: {
           bridgeResponse: [
@@ -156,7 +156,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'De acuerdo. Solo dejo constancia de que nadie lo habia revisado antes tampoco.',
+              text: 'De acuerdo. Solo dejo constancia de que nadie lo había revisado antes tampoco.',
             },
             {
               stakeholder_id: 'sofia-castro',
@@ -182,7 +182,7 @@ export const sequences: MeetingSequence[] = [
       'MLQ5X_D3S14_N19_SOFIA_ULTRASOUND_CONTEXT',
       'MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE',
     ],
-    finalDialogue: 'Sofia queda a la espera de que la direccion cierre los conflictos de boxes y ecografo durante el dia.',
+    finalDialogue: 'Sofía queda a la espera de que la dirección cierre los conflictos de boxes y ecografo durante el día.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 5, slot: 'mañana' },

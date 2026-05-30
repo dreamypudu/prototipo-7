@@ -31,7 +31,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Revisar operativamente',
         cardEmoji: '🗂️',
         text:
-          'Lo considerare pero necesito verlo operativamente antes de comprometerme. Ademas, el Sector Amarillo tiene problemas con las cargas horarias, por lo que su jefe no deberia estar ausente.',
+          'Lo consideraré pero necesito verlo operativamente antes de comprometerme. Ademas, el Sector Amarillo tiene problemas con las cargas horarias, por lo que su jefe no debería estar ausente.',
         tags: mlqTags({ 'DPE-P': 2 }),
         consequences: {
           bridgeResponse: [
@@ -68,10 +68,10 @@ export const sequences: MeetingSequence[] = [
     sequence_id: 'MLQ5X_D4_SEQUENCE_20',
     stakeholderId: 'daniel-rios',
     stakeholderRole: 'Jefe Sector Amarillo',
-    initialDialogue: '(Llegas al Sector Amarillo para conversar con Daniel Rios durante el lunes.)',
+    initialDialogue: '(Llegas al Sector Amarillo para conversar con Daniel Ríos durante el lunes.)',
     initialDialogueIsNarration: true,
     nodes: ['MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST'],
-    finalDialogue: 'Rios queda esperando que la direccion considere su solicitud de flexibilidad.',
+    finalDialogue: 'Ríos queda esperando que la dirección considere su solicitud de flexibilidad.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 6, slot: 'mañana' },

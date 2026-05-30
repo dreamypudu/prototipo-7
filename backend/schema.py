@@ -762,9 +762,38 @@ def _create_indexes(conn):
 
 
 def _create_labels_tables(conn):
+    # mlq_labels paso a ser per-sesion (antes era catalogo estatico con module_id).
+    # Migracion idempotente: si existe la estructura vieja, la dropea y recrea.
+    conn.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'mlq_labels' AND column_name = 'module_id'
+            ) THEN
+                DROP TABLE mlq_labels;
+            END IF;
+        END$$;
+        """
+    )
     conn.execute(labels_module.CREATE_SQL)
     conn.execute(labels_module.ALTER_SQL)
-    labels_module.populate(conn)
+    conn.execute(
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = 'mlq_labels_session_id_fkey'
+            ) THEN
+                ALTER TABLE mlq_labels
+                ADD CONSTRAINT mlq_labels_session_id_fkey
+                FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE;
+            END IF;
+        END$$;
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_mlq_labels_session ON mlq_labels(session_id)")
 
 
 def create_schema(conn):

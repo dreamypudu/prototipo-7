@@ -24,14 +24,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'javier-castro',
     stakeholderRole: 'TENS Sector Azul',
     dialogue:
-      'Llevo mucho tiempo trabajando largas jornadas, director. Nadie lo ha visto nunca como un problema. Yo... ya no puedo dar lo mejor de mi asi. Lo siento.',
+      'Llevo mucho tiempo trabajando largas jornadas, director. Nadie lo ha visto nunca como un problema. Yo... ya no puedo dar lo mejor de mi así. Lo siento.',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Considerar carga',
         cardEmoji: '🎯',
         text:
-          'Considerare especificamente tu carga horaria para la propuesta de la proxima semana. Esto afecta tanto a ti personalmente como tu rendimiento en el CESFAM.',
+          'Consideraré especificamente tu carga horaria para la propuesta de la próxima semana. Esto afecta tanto a ti personalmente como tu rendimiento en el CESFAM.',
         tags: mlqTags({ "CI": 4 }),
         consequences: {
           bridgeResponse: [
@@ -41,7 +41,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'javier-castro',
-              text: 'Espero que esta situacion cambie en el futuro.',
+              text: 'Espero que esta situación cambie en el futuro.',
             },
           ],
         },
@@ -50,17 +50,17 @@ export const nodes: ScenarioNode[] = [
         option_id: 'B',
         cardTitle: 'Tomarlo para hoy',
         cardEmoji: '📋',
-        text: 'Lo tendre en cuenta para la propuesta de hoy. No puedes seguir manteniendo estos niveles de carga horaria.',
+        text: 'Lo tendré en cuenta para la propuesta de hoy. No puedes seguir manteniendo estos niveles de carga horaria.',
         tags: mlqTags({ "CI": 2 }),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'javier-castro',
-              text: 'Se lo agradezco. Me preocupa que quede solo como una nota mas dentro de la agenda.',
+              text: 'Se lo agradezco. Me preocupa que quede solo como una nota más dentro de la agenda.',
             },
             {
               stakeholder_id: 'javier-castro',
-              text: 'Espero que esta situacion cambie en el futuro.',
+              text: 'Espero que esta situación cambie en el futuro.',
             },
           ],
         },
@@ -70,7 +70,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Postergar carga',
         cardEmoji: '⏳',
         text:
-          'Lamentablemente todos estan con carga. Vere que se puede hacer a futuro, ya que muchos estan en tu situacion y no hay presupuesto para mas personal.',
+          'Lamentablemente todos están con carga. Veré que se puede hacer a futuro, ya que muchos están en tu situación y no hay presupuesto para más personal.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
           bridgeResponse: [
@@ -80,7 +80,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'javier-castro',
-              text: 'Espero que esta situacion cambie en el futuro.',
+              text: 'Espero que esta situación cambie en el futuro.',
             },
           ],
         },

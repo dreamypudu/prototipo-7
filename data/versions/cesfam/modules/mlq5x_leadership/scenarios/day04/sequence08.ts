@@ -14,7 +14,7 @@ export const nodes: ScenarioNode[] = [
   {
     node_id: 'MLQ5X_D2S8_WATER_CUT_CONTEXT',
     participantIds: ['sofia-castro', 'marcela-soto'],
-    dialogue: '(Sofia Castro y Marcela Soto te esperan con cara de quien tiene malas noticias.)',
+    dialogue: '(Sofía Castro y Marcela Soto te esperan con cara de quien tiene malas noticias.)',
     dialogueIsNarration: true,
     options: [nextOption()],
   },
@@ -24,7 +24,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Asistente Administrativa',
     participantIds: ['sofia-castro', 'marcela-soto'],
     dialogue:
-      'Director, hay un corte de agua programado que nadie notifico a direccion. El Sector Rojo no puede atender esta manana: los tres consultorios que usan agua corriente estan fuera. Son 40 pacientes agendados.',
+      'Director, hay un corte de agua programado que nadie notificó a dirección. El Sector Rojo no puede atender esta mañana: los tres consultorios que usan agua corriente están fuera. Son 40 pacientes agendados.',
     options: [nextOption()],
   },
   {
@@ -36,21 +36,21 @@ export const nodes: ScenarioNode[] = [
     options: [
       {
         option_id: 'A',
-        cardTitle: 'Reorganizar atencion',
+        cardTitle: 'Reorganizar atención',
         cardEmoji: '🩺',
         text:
-          'No podemos dejar a los pacientes sin atencion. Soto, coordine con Rios para reorganizar todo sin suspender nada.',
+          'No podemos dejar a los pacientes sin atención. Soto, coordine con Ríos para reorganizar todo sin suspender nada.',
         tags: mlqTags({ "MI": 4, "IIA": 2 }),
         consequences: {
           trustChange: 5,
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Entendido. Si vamos a sostener atencion, necesitare respaldo para coordinar rapido con Rios.',
+              text: 'Entendido. Si vamos a sostener atención, necesitare respaldo para coordinar rápido con Ríos.',
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Vere lo que puedo lograr.',
+              text: 'Veré lo que puedo lograr.',
             }
           ]},
       },
@@ -58,18 +58,18 @@ export const nodes: ScenarioNode[] = [
         option_id: 'B',
         cardTitle: 'Suspender Rojo',
         cardEmoji: '📋',
-        text: 'El Sector Rojo debera suspender sus atenciones. Soto, como jefa informe a los pacientes.',
+        text: 'El Sector Rojo deberá suspender sus atenciones. Soto, como jefa informe a los pacientes.',
         tags: mlqTags({ "DPE-P": 2 }),
         consequences: {
           trustChange: -5,
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Suspender cuarenta atenciones va a golpear al sector. Informare, pero no sera una conversacion facil.',
+              text: 'Suspender cuarenta atenciones va a golpear al sector. Informaré, pero no será una conversacion fácil.',
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Vere lo que puedo lograr.',
+              text: 'Veré lo que puedo lograr.',
             }
           ]},
       },
@@ -85,11 +85,11 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Llamar al municipio sirve, pero los pacientes estan aqui ahora. Necesito una decision operativa, no solo derivar el problema.',
+              text: 'Llamar al municipio sirve, pero los pacientes están aquí ahora. Necesito una decisión operativa, no solo derivar el problema.',
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Vere lo que puedo lograr.',
+              text: 'Veré lo que puedo lograr.',
             }
           ]},
       },
@@ -107,7 +107,7 @@ export const sequences: MeetingSequence[] = [
       'MLQ5X_D2S8_N11_SOFIA_WATER_CUT',
       'MLQ5X_D2S8_N11_SOTO_DECISION',
     ],
-    finalDialogue: 'La decision deja instalada la prioridad de la manana: sostener la atencion pese al corte de agua.',
+    finalDialogue: 'La decisión deja instalada la prioridad de la mañana: sostener la atención pese al corte de agua.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 4, slot: 'mañana' },

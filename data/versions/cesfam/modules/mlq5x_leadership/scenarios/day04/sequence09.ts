@@ -7,7 +7,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'marcela-soto',
     stakeholderRole: 'Jefa Sector Rojo',
     dialogue:
-      'A pesar de los inconvenientes, logramos atender casi a la totalidad de los pacientes. Fue agotador, pero pudimos sobrellevar la situacion.',
+      'A pesar de los inconvenientes, logramos atender casi a la totalidad de los pacientes. Fue agotador, pero pudimos sobrellevar la situación.',
     options: [
       {
         option_id: 'A',
@@ -25,7 +25,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Esperemos que para el proximo inconveniente al menos haya un aviso previo.',
+              text: 'Esperemos que para el próximo inconveniente al menos haya un aviso previo.',
             }
           ]},
       },
@@ -43,7 +43,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Esperemos que para el proximo inconveniente al menos haya un aviso previo.',
+              text: 'Esperemos que para el próximo inconveniente al menos haya un aviso previo.',
             }
           ]},
       },
@@ -51,17 +51,17 @@ export const nodes: ScenarioNode[] = [
         option_id: 'C',
         cardTitle: 'Seguir trabajando',
         cardEmoji: '⏳',
-        text: 'Fue una gran jornada la de la manana, pero aun hay trabajo que hacer.',
+        text: 'Fue una gran jornada la de la mañana, pero aun hay trabajo que hacer.',
         tags: mlqTags(),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Si, queda trabajo. Solo espero que no se invisibilice lo que costo sacar adelante la manana.',
+              text: 'Si, queda trabajo. Solo espero que no se invisibilice lo que costo sacar adelante la mañana.',
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Esperemos que para el proximo inconveniente al menos haya un aviso previo.',
+              text: 'Esperemos que para el próximo inconveniente al menos haya un aviso previo.',
             }
           ]},
       },
@@ -77,7 +77,7 @@ export const sequences: MeetingSequence[] = [
     initialDialogue: '(Te reunes con Marcela Soto durante la tarde para revisar como quedo la operacion del Sector Rojo tras el corte de agua.)',
     initialDialogueIsNarration: true,
     nodes: ['MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP'],
-    finalDialogue: 'Soto queda atenta a que direccion anticipe mejor las contingencias operativas del CESFAM.',
+    finalDialogue: 'Soto queda atenta a que dirección anticipe mejor las contingencias operativas del CESFAM.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 4, slot: 'tarde' },

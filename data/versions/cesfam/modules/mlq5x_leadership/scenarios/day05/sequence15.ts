@@ -25,7 +25,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     participantIds: sectorHeads,
-    dialogue: 'Esta reunion es por el uso del ecografo?',
+    dialogue: '¿Esta reunión es por el uso del ecografo?',
     options: [nextOption()],
   },
   {
@@ -33,7 +33,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'marcela-soto',
     stakeholderRole: 'Jefa Sector Rojo',
     participantIds: sectorHeads,
-    dialogue: 'Si. La verdad, a pesar de que sea el unico disponible, nunca he tenido ningun inconveniente mayor.',
+    dialogue: 'Si. La verdad, a pesar de que sea el unico disponible, nunca he tenido ningún inconveniente mayor.',
     options: [nextOption()],
   },
   {
@@ -49,7 +49,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     participantIds: sectorHeads,
-    dialogue: 'Opino que todo siga normal. Esto no ha causado ningun impacto clinico.',
+    dialogue: 'Opino que todo siga normal. Esto no ha causado ningún impacto clínico.',
     options: [nextOption()],
   },
   {
@@ -58,7 +58,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Jefe Sector Amarillo',
     participantIds: sectorHeads,
     dialogue:
-      'Estoy de acuerdo. Cambiando de tema, queria aprovechar la oportunidad para proponer un sistema de turnos rotativos semanales en el Sector Amarillo. Lo probe informalmente el mes pasado y funciono.',
+      'Estoy de acuerdo. Cambiando de tema, quería aprovechar la oportunidad para proponer un sistema de turnos rotativos semanales en el Sector Amarillo. Lo probe informalmente el mes pasado y funciono.',
     options: [nextOption()],
   },
   {
@@ -66,14 +66,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'marcela-soto',
     stakeholderRole: 'Jefa Sector Rojo',
     participantIds: sectorHeads,
-    dialogue: 'De acuerdo con el reglamento, los turnos deben seguir un esquema fijo aprobado por direccion. Esto viola el reglamento.',
+    dialogue: 'De acuerdo con el reglamento, los turnos deben seguir un esquema fijo aprobado por dirección. Esto viola el reglamento.',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Ponderar evidencia',
         cardEmoji: '⚖️',
         text:
-          'Ambas perspectivas tienen peso. Es importante leer el reglamento antes de decidir; sin embargo, si la propuesta de Rios funciona, debe tenerse en cuenta.',
+          'Ambas perspectivas tienen peso. Es importante leer el reglamento antes de decidir; sin embargo, si la propuesta de Ríos funciona, debe tenerse en cuenta.',
         tags: mlqTags({ "EI": 2, "CI": 2 }),
         consequences: {
           supportChange: -10,
@@ -88,7 +88,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'daniel-rios',
-              text: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
+              text: 'Es importante que lo considere, director. Es algo que podría tener buenas consecuencias para el Sector Amarillo.',
             }
           ]
         },
@@ -115,7 +115,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'daniel-rios',
-              text: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
+              text: 'Es importante que lo considere, director. Es algo que podría tener buenas consecuencias para el Sector Amarillo.',
             }
           ]
         },
@@ -137,11 +137,11 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Estoy dispuesta a revisar, pero tiene que hacerse por una via formal y trazable.',
+              text: 'Estoy dispuesta a revisar, pero tiene que hacerse por una vía formal y trazable.',
             },
             {
               stakeholder_id: 'daniel-rios',
-              text: 'Es importante que lo considere, director. Es algo que podria tener buenas consecuencias para el Sector Amarillo.',
+              text: 'Es importante que lo considere, director. Es algo que podría tener buenas consecuencias para el Sector Amarillo.',
             }
           ]
         },
@@ -153,7 +153,7 @@ export const nodes: ScenarioNode[] = [
 export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D3_SEQUENCE_15',
-    initialDialogue: '(La decision de revisar el uso del ecografo convoca a los tres jefes de sector durante la tarde.)',
+    initialDialogue: '(La decisión de revisar el uso del ecografo convoca a los tres jefes de sector durante la tarde.)',
     initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D3S15_CHIEFS_ENTER',
@@ -164,7 +164,7 @@ export const sequences: MeetingSequence[] = [
       'MLQ5X_D3S15_N20_RIOS_ROTATING_SHIFTS',
       'MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION',
     ],
-    finalDialogue: 'La reunion deja abierta una discusion mayor: cuando la evidencia operacional tensiona el reglamento, la direccion debe decidir como aprender sin perder control.',
+    finalDialogue: 'La reunión deja abierta una discusion mayor: cuando la evidencia operacional tensiona el reglamento, la dirección debe decidir como aprender sin perder control.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 5, slot: 'tarde' },

@@ -14,7 +14,7 @@ export const nodes: ScenarioNode[] = [
   {
     node_id: 'MLQ5X_D1S1_ARRIVAL',
     dialogue:
-      '(Son las 7:55 AM. Llegas al CESFAM con una carpeta del SEREMI bajo el brazo. El edificio huele a cafe y antiseptico; pacientes esperan en los pasillos desde antes de las 8.)',
+      '(Son las 7:55 AM. Llegas al CESFAM con una carpeta del SEREMI bajo el brazo. El edificio huele a café y antiséptico; pacientes esperan en los pasillos desde antes de las 8.)',
     dialogueIsNarration: true,
     options: [nextOption()],
   },
@@ -23,7 +23,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Buenos dias, director. Bienvenido. Soy Sofia Castro, su asistente administrativa. Vengo con informacion importante para dejarlo orientado en su primer dia.',
+      'Buenos días, director. Bienvenido. Soy Sofía Castro, su asistente administrativa. Vengo con información importante para dejarlo orientado en su primer día.',
     options: [nextOption()],
   },
   {
@@ -31,7 +31,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Hoy el Centro de Salud trabaja en tres sectores: Sector Azul, Sector Rojo y Sector Amarillo. Cada uno tiene su propia jefatura, su equipo clinico y su forma de defender prioridades.',
+      'Hoy el Centro de Salud trabaja en tres sectores: Sector Azul, Sector Rojo y Sector Amarillo. Cada uno tiene su propia jefatura, su equipo clínico y su forma de defender prioridades.',
     options: [nextOption()],
   },
   {
@@ -39,7 +39,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Este viernes tiene que quedar lista la planificacion que se va a usar el lunes. Siempre chocamos con pocos boxes, horas clinicas y administrativas, capacitaciones y salidas a terreno compitiendo por el mismo espacio.',
+      'Este viernes tiene que quedar lista la planificación que se va a usar el lunes. Siempre chocamos con pocos boxes, horas clínicas y administrativas, capacitaciones y salidas a terreno compitiendo por el mismo espacio.',
     options: [nextOption()],
   },
   {
@@ -47,7 +47,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
     dialogue:
-      'Su trabajo es revisar propuestas, detectar topes y decidir que costo esta dispuesto a repartir. Si algo queda mal armado hoy, el lunes lo pagaremos en atencion, reclamos o conflicto interno. Los tres jefes de sector lo esperan en la sala de reuniones.',
+      'Su trabajo es revisar propuestas, detectar topes y decidir que costo está dispuesto a repartir. Si algo queda mal armado hoy, el lunes lo pagaremos en atención, reclamos o conflicto interno. Los tres jefes de sector lo esperan en la sala de reuniones.',
     options: [nextOption()],
   },
   {
@@ -63,7 +63,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Jefe Sector Azul',
     participantIds: ['andres-guzman', 'marcela-soto', 'daniel-rios'],
     dialogue:
-      'Director, traigo la propuesta del Sector Azul. Reservamos bloques criticos para sostener calidad tecnica y un espacio protegido para docencia. Si eso se cae, se cae algo mas que una agenda.',
+      'Director, traigo la propuesta del Sector Azul. Reservamos bloques críticos para sostener calidad técnica y un espacio protegido para docencia. Si eso se cae, se cae algo más que una agenda.',
     options: [nextOption()],
   },
   {
@@ -72,7 +72,7 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Jefa Sector Rojo',
     participantIds: ['andres-guzman', 'marcela-soto', 'daniel-rios'],
     dialogue:
-      'Un momento. En el Sector Rojo ya no tenemos margen para improvisar. Si alguien bloquea el box critico o vuelve a mover personal sin acuerdo, el lunes parte con problemas serios para mi sector.',
+      'Un momento. En el Sector Rojo ya no tenemos margen para improvisar. Si alguien bloquea el box crítico o vuelve a mover personal sin acuerdo, el lunes parte con problemas serios para mi sector.',
     options: [nextOption()],
   },
   {
@@ -81,14 +81,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Jefe Sector Amarillo',
     participantIds: ['andres-guzman', 'marcela-soto', 'daniel-rios'],
     dialogue:
-      'Mientras ustedes discuten criterios, en el Sector Amarillo estamos llegando con gente que no aguanta otra reagendacion. Si el lunes no aparece una salida real, me revienta la sala de espera.',
+      'Mientras ustedes discuten criterios, en el Sector Amarillo estamos llegando con gente que no aguanta otra reagendación. Si el lunes no aparece una salida real, me revienta la sala de espera.',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Declarar principios',
         cardEmoji: '🤝',
         text:
-          'Buen dia. Para comenzar, quiero recalcar que para que el CESFAM vaya por buen camino debemos mantener una atencion centrada en las personas, transparencia y trabajo en equipo.',
+          'Buen día. Para comenzar, quiero recalcar que para que el CESFAM vaya por buen camino debemos mantener una atención centrada en las personas, transparencia y trabajo en equipo.',
         tags: mlqTags({ "IIA": 4, "IIC": 4 }),
         consequences: {
           bridgeResponse: [
@@ -103,7 +103,7 @@ export const nodes: ScenarioNode[] = [
         option_id: 'B',
         cardTitle: 'Aprender primero',
         cardEmoji: '📘',
-        text: 'Gracias por la bienvenida. Tengo muchas ganas de aprender y en los proximos dias ire conociendolo todo.',
+        text: 'Gracias por la bienvenida. Tengo muchas ganas de aprender y en los próximos días iré conociendolo todo.',
         tags: mlqTags({ "MI": 2 }),
         consequences: {
           bridgeResponse: [
@@ -118,7 +118,7 @@ export const nodes: ScenarioNode[] = [
         option_id: 'C',
         cardTitle: 'Enfocar objetivos',
         cardEmoji: '🎯',
-        text: 'Buenos dias a todos. Sofia Castro me comento los objetivos que tiene el CESFAM. Hay trabajo que hacer.',
+        text: 'Buenos días a todos. Sofía Castro me comentó los objetivos que tiene el CESFAM. Hay trabajo que hacer.',
         tags: mlqTags({ "RC": 2 }),
         consequences: {
           bridgeResponse: [
@@ -137,14 +137,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Jefe Sector Azul',
     participantIds: ['andres-guzman', 'marcela-soto', 'daniel-rios'],
     dialogue:
-      'Como dije, la docencia igual es importante. Tengo un proyecto docente con una universidad que ya lleva dos anos y que el director anterior apoyo a medias. Necesita respaldo real de direccion.',
+      'Como dije, la docencia igual es importante. Tengo un proyecto docente con una universidad que ya lleva dos años y que el director anterior apoyo a medias. Necesita respaldo real de dirección.',
     options: [
       {
         option_id: 'A',
-        cardTitle: 'Vincular mision',
+        cardTitle: 'Vincular misión',
         cardEmoji: '🩺',
         text:
-          'La docencia es parte de la mision del CESFAM. Considerare el proyecto para entender el impacto en la carga del equipo antes de decidir.',
+          'La docencia es parte de la misión del CESFAM. Consideraré el proyecto para entender el impacto en la carga del equipo antes de decidir.',
         tags: mlqTags({ "IIC": 4, "MI": 2 }),
         consequences: {
           trustChange: 10,
@@ -159,16 +159,16 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
+              text: 'Con todo respeto, Andrés, eso también consume horas de los médicos de turno. Debe tener eso en cuenta, director.',
             }
           ]
         },
       },
       {
         option_id: 'B',
-        cardTitle: 'Postergar revision',
+        cardTitle: 'Postergar revisión',
         cardEmoji: '⏳',
-        text: 'Lo revisare, pero acabo de asumir el puesto. Tengo muchas prioridades que atender primero.',
+        text: 'Lo revisaré, pero acabo de asumir el puesto. Tengo muchas prioridades que atender primero.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
           bridgeResponse: [
@@ -178,17 +178,17 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
+              text: 'Con todo respeto, Andrés, eso también consume horas de los médicos de turno. Debe tener eso en cuenta, director.',
             }
           ]
         },
       },
       {
         option_id: 'C',
-        cardTitle: 'Exigir justificacion',
+        cardTitle: 'Exigir justificación',
         cardEmoji: '📊',
         text:
-          'Cualquier actividad extra necesita justificarse en carga asistencial antes de aceptarla. No podemos comprometer la atencion al publico.',
+          'Cualquier actividad extra necesita justificarse en carga asistencial antes de aceptarla. No podemos comprometer la atención al público.',
         tags: mlqTags({ "RC": 2 }),
         consequences: {
           supportChange: -5,
@@ -198,11 +198,11 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Puedo justificarlo tecnicamente, pero necesito que la direccion no lo trate solo como una actividad extra.',
+              text: 'Puedo justificarlo técnicamente, pero necesito que la dirección no lo trate solo como una actividad extra.',
             },
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Con todo respeto, Andres, eso tambien consume horas de los medicos de turno. Debe tener eso en cuenta, director.',
+              text: 'Con todo respeto, Andrés, eso también consume horas de los médicos de turno. Debe tener eso en cuenta, director.',
             }
           ]
         },
@@ -215,13 +215,13 @@ export const nodes: ScenarioNode[] = [
     stakeholderRole: 'Jefe Sector Amarillo',
     participantIds: ['andres-guzman', 'marcela-soto', 'daniel-rios'],
     dialogue:
-      'Como va a manejar el tema de los protocolos? Porque aqui Soto los aplica al pie de la letra aunque eso signifique dejar a un paciente esperando.',
+      '¿Cómo va a manejar el tema de los protocolos? Porque aquí Soto los aplica al pie de la letra aunque eso signifique dejar a un paciente esperando.',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Revisar formalmente',
         cardEmoji: '📘',
-        text: 'Los protocolos son lo minimo, no el techo. Cuando no benefician al paciente hay que revisarlos formalmente, no ignorarlos.',
+        text: 'Los protocolos son lo mínimo, no el techo. Cuando no benefician al paciente hay que revisarlos formalmente, no ignorarlos.',
         tags: mlqTags({ "IIC": 2, "EI": 2 }),
         consequences: {
           trustChange: 5,
@@ -229,7 +229,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'daniel-rios',
-              text: 'Eso nos daria una salida real: no saltarse la norma, pero tampoco dejar que la norma tape al paciente.',
+              text: 'Eso nos daría una salida real: no saltarse la norma, pero tampoco dejar que la norma tape al paciente.',
             },
             {
               stakeholder_id: 'daniel-rios',
@@ -242,7 +242,7 @@ export const nodes: ScenarioNode[] = [
         option_id: 'B',
         cardTitle: 'Esperar contexto',
         cardEmoji: '⏳',
-        text: 'Es un tema que ire conociendo. No quiero opinar al respecto sin tener mas contexto.',
+        text: 'Es un tema que iré conociendo. No quiero opinar al respecto sin tener más contexto.',
         tags: mlqTags({ "LF": 4 }),
         consequences: {
           stakeholder_effects: {
@@ -251,7 +251,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'daniel-rios',
-              text: 'Director, el problema ya esta golpeando al equipo. Si solo esperamos contexto, el paciente sigue esperando.',
+              text: 'Director, el problema ya está golpeando al equipo. Si solo esperamos contexto, el paciente sigue esperando.',
             },
             {
               stakeholder_id: 'daniel-rios',
@@ -264,7 +264,7 @@ export const nodes: ScenarioNode[] = [
         option_id: 'C',
         cardTitle: 'Resguardar norma',
         cardEmoji: '📋',
-        text: 'Los protocolos existen por alguna razon. Espero que se respeten en todos los sectores.',
+        text: 'Los protocolos existen por alguna razón. Espero que se respeten en todos los sectores.',
         tags: mlqTags({ "DPE-A": 2 }),
         consequences: {
           stakeholder_effects: {
@@ -302,7 +302,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Mientras esa revision no diluya los datos, me parece razonable que conozca el funcionamiento completo.',
+              text: 'Mientras esa revisión no diluya los datos, me parece razonable que conozca el funcionamiento completo.',
             },
             {
               stakeholder_id: 'marcela-soto',
@@ -326,7 +326,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Lo preparo. Es importante que direccion vea que el cumplimiento del Sector Rojo no es casualidad.',
+              text: 'Lo preparo. Es importante que dirección vea que el cumplimiento del Sector Rojo no es casualidad.',
             },
             
           ]
@@ -343,7 +343,7 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'marcela-soto',
-              text: 'Ese estandar se puede extender, siempre que no se relativicen los protocolos para hacerlo mas comodo.',
+              text: 'Ese estandar se puede extender, siempre que no se relativicen los protocolos para hacerlo más comodo.',
             }
           ]
         },
@@ -354,20 +354,20 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D1S1_N5_SOFIA_PRIORITY',
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
-    dialogue: 'Director, ¿con que jefe de sector prefiere reunirse primero en su oficina?',
+    dialogue: '¿Director, ¿con que jefe de sector prefiere reunirse primero en su oficina?',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Primero Azul',
         cardEmoji: '🔵',
         text:
-          'Me reunire primero con Guzman del Sector Azul. No quiero tener problemas con temas docentes por el beneficio que tienen para el CESFAM.',
+          'Me reunire primero con Guzmán del Sector Azul. No quiero tener problemas con temas docentes por el beneficio que tienen para el CESFAM.',
         tags: mlqTags(),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Yo le avisare que va para su oficina, director.',
+              text: 'Yo le avisaré que va para su oficina, director.',
             },
           ],
           expected_actions: [
@@ -379,8 +379,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'visit_priority_rule_v1',
               stakeholder_id: 'andres-guzman',
               ui: {
-                title: 'Mapa: primera visita a Dr. Andres Guzman en Sector Azul - Miercoles PM',
-                description: 'Cumplir la prioridad elegida: reunirse primero con Guzman durante el bloque Miercoles PM.',
+                title: 'Mapa: primera visita a Dr. Andrés Guzmán en Sector Azul - Miércoles PM',
+                description: 'Cumplir la prioridad elegida: reunirse primero con Guzmán durante el bloque Miércoles PM.',
               },
               effects: {
                 TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -400,13 +400,13 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Primero Rojo',
         cardEmoji: '🔴',
         text:
-          'Avisele a Soto del Sector Rojo que ire a su oficina primero. Revisaremos lo asociado a los protocolos para que todo vaya en regla en el CESFAM.',
+          'Avisele a Soto del Sector Rojo que iré a su oficina primero. Revisaremos lo asociado a los protocolos para que todo vaya en regla en el CESFAM.',
         tags: mlqTags(),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Yo le avisare que va para su oficina, director.',
+              text: 'Yo le avisaré que va para su oficina, director.',
             },
           ],
           expected_actions: [
@@ -418,8 +418,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'visit_priority_rule_v1',
               stakeholder_id: 'marcela-soto',
               ui: {
-                title: 'Mapa: primera visita a Enf. Marcela Soto en Sector Rojo - Miercoles PM',
-                description: 'Cumplir la prioridad elegida: reunirse primero con Soto durante el bloque Miercoles PM.',
+                title: 'Mapa: primera visita a Enf. Marcela Soto en Sector Rojo - Miércoles PM',
+                description: 'Cumplir la prioridad elegida: reunirse primero con Soto durante el bloque Miércoles PM.',
               },
               effects: {
                 TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -439,13 +439,13 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Primero Amarillo',
         cardEmoji: '🟡',
         text:
-          'Primero ire a la oficina de Rios del Sector Amarillo. Quiero revisar todo lo asociado a los pacientes antes de tomar cualquier decision.',
+          'Primero iré a la oficina de Ríos del Sector Amarillo. Quiero revisar todo lo asociado a los pacientes antes de tomar cualquier decisión.',
         tags: mlqTags(),
         consequences: {
           bridgeResponse: [
             {
               stakeholder_id: 'sofia-castro',
-              text: 'Yo le avisare que va para su oficina, director.',
+              text: 'Yo le avisaré que va para su oficina, director.',
             },
           ],
           expected_actions: [
@@ -457,8 +457,8 @@ export const nodes: ScenarioNode[] = [
               rule_id: 'visit_priority_rule_v1',
               stakeholder_id: 'daniel-rios',
               ui: {
-                title: 'Mapa: primera visita a Sr. Daniel Rios en Sector Amarillo - Miercoles PM',
-                description: 'Cumplir la prioridad elegida: reunirse primero con Rios durante el bloque Miercoles PM.',
+                title: 'Mapa: primera visita a Sr. Daniel Ríos en Sector Amarillo - Miércoles PM',
+                description: 'Cumplir la prioridad elegida: reunirse primero con Ríos durante el bloque Miércoles PM.',
               },
               effects: {
                 TRUE: { stakeholder: { trust: 5, support: 5 } },
@@ -480,7 +480,7 @@ export const nodes: ScenarioNode[] = [
 export const sequences: MeetingSequence[] = [
   {
     sequence_id: 'MLQ5X_D1_SEQUENCE_1',
-    initialDialogue: '(Comienza tu primer dia como director del CESFAM. Sofia Castro te conduce hacia la sala donde esperan los tres jefes de sector.)',
+    initialDialogue: '(Comienza tu primer día como director del CESFAM. Sofía Castro te conduce hacia la sala donde esperan los tres jefes de sector.)',
     initialDialogueIsNarration: true,
     nodes: [
       'MLQ5X_D1S1_ARRIVAL',
@@ -497,7 +497,7 @@ export const sequences: MeetingSequence[] = [
       'MLQ5X_D1S1_N4_SOTO_INDICATORS',
       'MLQ5X_D1S1_N5_SOFIA_PRIORITY',
     ],
-    finalDialogue: 'Queda definida la primera visita de seguimiento. Revise tambien su correo: hay una solicitud de reserva de box del Sector Azul.',
+    finalDialogue: 'Queda definida la primera visita de seguimiento. Revise también su correo: hay una solicitud de reserva de box del Sector Azul.',
     finalDialogueIsNarration: true,
     backgroundKey: 'hospital',
     consumesTime: false,

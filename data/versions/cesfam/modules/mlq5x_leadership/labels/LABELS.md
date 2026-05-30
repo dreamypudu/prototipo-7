@@ -78,24 +78,26 @@ El motor de captura (`MechanicEngine`, `decisionLog`) lee `option.tags` **igual 
 
 ## Cómo se exporta a la base de datos
 
-Al boot del backend ([`backend/schema.py`](../../../../../../backend/schema.py) → `create_schema`):
-1. Se crea la tabla `mlq_labels` si no existe.
-2. Se borran y repueblan las filas del módulo actual desde `mlq_labels.json`.
+La tabla `mlq_labels` es **per-sesión**: contiene **solo las variables de las alternativas que el jugador efectivamente eligió** en los nodos que efectivamente visitó. No es un catálogo estático.
 
-Esquema de la tabla:
+Esquema:
 ```sql
 mlq_labels (
-    module_id     TEXT,   -- ej. "cesfam_mlq5x_leadership"
-    sequence_id   TEXT,
-    node_id       TEXT,
-    option_id     TEXT,
-    variable      TEXT,   -- "RC", "IIA", etc.
-    score         DOUBLE PRECISION,
-    PRIMARY KEY (module_id, sequence_id, node_id, option_id, variable)
+    session_id    TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    sequence_id   TEXT NOT NULL,
+    node_id       TEXT NOT NULL,
+    option_id     TEXT NOT NULL,
+    variable      TEXT NOT NULL,   -- "RC", "IIA", etc.
+    score         DOUBLE PRECISION NOT NULL,
+    PRIMARY KEY (session_id, sequence_id, node_id, option_id, variable)
 )
 ```
 
-Una fila **por puntaje** (variable). Permite consultas SQL/pandas directas para análisis (calcular máximos por variable, joins con `explicit_decisions`, etc.).
+Una fila **por puntaje × variable × decisión del usuario**. Si una opción tiene tags `{IIA: 4, IIC: 4}`, se insertan 2 filas para esa decisión.
+
+Cuándo se escribe: dentro de `normalize_session` ([`backend/normalizers/session.py`](../../../../../../backend/normalizers/session.py)), después de `insert_explicit_decisions`. Para cada decisión del usuario se consulta el JSON catalogo en memoria y se vuelcan las filas correspondientes. Re-normalizar la misma sesión borra primero las filas viejas (`DERIVED_TABLES_DELETE_ORDER`).
+
+Cuándo se actualiza el catálogo: el JSON se carga **una vez por proceso** desde el backend. Si actualizas `medianas.csv` y corres `build_mlq_labels.py`, **reinicia el backend** para que el cache se refresque.
 
 ## Replicar este patrón en otro módulo
 
@@ -104,38 +106,42 @@ Cuando armes un módulo nuevo (por ej. `mlq5x_ethics`):
 1. **Crea la carpeta `labels/`** dentro del módulo y pon ahí un CSV con la matriz (mismo formato).
 2. **Actualiza el script** ([`scripts/build_mlq_labels.py`](../../../../../../scripts/build_mlq_labels.py)): ajusta `MODULE_DIR`, `SCENARIOS_DIR`, `CSV_PATH` y `JSON_PATH` para que apunten al módulo nuevo, o parametrízalo para aceptar el módulo como argumento.
 3. **Wirea el loader** en el `scenarios.ts` del módulo nuevo (mismo patrón que el de liderazgo).
-4. **Agrega la fuente al backend** en [`backend/normalizers/labels.py`](../../../../../../backend/normalizers/labels.py): añade una tupla `(module_id, ruta_al_json)` a `LABEL_SOURCES`. El boot se encarga del resto.
+4. **Agrega la fuente al backend** en [`backend/normalizers/labels.py`](../../../../../../backend/normalizers/labels.py): añade la ruta al JSON nuevo en `LABEL_SOURCES`. El cache las combina todas y resuelve por `(sequence_id, node_id, option_id)`.
 5. **Corre el script** y commitea CSV + JSON.
 
 ## Análisis post-experimento (referencia)
 
-La normalización no se hace en runtime. Se hace después, en pandas/SQL:
+La tabla solo tiene las elecciones reales del jugador, así que las consultas son directas:
 
 ```sql
--- Score crudo del jugador por variable
+-- Score crudo del jugador por variable (suma de todas sus elecciones del modulo)
 SELECT
-  d.session_id,
-  l.variable,
-  SUM(l.score) AS score_total
-FROM explicit_decisions d
-JOIN mlq_labels l
-  ON l.sequence_id = d.sequence_id
- AND l.node_id     = d.node_id
- AND l.option_id   = d.option_id
-WHERE l.module_id = 'cesfam_mlq5x_leadership'
-GROUP BY d.session_id, l.variable;
-
--- Máximo posible por variable (módulo completo)
-SELECT
+  session_id,
   variable,
-  SUM(max_score) AS max_total
-FROM (
-  SELECT sequence_id, node_id, variable, MAX(score) AS max_score
-  FROM mlq_labels
-  WHERE module_id = 'cesfam_mlq5x_leadership'
-  GROUP BY sequence_id, node_id, variable
-) AS per_node
-GROUP BY variable;
+  SUM(score) AS score_total
+FROM mlq_labels
+GROUP BY session_id, variable;
+
+-- Detalle nodo por nodo de lo que eligio el jugador
+SELECT
+  session_id,
+  sequence_id,
+  node_id,
+  option_id,
+  variable,
+  score
+FROM mlq_labels
+WHERE session_id = '<UUID>'
+ORDER BY sequence_id, node_id, variable;
+
+-- Comparar todos los jugadores en una variable (ej. RC)
+SELECT session_id, SUM(score) AS rc_total
+FROM mlq_labels
+WHERE variable = 'RC'
+GROUP BY session_id
+ORDER BY rc_total DESC;
 ```
 
-El `visited` flag se deriva por LEFT JOIN entre la matriz completa y `explicit_decisions` (si hay una `option_id` elegida para ese nodo → visitado; si no → no visitado).
+**Máximo posible y normalización** son post-hoc, fuera de la base: se calculan a partir del JSON catalogo (`mlq_labels.json`) en pandas/notebooks. La base guarda los crudos del jugador, nada más.
+
+**Flag `visited` por nodo**: derivable con `EXISTS` o `GROUP BY node_id` sobre `mlq_labels` para una sesión dada. Si no hay fila para un (sequence_id, node_id), el jugador no pasó por ese nodo (o pasó pero eligió `NEXT`).

@@ -7,14 +7,14 @@ export const nodes: ScenarioNode[] = [
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     dialogue:
-      'Que bueno que este aqui, director. Me parece importante que considere los programas docentes que actualmente posee el CESFAM. Soto y Rios no estan de acuerdo con esto porque consume horas del personal, pero significan grandes ingresos para el CESFAM.',
+      'Que bueno que este aquí, director. Me parece importante que considere los programas docentes que actualmente posee el CESFAM. Soto y Ríos no están de acuerdo con esto porque consume horas del personal, pero significan grandes ingresos para el CESFAM.',
     options: [
       {
         option_id: 'A',
         cardTitle: 'Respaldar docencia',
         cardEmoji: '📘',
         text:
-          'No se preocupe, Guzman. Siempre tendre en consideracion el compromiso docente a la hora de tomar decisiones.',
+          'No se preocupe, Guzmán. Siempre tendré en consideracion el compromiso docente a la hora de tomar decisiones.',
         tags: mlqTags(),
         consequences: {
           trustChange: 5,
@@ -22,11 +22,11 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Gracias. El compromiso docente necesita una direccion que lo mire con altura estrategica.',
+              text: 'Gracias. El compromiso docente necesita una dirección que lo mire con altura estrategica.',
             },
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Comprendo, director. Eso es todo lo que tenia que decir de momento.',
+              text: 'Comprendo, director. Eso es todo lo que tenía que decir de momento.',
             }
           ]},
       },
@@ -34,7 +34,7 @@ export const nodes: ScenarioNode[] = [
         option_id: 'B',
         cardTitle: 'Priorizar pacientes',
         cardEmoji: '🩺',
-        text: 'No puedo garantizar eso, Guzman. Los pacientes son lo primero.',
+        text: 'No puedo garantizar eso, Guzmán. Los pacientes son lo primero.',
         tags: mlqTags(),
         consequences: {
           trustChange: -10,
@@ -42,11 +42,11 @@ export const nodes: ScenarioNode[] = [
           bridgeResponse: [
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Los pacientes son lo primero, de acuerdo, pero la docencia tambien sostiene la calidad clinica del CESFAM.',
+              text: 'Los pacientes son lo primero, de acuerdo, pero la docencia también sostiene la calidad clínica del CESFAM.',
             },
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Comprendo, director. Eso es todo lo que tenia que decir de momento.',
+              text: 'Comprendo, director. Eso es todo lo que tenía que decir de momento.',
             }
           ]},
       },
@@ -55,7 +55,7 @@ export const nodes: ScenarioNode[] = [
         cardTitle: 'Equilibrar criterios',
         cardEmoji: '⚖️',
         text:
-          'El compromiso docente es importante, pero no puedo comprometer la atencion a los pacientes en beneficio de la docencia.',
+          'El compromiso docente es importante, pero no puedo comprometer la atención a los pacientes en beneficio de la docencia.',
         tags: mlqTags(),
         consequences: {
           bridgeResponse: [
@@ -65,7 +65,7 @@ export const nodes: ScenarioNode[] = [
             },
             {
               stakeholder_id: 'andres-guzman',
-              text: 'Comprendo, director. Eso es todo lo que tenia que decir de momento.',
+              text: 'Comprendo, director. Eso es todo lo que tenía que decir de momento.',
             }
           ]},
       },
@@ -78,10 +78,10 @@ export const sequences: MeetingSequence[] = [
     sequence_id: 'MLQ5X_D1_SEQUENCE_3',
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
-    initialDialogue: '(Llegas a la oficina del Sector Azul para profundizar la conversacion con Andres Guzman.)',
+    initialDialogue: '(Llegas a la oficina del Sector Azul para profundizar la conversacion con Andrés Guzmán.)',
     initialDialogueIsNarration: true,
     nodes: ['MLQ5X_D1S3_N6_GUZMAN_DOCENCIA'],
-    finalDialogue: 'La posicion de Guzman queda clara: espera respaldo directivo para los programas docentes del CESFAM.',
+    finalDialogue: 'La posicion de Guzmán queda clara: espera respaldo directivo para los programas docentes del CESFAM.',
     finalDialogueIsNarration: true,
     consumesTime: false,
     triggerMap: { day: 3, slot: 'tarde' },

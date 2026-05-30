@@ -13,6 +13,7 @@ try:
     from .comparisons import insert_comparisons
     from .decisions import insert_explicit_decisions
     from .events import insert_mechanic_events
+    from .labels import insert_decision_labels_batch
     from .process import insert_process_logs
     from .state import insert_final_state, insert_question_log
 except ImportError:
@@ -28,6 +29,7 @@ except ImportError:
     from normalizers.comparisons import insert_comparisons
     from normalizers.decisions import insert_explicit_decisions
     from normalizers.events import insert_mechanic_events
+    from normalizers.labels import insert_decision_labels_batch
     from normalizers.process import insert_process_logs
     from normalizers.state import insert_final_state, insert_question_log
 
@@ -37,6 +39,7 @@ DERIVED_TABLES_DELETE_ORDER = [
     "mechanic_events",
     "canonical_actions",
     "expected_actions",
+    "mlq_labels",
     "explicit_decisions",
     "process_logs",
     "question_log",
@@ -117,6 +120,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     _delete_session_derivatives(conn, session_id)
 
     insert_explicit_decisions(conn, session_id, user_id, version_id, explicit_decisions, stakeholders_state)
+    insert_decision_labels_batch(conn, session_id, explicit_decisions)
 
     expected_ids = set()
     for index, action in enumerate(expected_actions, start=1):
