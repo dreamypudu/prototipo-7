@@ -28,6 +28,11 @@ export interface DayReviewInternalChangeItem {
   supportDelta: number;
 }
 
+export interface DayReviewPendingCommitment {
+  id: string;
+  title: string;
+}
+
 export interface CesfamDayReviewData {
   completedDay: number;
   completedDayLabel: string;
@@ -39,6 +44,7 @@ export interface CesfamDayReviewData {
   spokenStakeholders: DayReviewSpokenStakeholder[];
   resolutionItems: DayReviewResolutionItem[];
   internalChanges: DayReviewInternalChangeItem[];
+  pendingCommitments: DayReviewPendingCommitment[];
 }
 
 const CESFAM_DAY_LABELS: Record<number, string> = {
@@ -186,6 +192,25 @@ export const buildCesfamDayReviewData = (
   const directReputationDelta = decisions.reduce((sum, entry) => sum + entry.reputationDelta, 0);
   const resolutionReputationDelta = Number(resolution?.global_deltas?.reputation ?? 0);
 
+  // Compromisos pendientes: expectedActions creadas hasta hoy cuyo expected_action_id
+  // todavia no aparece resuelto en gameState.comparisons. Son las "promesas vivas"
+  // que el jugador todavia tiene que cumplir.
+  const resolvedExpectedActionIds = new Set(
+    gameState.comparisons
+      .map((comparison) => comparison.expected_action_id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const pendingCommitments: DayReviewPendingCommitment[] = gameState.expectedActions
+    .filter((expected) => !resolvedExpectedActionIds.has(expected.expected_action_id))
+    .filter((expected) => {
+      const createdDay = Number(expected.created_day ?? completedDay);
+      return Number.isFinite(createdDay) && createdDay <= completedDayNumber;
+    })
+    .map((expected) => ({
+      id: expected.expected_action_id,
+      title: expected.ui?.title ?? expected.target_ref ?? expected.action_type ?? 'Compromiso pendiente',
+    }));
+
   return {
     completedDay,
     completedDayLabel: getDayLabel(completedDay),
@@ -197,5 +222,6 @@ export const buildCesfamDayReviewData = (
     spokenStakeholders,
     resolutionItems,
     internalChanges,
+    pendingCommitments,
   };
 };

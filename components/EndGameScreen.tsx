@@ -65,19 +65,40 @@ const EndGameScreen: React.FC<EndGameScreenProps> = ({
             )}
           </div>
         )}
-        <div className="mb-6 space-y-2 text-sm text-gray-300">
-          {saveStatus === 'sending' && <p></p>}
-          {saveStatus === 'success' && <p className="text-green-300">Sesion guardada correctamente.</p>}
-          {saveStatus === 'error' && <p className="text-red-300">No se pudo guardar la sesión: {saveError}</p>}
+        <div className="mb-4 space-y-2 text-sm text-gray-300">
+          {saveStatus === 'sending' && (
+            <p className="text-amber-300">Enviando sesión al servidor…</p>
+          )}
+          {saveStatus === 'success' && (
+            <p className="text-green-300">
+              ✓ Sesión guardada correctamente. Puedes reenviarla si hiciste cambios o quieres asegurarte de sobrescribir el envío anterior.
+            </p>
+          )}
+          {saveStatus === 'error' && (
+            <p className="text-red-300">✗ No se pudo guardar la sesión: {saveError}</p>
+          )}
         </div>
-        {(saveStatus === 'error' || onRetrySave || onDownloadBackup) && (
+        {(onRetrySave || onDownloadBackup) && (
           <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
-            {onRetrySave && saveStatus === 'error' && (
+            {onRetrySave && (
               <button
                 onClick={onRetrySave}
-                className="rounded-lg bg-yellow-600 px-5 py-2 font-semibold text-white transition-colors hover:bg-yellow-500"
+                disabled={saveStatus === 'sending'}
+                className={`rounded-lg px-5 py-2 font-semibold text-white transition-colors ${
+                  saveStatus === 'sending'
+                    ? 'cursor-not-allowed bg-slate-600 opacity-70'
+                    : saveStatus === 'error'
+                      ? 'bg-yellow-600 hover:bg-yellow-500'
+                      : 'bg-blue-600 hover:bg-blue-500'
+                }`}
               >
-                Reintentar envio
+                {saveStatus === 'sending'
+                  ? 'Enviando…'
+                  : saveStatus === 'error'
+                    ? 'Reintentar envío'
+                    : saveStatus === 'success'
+                      ? 'Reenviar sesión'
+                      : 'Enviar sesión'}
               </button>
             )}
             {onDownloadBackup && (

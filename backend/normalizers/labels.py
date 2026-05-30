@@ -1,8 +1,13 @@
-"""Tabla mlq_labels: puntajes MLQ-5X de las alternativas QUE EL USUARIO EFECTIVAMENTE ELIGIO.
+"""Tabla mlq_labels (wide-format): una fila por alternativa que el usuario EFECTIVAMENTE
+ELIGIO, con una columna por cada variable del MLQ-5X.
 
-Una fila por (sesion, secuencia, nodo, opcion, variable) -- solo para opciones reales
-del usuario en nodos visitados. La matriz completa (catalogo) vive en los JSON del modulo
-y se aplica en runtime al decorar las opciones; la base solo guarda las trazas del jugador.
+Esquema:
+    session_id, sequence_id, node_id, option_id,
+    iia, iic, mi, ei, ci, rc, dpe_a, dpe_p, lf
+
+Cuando una opcion no carga una variable (score = 0 segun el catalogo), la celda
+guarda 0. La matriz completa (catalogo) vive en los JSON del modulo y se aplica
+en runtime al decorar las opciones; la base solo guarda las trazas del jugador.
 """
 from __future__ import annotations
 
@@ -26,26 +31,38 @@ LABEL_SOURCES: list[Path] = [
 ]
 
 
-CREATE_SQL = """
+# Orden canonico del MLQ-5X: dimensiones transformacionales -> transaccionales -> evitativas.
+MLQ_COLUMNS: list[tuple[str, str]] = [
+    # (clave en el JSON catalogo, nombre de columna en la tabla)
+    ("IIA", "iia"),
+    ("IIC", "iic"),
+    ("MI", "mi"),
+    ("EI", "ei"),
+    ("CI", "ci"),
+    ("RC", "rc"),
+    ("DPE-A", "dpe_a"),
+    ("DPE-P", "dpe_p"),
+    ("LF", "lf"),
+]
+
+VARIABLE_TO_COLUMN: dict[str, str] = {variable: column for variable, column in MLQ_COLUMNS}
+COLUMN_NAMES: list[str] = [column for _, column in MLQ_COLUMNS]
+
+
+CREATE_SQL = f"""
 CREATE TABLE IF NOT EXISTS mlq_labels (
     session_id TEXT NOT NULL,
     sequence_id TEXT NOT NULL,
     node_id TEXT NOT NULL,
     option_id TEXT NOT NULL,
-    variable TEXT NOT NULL,
-    score DOUBLE PRECISION NOT NULL,
-    PRIMARY KEY (session_id, sequence_id, node_id, option_id, variable)
+    {", ".join(f"{col} DOUBLE PRECISION NOT NULL DEFAULT 0" for col in COLUMN_NAMES)},
+    PRIMARY KEY (session_id, sequence_id, node_id, option_id)
 )
 """
 
-ALTER_SQL = """
+ALTER_SQL = f"""
 ALTER TABLE mlq_labels
-ADD COLUMN IF NOT EXISTS session_id TEXT,
-ADD COLUMN IF NOT EXISTS sequence_id TEXT,
-ADD COLUMN IF NOT EXISTS node_id TEXT,
-ADD COLUMN IF NOT EXISTS option_id TEXT,
-ADD COLUMN IF NOT EXISTS variable TEXT,
-ADD COLUMN IF NOT EXISTS score DOUBLE PRECISION
+{", ".join(f"ADD COLUMN IF NOT EXISTS {col} DOUBLE PRECISION NOT NULL DEFAULT 0" for col in COLUMN_NAMES)}
 """
 
 
@@ -92,11 +109,22 @@ def reset_cache() -> None:
     _label_index_cache = None
 
 
-def upsert_decision_labels(conn, session_id: str, decision: dict) -> int:
-    """Para UNA decision del usuario, escribe una fila por variable MLQ con su score.
+_INSERT_SQL = f"""
+INSERT INTO mlq_labels (
+    session_id, sequence_id, node_id, option_id,
+    {", ".join(COLUMN_NAMES)}
+)
+VALUES (%s, %s, %s, %s, {", ".join("%s" for _ in COLUMN_NAMES)})
+ON CONFLICT (session_id, sequence_id, node_id, option_id) DO UPDATE SET
+    {", ".join(f"{col} = EXCLUDED.{col}" for col in COLUMN_NAMES)}
+"""
 
-    Devuelve el numero de filas insertadas/actualizadas. Si la decision no tiene IDs
-    validos, es una opcion NEXT, o no existe en el catalogo, devuelve 0.
+
+def upsert_decision_labels(conn, session_id: str, decision: dict) -> int:
+    """Para UNA decision del usuario, escribe (o actualiza) una fila en mlq_labels
+    con una columna por variable MLQ.
+
+    Devuelve 1 si escribio fila, 0 si la decision no aplica (NEXT, sin IDs, sin catalogo).
     """
     sequence_id = decision.get("sequence_id") or decision.get("sequenceId")
     node_id = decision.get("node_id") or decision.get("nodeId")
@@ -111,21 +139,24 @@ def upsert_decision_labels(conn, session_id: str, decision: dict) -> int:
     if not scores:
         return 0
 
-    rows = 0
+    column_values = {column: 0.0 for column in COLUMN_NAMES}
     for variable, score in scores.items():
-        conn.execute(
-            """
-            INSERT INTO mlq_labels (
-                session_id, sequence_id, node_id, option_id, variable, score
-            )
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (session_id, sequence_id, node_id, option_id, variable) DO UPDATE SET
-                score = EXCLUDED.score
-            """,
-            (session_id, sequence_id, node_id, option_id, variable, float(score)),
-        )
-        rows += 1
-    return rows
+        column = VARIABLE_TO_COLUMN.get(variable)
+        if column is None:
+            continue  # variable desconocida; ignoramos en silencio
+        column_values[column] = float(score)
+
+    conn.execute(
+        _INSERT_SQL,
+        (
+            session_id,
+            sequence_id,
+            node_id,
+            option_id,
+            *(column_values[col] for col in COLUMN_NAMES),
+        ),
+    )
+    return 1
 
 
 def insert_decision_labels_batch(conn, session_id: str, decisions: list) -> int:

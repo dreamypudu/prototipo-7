@@ -1,0 +1,68 @@
+# Orquesta los contenedores de COMPASS para el despliegue en el servidor del edificio.
+#
+# Uso:
+#   1) Copia .env.production.example a .env.production y completa los valores.
+#   2) docker compose --env-file .env.production up -d --build
+#   3) docker compose logs -f       # ver logs en vivo
+#   4) docker compose down          # apagar
+#
+# Asume que la base PostgreSQL es externa (Supabase o el servidor del edificio
+# con Postgres ya instalado fuera de Docker). Si quieres correrla en otro
+# contenedor, descomenta el servicio `db` mas abajo y apunta DATABASE_URL a el.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: compass-backend:latest
+    container_name: compass-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://compass.giia.udec.cl}
+    expose:
+      - "8000"
+    networks:
+      - compass-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    image: compass-frontend:latest
+    container_name: compass-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - compass-net
+
+  # Descomenta esto SOLO si quieres correr Postgres en un contenedor
+  # (en vez de usar Supabase o un Postgres ya instalado en el servidor):
+  #
+  # db:
+  #   image: postgres:16-alpine
+  #   container_name: compass-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER:-compass}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB:-compass}
+  #   volumes:
+  #     - compass-db-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - compass-net
+  #
+  # volumes:
+  #   compass-db-data:
+
+networks:
+  compass-net:
+    driver: bridge

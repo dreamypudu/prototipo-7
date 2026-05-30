@@ -1,0 +1,41 @@
+# Frontend Vite/React — multi-stage:
+#   1) Compila el bundle estatico con Node 20.
+#   2) Lo sirve con nginx, que ademas hace reverse proxy del backend en /api.
+#
+# Build:  docker build -f Dockerfile.frontend -t compass-frontend .
+# Run:    se levanta desde docker-compose.yml (orquesta puerto 80 y networking).
+
+# -----------------------------
+# Stage 1: build con Node
+# -----------------------------
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# VITE_API_URL se inyecta como ARG para que quede HARDCODED en el bundle.
+# En produccion local del edificio: VITE_API_URL=/api (mismo dominio que el front).
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
+
+# -----------------------------
+# Stage 2: nginx servidor
+# -----------------------------
+FROM nginx:1.27-alpine
+
+# Config de nginx con SPA fallback + reverse proxy a backend
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Bundle estatico generado
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1

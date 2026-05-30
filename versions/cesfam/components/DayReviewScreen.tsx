@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DailyResolution } from '../../../types';
 import { CesfamDayReviewData } from '../services/dayReview';
 
@@ -33,150 +33,263 @@ const outcomeTone = (status: 'completed' | 'failed') =>
     ? 'border-emerald-300/30 bg-emerald-500/12 text-emerald-100'
     : 'border-rose-300/30 bg-rose-500/12 text-rose-100';
 
+const NAME_PREFIXES = new Set(['Dr.', 'Dra.', 'Enf.', 'Sr.', 'Sra.', 'Lic.']);
+
+const shortenName = (fullName: string): string => {
+  const parts = fullName.split(/\s+/).filter(Boolean);
+  const firstWord = parts.find((part) => !NAME_PREFIXES.has(part));
+  return firstWord ?? fullName;
+};
+
+const formatNameList = (names: string[]): string => {
+  if (names.length === 0) return '';
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} y ${names[1]}`;
+  const head = names.slice(0, -1).join(', ');
+  return `${head} y ${names[names.length - 1]}`;
+};
+
 const DayReviewScreen: React.FC<DayReviewScreenProps> = ({ data, resolution, onContinue }) => {
+  const [showDetail, setShowDetail] = useState(false);
+
+  const completedResolutions = data.resolutionItems.filter((r) => r.status === 'completed').length;
+  const totalResolutions = data.resolutionItems.length;
+
+  const spokenShortNames = data.spokenStakeholders.slice(0, 4).map((s) => shortenName(s.name));
+
+  const visiblePendings = data.pendingCommitments.slice(0, 5);
+  const extraPendings = Math.max(0, data.pendingCommitments.length - visiblePendings.length);
+
+  const hasAnyHighlight =
+    spokenShortNames.length > 0 || totalResolutions > 0 || data.reputationDelta !== 0;
+
   return (
-    <div className="fixed inset-0 z-[180] bg-[radial-gradient(circle_at_top,_rgba(30,64,175,0.2),_rgba(2,6,23,0.96)_55%)] px-4 py-5 text-white backdrop-blur-sm md:px-6">
-      <div className="mx-auto flex h-full max-w-6xl flex-col overflow-hidden rounded-[2rem] border border-blue-950/80 bg-slate-950/94 shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
-        <div className="border-b border-white/10 px-6 py-5 md:px-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-[0.32em] text-blue-200/75">Cierre diario</div>
-              <h2 className="mt-2 text-3xl font-semibold">Cierre del {data.completedDayLabel}</h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300">
-                El reloj queda detenido. Revisa lo que instalaste hoy antes de abrir el {data.nextDayLabel.toLowerCase()}.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
-              <div className="text-xs uppercase tracking-[0.28em] text-slate-400">Reputación del día</div>
-              <div className={`mt-2 text-4xl font-semibold ${deltaTone(data.reputationDelta)}`}>{formatSigned(data.reputationDelta)}</div>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-[180] flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(30,64,175,0.2),_rgba(2,6,23,0.96)_55%)] px-4 py-6 text-white backdrop-blur-sm">
+      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-[1.75rem] border border-blue-950/80 bg-slate-950/95 shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
+        {/* Continuar arriba — siempre visible, sin scroll */}
+        <div className="flex flex-col items-center gap-3 border-b border-white/10 px-6 py-6">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="day-review-continue group inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-yellow-200/80 bg-gradient-to-r from-yellow-300 to-yellow-200 px-8 py-4 text-base font-bold uppercase tracking-wide text-slate-950 transition-transform hover:scale-[1.015]"
+          >
+            <span>Continuar al {data.nextDayLabel.toLowerCase()}</span>
+            <span className="text-xl leading-none transition-transform group-hover:translate-x-1">→</span>
+          </button>
+          <p className="text-center text-xs text-slate-400">
+            El reloj queda pausado. Tomate un momento antes de continuar.
+          </p>
         </div>
 
-        <div className="grid flex-1 gap-5 overflow-y-auto px-6 py-5 md:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)] md:px-8">
-          <div className="space-y-5">
-            <section className="rounded-2xl border border-blue-950/80 bg-white/[0.04] p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-semibold">Decisiones y acciones tomadas</h3>
-                  <p className="text-sm text-slate-400">{data.decisionCount} registros durante el día.</p>
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <h2 className="text-2xl font-semibold">Cierre del {data.completedDayLabel}</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Una pausa para mirar lo que dejaste instalado hoy.
+          </p>
+
+          {/* Tres highlights */}
+          <div className="mt-6 space-y-3">
+            {spokenShortNames.length > 0 && (
+              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+                <span className="text-2xl leading-none">🤝</span>
+                <div className="min-w-0">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Conexiones</div>
+                  <div className="mt-1 text-base text-white">
+                    Conectaste con <span className="font-semibold">{formatNameList(spokenShortNames)}</span>.
+                  </div>
                 </div>
               </div>
-              {data.decisions.length === 0 ? (
-                <div className="rounded-xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-slate-400">
-                  No registraste decisiones o acciones estructuradas durante este día.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {data.decisions.map((decision) => (
-                    <div key={decision.id} className="rounded-xl border border-white/10 bg-black/15 px-4 py-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-sm font-semibold text-white">{decision.stakeholderName}</div>
-                          <div className="mt-1 text-sm text-slate-300">{decision.choiceText}</div>
-                        </div>
-                        <div className={`shrink-0 text-sm font-semibold ${deltaTone(decision.reputationDelta)}`}>
-                          Rep. {formatSigned(decision.reputationDelta)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
+            )}
 
-            <section className="rounded-2xl border border-blue-950/80 bg-white/[0.04] p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-semibold">Resoluciones y efectos</h3>
-                  <p className="text-sm text-slate-400">Lo que quedó cumplido o tensionado al cierre del día.</p>
+            {totalResolutions > 0 && (
+              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+                <span className="text-2xl leading-none">⚖️</span>
+                <div className="min-w-0">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Compromisos del día</div>
+                  <div className="mt-1 text-base text-white">
+                    Sostuviste <span className="font-semibold">{completedResolutions} de {totalResolutions}</span> compromisos.
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                {data.resolutionItems.length === 0 ? (
-                  <div className="rounded-xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-slate-400">
-                    No hubo compromisos que resolvieran automáticamente al cierre de este día.
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {data.resolutionItems.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/15 px-4 py-3">
-                        <span className="text-sm text-slate-100">{item.title}</span>
-                        <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${outcomeTone(item.status)}`}>
-                          {outcomeLabel(item.status)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            )}
 
-                {data.internalChanges.length > 0 && (
-                  <div className="grid gap-2 md:grid-cols-2">
-                    {data.internalChanges.map((change) => (
-                      <div key={change.id} className="rounded-xl border border-white/10 bg-black/15 px-4 py-3">
-                        <div className="text-sm font-semibold text-white">{change.stakeholderName}</div>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          {change.trustDelta !== 0 && (
-                            <span className={`rounded-full border px-2.5 py-1 ${pillTone(change.trustDelta > 0)}`}>
-                              Confianza {formatSigned(change.trustDelta)}
-                            </span>
-                          )}
-                          {change.supportDelta !== 0 && (
-                            <span className={`rounded-full border px-2.5 py-1 ${pillTone(change.supportDelta > 0)}`}>
-                              Apoyo {formatSigned(change.supportDelta)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {resolution && Number(resolution.global_deltas?.reputation ?? 0) !== 0 && (
-                  <div className="rounded-xl border border-white/10 bg-black/15 px-4 py-3 text-sm text-slate-200">
-                    Reputación automática del cierre: <span className={`font-semibold ${deltaTone(Number(resolution.global_deltas?.reputation ?? 0))}`}>{formatSigned(Number(resolution.global_deltas?.reputation ?? 0))}</span>
-                  </div>
-                )}
+            <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+              <span className="text-2xl leading-none">📈</span>
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wider text-slate-400">Reputación</div>
+                <div className={`mt-1 text-base ${deltaTone(data.reputationDelta)}`}>
+                  Reputación del día:{' '}
+                  <span className="font-semibold">{formatSigned(data.reputationDelta)}</span>
+                </div>
               </div>
-            </section>
+            </div>
+
+            {!hasAnyHighlight && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-400">
+                Día de transición — sin interacciones registradas.
+              </div>
+            )}
           </div>
 
-          <div className="space-y-5">
-            <section className="rounded-2xl border border-blue-950/80 bg-white/[0.04] p-5">
-              <h3 className="text-lg font-semibold">Con quién hablaste</h3>
-              <p className="mt-1 text-sm text-slate-400">Actores con interacción efectiva durante el día.</p>
-              {data.spokenStakeholders.length === 0 ? (
-                <div className="mt-4 rounded-xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-slate-400">
-                  No quedaron conversaciones registradas en este tramo.
-                </div>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {data.spokenStakeholders.map((stakeholder) => (
-                    <div key={stakeholder.id} className="rounded-xl border border-white/10 bg-black/15 px-4 py-3">
-                      <div className="text-sm font-semibold text-white">{stakeholder.name}</div>
-                      <div className="mt-1 text-sm text-slate-400">{stakeholder.role}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
+          {/* Pendientes */}
+          {visiblePendings.length > 0 && (
+            <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-200">
+                Lo que dejaste pendiente
+              </div>
+              <ul className="space-y-1.5 text-sm text-slate-100">
+                {visiblePendings.map((pending) => (
+                  <li key={pending.id} className="flex items-start gap-2">
+                    <span className="mt-1.5 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-300" />
+                    <span>{pending.title}</span>
+                  </li>
+                ))}
+                {extraPendings > 0 && (
+                  <li className="pl-3.5 text-xs text-amber-200/70">
+                    y {extraPendings} {extraPendings === 1 ? 'compromiso más' : 'compromisos más'}…
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
 
-            <section className="rounded-2xl border border-blue-950/80 bg-white/[0.04] p-5">
-              <h3 className="text-lg font-semibold">Preparación del siguiente día</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Cuando continúes, comenzará el {data.nextDayLabel.toLowerCase()} y volverán a activarse correos, agenda y secuencias inevitables.
-              </p>
-              <button
-                type="button"
-                onClick={onContinue}
-                className="mt-5 w-full rounded-2xl border border-blue-800 bg-blue-700 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(29,78,216,0.35)] transition hover:bg-blue-600"
-              >
-                Iniciar {data.nextDayLabel}
-              </button>
-            </section>
+          {/* Detalle colapsable */}
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => setShowDetail((prev) => !prev)}
+              className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+            >
+              <span>
+                {showDetail ? 'Ocultar detalle del día' : 'Ver detalle del día'}
+                <span className="ml-2 text-xs text-slate-500">
+                  ({data.decisionCount}{' '}
+                  {data.decisionCount === 1 ? 'registro' : 'registros'})
+                </span>
+              </span>
+              <span className={`transition-transform ${showDetail ? 'rotate-90' : ''}`}>▸</span>
+            </button>
+
+            {showDetail && (
+              <div className="mt-3 space-y-4">
+                <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <h3 className="text-sm font-semibold text-white">Decisiones y acciones</h3>
+                  {data.decisions.length === 0 ? (
+                    <div className="mt-2 text-xs text-slate-400">
+                      No registraste decisiones o acciones estructuradas durante este día.
+                    </div>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      {data.decisions.map((decision) => (
+                        <div
+                          key={decision.id}
+                          className="rounded-xl border border-white/10 bg-black/15 px-3 py-2.5"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white">
+                                {decision.stakeholderName}
+                              </div>
+                              <div className="mt-1 text-sm text-slate-300">{decision.choiceText}</div>
+                            </div>
+                            {decision.reputationDelta !== 0 && (
+                              <div
+                                className={`shrink-0 text-xs font-semibold ${deltaTone(decision.reputationDelta)}`}
+                              >
+                                Rep. {formatSigned(decision.reputationDelta)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                {(data.resolutionItems.length > 0 || data.internalChanges.length > 0) && (
+                  <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <h3 className="text-sm font-semibold text-white">Resoluciones y efectos</h3>
+
+                    {data.resolutionItems.length > 0 && (
+                      <div className="mt-3 space-y-1.5">
+                        {data.resolutionItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/15 px-3 py-2"
+                          >
+                            <span className="text-sm text-slate-100">{item.title}</span>
+                            <span
+                              className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${outcomeTone(item.status)}`}
+                            >
+                              {outcomeLabel(item.status)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {data.internalChanges.length > 0 && (
+                      <div className="mt-3 grid gap-2 md:grid-cols-2">
+                        {data.internalChanges.map((change) => (
+                          <div
+                            key={change.id}
+                            className="rounded-xl border border-white/10 bg-black/15 px-3 py-2"
+                          >
+                            <div className="text-sm font-semibold text-white">{change.stakeholderName}</div>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5 text-xs">
+                              {change.trustDelta !== 0 && (
+                                <span className={`rounded-full border px-2 py-0.5 ${pillTone(change.trustDelta > 0)}`}>
+                                  Confianza {formatSigned(change.trustDelta)}
+                                </span>
+                              )}
+                              {change.supportDelta !== 0 && (
+                                <span className={`rounded-full border px-2 py-0.5 ${pillTone(change.supportDelta > 0)}`}>
+                                  Apoyo {formatSigned(change.supportDelta)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {resolution && Number(resolution.global_deltas?.reputation ?? 0) !== 0 && (
+                      <div className="mt-3 rounded-xl border border-white/10 bg-black/15 px-3 py-2 text-xs text-slate-300">
+                        Reputación automática del cierre:{' '}
+                        <span
+                          className={`font-semibold ${deltaTone(Number(resolution.global_deltas?.reputation ?? 0))}`}
+                        >
+                          {formatSigned(Number(resolution.global_deltas?.reputation ?? 0))}
+                        </span>
+                      </div>
+                    )}
+                  </section>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <style>{`
+        .day-review-continue {
+          box-shadow:
+            0 0 22px rgba(250, 204, 21, 0.85),
+            0 0 48px rgba(250, 204, 21, 0.45),
+            0 16px 30px rgba(0, 0, 0, 0.45);
+          animation: day-review-glow 1.8s ease-in-out infinite alternate;
+        }
+        .day-review-continue:hover {
+          box-shadow:
+            0 0 32px rgba(250, 204, 21, 1),
+            0 0 64px rgba(250, 204, 21, 0.6),
+            0 16px 30px rgba(0, 0, 0, 0.45);
+        }
+        @keyframes day-review-glow {
+          from { filter: brightness(1); }
+          to   { filter: brightness(1.08); }
+        }
+      `}</style>
     </div>
   );
 };
