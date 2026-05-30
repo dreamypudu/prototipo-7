@@ -114,7 +114,7 @@ export const sequences: MeetingSequence[] = [
     finalDialogue: 'Rios deja el borrador del protocolo sobre tu escritorio.',
     finalDialogueIsNarration: true,
     consumesTime: false,
-    triggerMap: { day: 7, slot: 'tarde' },
+    triggerMap: { day: 6, slot: 'tarde' },
     isInevitable: true,
   },
 ];

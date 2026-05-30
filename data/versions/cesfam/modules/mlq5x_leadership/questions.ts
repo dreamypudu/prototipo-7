@@ -4,8 +4,23 @@ export const CESFAM_MLQ5X_QUESTIONS: Record<string, StakeholderQuestion[]> = {
   'sofia-castro': [
     {
       question_id: 'mlq_sofia_prioridades',
-      text: 'Que senales debo observar hoy en el equipo?',
-      answer: 'Observe si el equipo entiende por que se toman las decisiones, no solo que instrucciones recibe.',
+      text: '¿Qué señales debo observar hoy en el equipo?',
+      answer: 'Observe si el equipo entiende por qué se toman las decisiones, no solo qué instrucciones recibe.',
+    },
+    {
+      question_id: 'mlq_sofia_pendientes',
+      text: '¿Qué tengo pendiente esta semana?',
+      answer: 'Debe escuchar a los tres jefes de sector, resolver los conflictos que surjan y dejar lista la planificación semanal antes del cierre del viernes.',
+    },
+    {
+      question_id: 'mlq_sofia_animo',
+      text: '¿Cómo está el ánimo del equipo?',
+      answer: 'Tenso pero expectante, director. Vienen de una dirección que solo apagaba incendios; observan si la suya marca un rumbo distinto.',
+    },
+    {
+      question_id: 'mlq_sofia_plazos',
+      text: '¿Hay algún plazo que no deba olvidar?',
+      answer: 'La planificación de la próxima semana debe quedar enviada antes de cerrar el viernes. No conviene dejarla para el último bloque.',
     },
   ],
   'andres-guzman': [

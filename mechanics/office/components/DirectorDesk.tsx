@@ -1,9 +1,8 @@
 
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { GameState, Stakeholder } from '../../../types';
-import { SECRETARY_ROLE } from '../../../constants';
+import { GameState } from '../../../types';
 import { useMechanicContext } from '../../MechanicContext';
-import DelegationCall from '../../delegation/components/DelegationCall';
+import PhoneMechanic from '../../modules/PhoneMechanic';
 
 // =================================================================================================
 // 🎨 ZONA DE CONFIGURACIÓN DE IMÁGENES (PEGAR TUS URLS AQUÍ)
@@ -25,7 +24,6 @@ const OFFICE_ASSETS = {
 interface DirectorDeskProps {
     gameState: GameState;
     onNavigate: (tab: string) => void;
-    onCall: (stakeholder: Stakeholder) => void;
     onUpdateNotes: (notes: string) => void;
 }
 
@@ -102,71 +100,9 @@ const NotebookOverlay: React.FC<NotebookOverlayProps> = ({ notes, onUpdateNotes,
     </div>
 );
 
-interface PhoneOverlayProps {
-    stakeholders: Stakeholder[];
-    onCall: (stakeholder: Stakeholder) => void;
-    onDelegate: () => void;
-    onClose: () => void;
-}
-
-const PhoneOverlay: React.FC<PhoneOverlayProps> = ({ stakeholders, onCall, onDelegate, onClose }) => {
-  const secretary = stakeholders.find(s => s.role === SECRETARY_ROLE);
-  return (
-    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20 backdrop-blur-sm animate-fade-in">
-        <div className="bg-gray-900 border-4 border-gray-700 rounded-3xl p-6 w-80 h-[500px] flex flex-col shadow-2xl relative">
-            {/* Phone Notch/Speaker */}
-            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-gray-800 rounded-full"></div>
-
-            <div className="mt-8 mb-4">
-                <h3 className="text-center text-white text-xl font-bold">Llamar</h3>
-            </div>
-
-            <div className="flex-grow overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                {secretary && (
-                    <button
-                        onClick={onDelegate}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-cyan-950/50 hover:bg-cyan-900/50 border border-cyan-700/60 hover:border-cyan-400 transition-all group"
-                    >
-                        <img src={secretary.portraitUrl} className="w-10 h-10 rounded-full object-cover border border-cyan-500/60" />
-                        <div className="text-left">
-                            <p className="text-sm font-bold text-cyan-100 group-hover:text-cyan-300">{secretary.name}</p>
-                            <p className="text-xs text-cyan-400/80">Delegar tareas</p>
-                        </div>
-                        <span className="ml-auto text-xl opacity-0 group-hover:opacity-100 transition-opacity">📋</span>
-                    </button>
-                )}
-                {secretary && <div className="border-t border-gray-800 my-2"></div>}
-                {stakeholders.filter(s => s.role !== SECRETARY_ROLE).map(contact => (
-                    <button
-                        key={contact.id}
-                        onClick={() => onCall(contact)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-800 hover:bg-green-900/40 border border-gray-700 hover:border-green-500 transition-all group"
-                    >
-                        <img src={contact.portraitUrl} className="w-10 h-10 rounded-full object-cover border border-gray-500" />
-                        <div className="text-left">
-                            <p className="text-sm font-bold text-gray-200 group-hover:text-green-400">{contact.name}</p>
-                            <p className="text-xs text-gray-500">{contact.role}</p>
-                        </div>
-                        <span className="ml-auto text-xl opacity-0 group-hover:opacity-100 transition-opacity">📞</span>
-                    </button>
-                ))}
-                <div className="border-t border-gray-800 my-2"></div>
-                <button className="w-full text-left p-3 text-gray-500 text-sm hover:text-gray-300">
-                    Seguridad (Anexo 911)
-                </button>
-            </div>
-
-            <button onClick={onClose} className="mt-4 bg-red-600 hover:bg-red-500 text-white rounded-full p-3 self-center shadow-lg transition-transform hover:scale-105">
-                <span className="font-bold text-sm px-4">Colgar / Salir</span>
-            </button>
-        </div>
-    </div>
-  );
-};
-
-const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onCall, onUpdateNotes }) => {
+const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUpdateNotes }) => {
     const { engine } = useMechanicContext();
-    const [activeView, setActiveView] = useState<'office' | 'pc_menu' | 'notebook' | 'phone' | 'delegation'>('office');
+    const [activeView, setActiveView] = useState<'office' | 'pc_menu' | 'notebook' | 'phone'>('office');
     const deskRef = useRef<HTMLDivElement>(null);
     const [imageBounds, setImageBounds] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
@@ -210,10 +146,6 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onCa
     const handleNotesUpdate = (notes: string) => {
         engine.emitEvent('office', 'notes_updated', { notes_length: notes.length });
         onUpdateNotes(notes);
-    };
-    const handleCall = (stakeholder: Stakeholder) => {
-        engine.emitEvent('office', 'phone_call', { stakeholder_id: stakeholder.id });
-        onCall(stakeholder);
     };
 
     return (
@@ -317,15 +249,9 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onCa
                 />
             )}
             {activeView === 'phone' && (
-                <PhoneOverlay
-                    stakeholders={gameState.stakeholders}
-                    onCall={handleCall}
-                    onDelegate={() => setActiveView('delegation')}
-                    onClose={() => setActiveView('office')}
-                />
-            )}
-            {activeView === 'delegation' && (
-                <DelegationCall onClose={() => setActiveView('office')} />
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 backdrop-blur-sm animate-fade-in">
+                    <PhoneMechanic onClose={() => setActiveView('office')} />
+                </div>
             )}
 
             <style>{`

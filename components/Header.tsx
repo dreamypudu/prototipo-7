@@ -23,9 +23,10 @@ interface HeaderProps {
 }
 
 const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; advanceHint?: string | null; advanceDisabled?: boolean; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true, advanceHint, advanceDisabled = false }) => {
-    const progress = ((periodDuration - countdown) / periodDuration) * 100;
+    const progress = Math.max(0, Math.min(100, ((periodDuration - countdown) / periodDuration) * 100));
     const { week, dayName } = getGameDate(day);
     const slotLabel = slot === 'mañana' ? 'Mañana' : slot === 'tarde' ? 'Tarde' : 'Noche';
+    const isLowTime = countdown > 0 && countdown <= 30;
 
     return (
         <div className="time-card flex-grow">
@@ -35,13 +36,13 @@ const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType;
                     <div className="eyebrow">Semana {week} · {dayName}</div>
                     <div className="text-lg font-bold text-white leading-tight flex items-center gap-2">
                       {slotLabel}
-                      <span className="text-xs text-gray-300 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${isLowTime ? 'bg-yellow-300/25 border-yellow-200 text-yellow-100 shadow-[0_0_14px_rgba(250,204,21,0.85)] animate-pulse font-bold' : 'bg-white/10 border-white/10 text-gray-300'}`}>
                         {Math.max(0, countdown)}s
                       </span>
                     </div>
                 </div>
                 <div className="time-bar mt-2">
-                    <div className={`time-bar__fill ${isPaused ? 'opacity-60' : ''}`} style={{ width: `${progress}%`, transition: isPaused ? 'none' : 'width 1s linear' }}/>
+                    <div className={`time-bar__fill ${isPaused ? 'opacity-60' : ''} ${isLowTime ? 'time-bar__fill--low' : ''}`} style={{ width: `${progress}%`, transition: isPaused ? 'none' : 'width 1s linear' }}/>
                 </div>
             </div>
              <div className="flex items-center gap-2 pl-3 border-l border-gray-700/70">
@@ -490,6 +491,15 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
         }
         .advance-hint {
           animation: advance-hint-float 2.4s ease-out infinite;
+        }
+        @keyframes time-bar-low-pulse {
+          from { filter: brightness(1); }
+          to   { filter: brightness(1.45); }
+        }
+        .time-bar__fill--low {
+          background: linear-gradient(90deg, #facc15, #fde047) !important;
+          box-shadow: 0 0 16px rgba(250, 204, 21, 0.85), 0 0 32px rgba(250, 204, 21, 0.45);
+          animation: time-bar-low-pulse 0.7s ease-in-out infinite alternate;
         }
       `}</style>
     </header>

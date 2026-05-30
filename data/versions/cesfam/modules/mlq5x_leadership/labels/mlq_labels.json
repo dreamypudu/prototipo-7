@@ -1,0 +1,668 @@
+[
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+    "option_id": "A",
+    "scores": {
+      "IIA": 4,
+      "IIC": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+    "option_id": "B",
+    "scores": {
+      "MI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+    "option_id": "C",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+    "option_id": "A",
+    "scores": {
+      "IIC": 4,
+      "MI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+    "option_id": "B",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+    "option_id": "C",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+    "option_id": "A",
+    "scores": {
+      "IIC": 2,
+      "EI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+    "option_id": "B",
+    "scores": {
+      "LF": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+    "option_id": "A",
+    "scores": {
+      "EI": 2,
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+    "option_id": "B",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+    "option_id": "C",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+    "option_id": "A",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+    "option_id": "B",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+    "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+    "option_id": "C",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_3",
+    "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+    "option_id": "A",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_3",
+    "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+    "option_id": "B",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_3",
+    "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+    "option_id": "C",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+    "option_id": "A",
+    "scores": {
+      "IIC": 4,
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+    "option_id": "B",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+    "option_id": "A",
+    "scores": {
+      "IIC": 2,
+      "CI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+    "option_id": "B",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+    "option_id": "A",
+    "scores": {
+      "IIC": 2,
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+    "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+    "option_id": "C",
+    "scores": {
+      "IIA": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_5",
+    "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+    "option_id": "A",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_5",
+    "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+    "option_id": "B",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D1_SEQUENCE_5",
+    "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+    "option_id": "C",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+    "option_id": "A",
+    "scores": {
+      "MI": 2,
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+    "option_id": "B",
+    "scores": {
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+    "option_id": "A",
+    "scores": {
+      "MI": 2,
+      "CI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+    "option_id": "A",
+    "scores": {
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+    "option_id": "B",
+    "scores": {
+      "LF": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+    "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+    "option_id": "C",
+    "scores": {
+      "LF": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+    "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+    "option_id": "A",
+    "scores": {
+      "IIC": 2,
+      "MI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+    "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+    "option_id": "B",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+    "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+    "option_id": "C",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+    "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+    "option_id": "A",
+    "scores": {
+      "IIA": 4,
+      "IIC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+    "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+    "option_id": "B",
+    "scores": {
+      "MI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+    "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+    "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+    "option_id": "A",
+    "scores": {
+      "IIA": 2,
+      "MI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+    "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+    "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_9",
+    "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+    "option_id": "A",
+    "scores": {
+      "IIA": 2,
+      "MI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_9",
+    "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+    "option_id": "B",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D2_SEQUENCE_9",
+    "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+    "option_id": "C",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+    "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+    "option_id": "A",
+    "scores": {
+      "IIA": 4,
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+    "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+    "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+    "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+    "option_id": "A",
+    "scores": {
+      "IIC": 2,
+      "EI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+    "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+    "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+    "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+    "option_id": "A",
+    "scores": {
+      "EI": 2,
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+    "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+    "option_id": "B",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+    "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+    "option_id": "C",
+    "scores": {
+      "EI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+    "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+    "option_id": "A",
+    "scores": {
+      "IIC": 2,
+      "EI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+    "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+    "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2,
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+    "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+    "option_id": "A",
+    "scores": {
+      "CI": 2,
+      "RC": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+    "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+    "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_18",
+    "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+    "option_id": "A",
+    "scores": {
+      "CI": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_18",
+    "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+    "option_id": "B",
+    "scores": {
+      "CI": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D3_SEQUENCE_18",
+    "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+    "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+    "option_id": "A",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+    "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+    "option_id": "B",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+    "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+    "option_id": "C",
+    "scores": {}
+  },
+  {
+    "sequence_id": "MLQ5X_D4_SEQUENCE_20",
+    "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+    "option_id": "A",
+    "scores": {
+      "CI": 2,
+      "RC": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D4_SEQUENCE_20",
+    "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D4_SEQUENCE_20",
+    "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_21",
+    "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+    "option_id": "A",
+    "scores": {
+      "DPE-A": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_21",
+    "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+    "option_id": "B",
+    "scores": {
+      "DPE-A": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_21",
+    "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_22",
+    "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+    "option_id": "A",
+    "scores": {
+      "EI": 2,
+      "DPE-A": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_22",
+    "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+    "option_id": "B",
+    "scores": {
+      "DPE-P": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_22",
+    "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+    "option_id": "C",
+    "scores": {
+      "LF": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_23",
+    "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+    "option_id": "A",
+    "scores": {
+      "IIA": 2,
+      "RC": 4
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_23",
+    "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+    "option_id": "B",
+    "scores": {
+      "RC": 2
+    }
+  },
+  {
+    "sequence_id": "MLQ5X_D5_SEQUENCE_23",
+    "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+    "option_id": "C",
+    "scores": {
+      "DPE-A": 2
+    }
+  }
+]

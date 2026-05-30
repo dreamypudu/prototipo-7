@@ -1,4 +1,6 @@
-import type { ScenarioFile } from '../../../../../types';
+import type { ScenarioFile, ScenarioNode } from '../../../../../types';
+import { mlqTags } from './scenarios/tags';
+import mlqLabels from './labels/mlq_labels.json';
 import * as day03Sequence01 from './scenarios/day03/sequence01';
 import * as day03Sequence03 from './scenarios/day03/sequence03';
 import * as day03Sequence04 from './scenarios/day03/sequence04';
@@ -37,8 +39,49 @@ const scenarioModules = [
   day07Sequence23,
 ];
 
+type LabelEntry = {
+  sequence_id: string;
+  node_id: string;
+  option_id: string;
+  scores: Record<string, number>;
+};
+
+const rawNodes: ScenarioNode[] = scenarioModules.flatMap((module) => module.nodes);
+const rawSequences = scenarioModules.flatMap((module) => module.sequences);
+
+const sequenceIdsByNodeId = new Map<string, string[]>();
+for (const seq of rawSequences) {
+  for (const nodeId of seq.nodes) {
+    const list = sequenceIdsByNodeId.get(nodeId) ?? [];
+    list.push(seq.sequence_id);
+    sequenceIdsByNodeId.set(nodeId, list);
+  }
+}
+
+const labelIndex = new Map<string, Record<string, number>>();
+for (const entry of mlqLabels as LabelEntry[]) {
+  labelIndex.set(`${entry.sequence_id}|${entry.node_id}|${entry.option_id}`, entry.scores);
+}
+
+const decoratedNodes: ScenarioNode[] = rawNodes.map((node) => {
+  const sequenceIds = sequenceIdsByNodeId.get(node.node_id) ?? [];
+  if (sequenceIds.length === 0) return node;
+  return {
+    ...node,
+    options: node.options.map((opt) => {
+      for (const seqId of sequenceIds) {
+        const scores = labelIndex.get(`${seqId}|${node.node_id}|${opt.option_id}`);
+        if (scores) {
+          return { ...opt, tags: mlqTags(scores as Parameters<typeof mlqTags>[0]) };
+        }
+      }
+      return opt;
+    }),
+  };
+});
+
 export const scenarios: ScenarioFile = {
   simulation_id: 'CESFAM_MLQ5X_LEADERSHIP',
-  scenarios: scenarioModules.flatMap((module) => module.nodes),
-  sequences: scenarioModules.flatMap((module) => module.sequences),
+  scenarios: decoratedNodes,
+  sequences: rawSequences,
 };

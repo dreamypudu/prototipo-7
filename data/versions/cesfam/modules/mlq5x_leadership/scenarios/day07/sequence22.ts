@@ -75,7 +75,7 @@ export const sequences: MeetingSequence[] = [
     finalDialogue: 'Soto se retira dejando la documentacion sobre el escritorio.',
     finalDialogueIsNarration: true,
     consumesTime: false,
-    triggerMap: { day: 7, slot: 'tarde' },
+    triggerMap: { day: 6, slot: 'tarde' },
     isInevitable: true,
   },
 ];

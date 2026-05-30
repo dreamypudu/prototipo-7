@@ -33,6 +33,7 @@ export const CESFAM_CONFIGURATION: SimulatorConfig = {
     { mechanic_id: 'inbox', label: 'Mi Correo', tab_id: 'emails' },
     { mechanic_id: 'documents', label: 'Mi Archivo', tab_id: 'documents' },
     { mechanic_id: 'notes', label: 'Mis Notas', tab_id: 'notes' },
+    { mechanic_id: 'phone', label: 'Mi Teléfono', tab_id: 'phone' },
   ],
   comparison_rules: [
     'visit_priority_rule_v1',

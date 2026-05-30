@@ -70,7 +70,7 @@ export const sequences: MeetingSequence[] = [
     finalDialogue: 'Sofia toma nota de la instruccion y vuelve a revisar los registros pendientes.',
     finalDialogueIsNarration: true,
     consumesTime: false,
-    triggerMap: { day: 7, slot: 'mañana' },
+    triggerMap: { day: 6, slot: 'mañana' },
     isInevitable: true,
   },
 ];

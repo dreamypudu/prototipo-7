@@ -11,6 +11,7 @@ import InnovatecSummaryMechanic from './modules/InnovatecSummaryMechanic';
 import MapMechanic from './modules/MapMechanic';
 import NotesMechanic from './modules/NotesMechanic';
 import OfficeMechanic from './modules/OfficeMechanic';
+import PhoneMechanic from './modules/PhoneMechanic';
 import ScheduleMechanic from './modules/ScheduleMechanic';
 import SummaryMechanic from './modules/SummaryMechanic';
 import { adminRules } from './admin/rules';
@@ -64,6 +65,12 @@ export const MECHANIC_REGISTRY: MechanicRegistry = {
     label: 'Notas',
     tab_id: 'notes',
     Module: NotesMechanic
+  },
+  phone: {
+    mechanic_id: 'phone',
+    label: 'Telefono',
+    tab_id: 'phone',
+    Module: PhoneMechanic
   },
   data_export: {
     mechanic_id: 'data_export',

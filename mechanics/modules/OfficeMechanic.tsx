@@ -76,7 +76,6 @@ const OfficeMechanic: React.FC = () => {
       <DirectorDesk
         gameState={gameState}
         onNavigate={onNavigateTab}
-        onCall={(stakeholder) => dispatch({ type: 'call_stakeholder', stakeholder })}
         onUpdateNotes={(notes) => dispatch({ type: 'update_notes', notes })}
       />
     );

@@ -85,7 +85,8 @@ interface PendingDialogueQueue {
   finalActions: PlayerAction[];
 }
 
-const PERIOD_DURATION = 90;
+const PERIOD_DURATION = 300; // Un dia completo dura 5 min; la barra es continua (no por bloque).
+const HALF_PERIOD = 150;     // Punto medio: al cruzarlo se activa automaticamente el bloque PM.
 const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
   INNOVATEC: '/assets/common/logos/icono-compass.svg',
   CESFAM: '/assets/common/logos/icono-compass.svg',
@@ -377,6 +378,7 @@ export default function GestionEnSaludApp({
     emails: '✉️',
     documents: '📁',
     notes: '📝',
+    phone: '📞',
     calendar: '📆',
     data_export: '📤',
   };
@@ -835,6 +837,9 @@ export default function GestionEnSaludApp({
     if (gameStatus !== 'playing' || appStep !== 'game') return;
     if (currentMeeting || pendingDayReview || isPreparingDayReview || isLoading) return;
     if (scenarioData.sequences.length === 0) return;
+    // No cerrar mientras haya correos programados pendientes (ej. confirmaciones de delegacion
+    // que llegan al dia siguiente): se deja avanzar para que se entreguen antes del cierre.
+    if (gameState.pendingEmailEvents?.length) return;
     if (hasReachableSequence(scenarioData.sequences, gameState, {
       timeSlots,
       isSequenceWindowOpen,
@@ -1137,9 +1142,10 @@ export default function GestionEnSaludApp({
     stateAfterMeetingEnd = mergeMechanicFlushIntoState(stateAfterMeetingEnd);
     const skipTimeAdvance = Boolean(options?.skipTimeAdvance);
     const deferredEmailIds = getSequenceCompletionEmailIds(justCompletedSequenceId);
+    // Cierre del viernes: en cualquier modulo CESFAM (etica, liderazgo, futuros) se obliga a
+    // enviar la planificacion semanal antes de pasar al lunes si todavia no fue enviada.
     const shouldBlockFridayClose =
       selectedVersion === 'CESFAM' &&
-      usesEthicsCaseFlow &&
       !skipTimeAdvance &&
       !pendingCase1EndingRef.current &&
       stateAfterMeetingEnd.day === CASE1_FRIDAY_DAY &&
@@ -1234,7 +1240,14 @@ export default function GestionEnSaludApp({
         delete (snapshot as any).__completedDay;
         syncDayWithBackend(completedDay, snapshot);
       }
-      setCountdown(PERIOD_DURATION);
+      // Barra continua del dia: al pasar de manana a tarde (mismo dia) el contador NO se reinicia,
+      // continua donde estaba (el tiempo sobrante de la manana queda como tiempo de la tarde).
+      // Solo en un dia nuevo el contador vuelve a empezar completo (5 min).
+      // completedDay es undefined cuando NO se cerro el dia (manana->tarde): hay que cubrir null y undefined.
+      const advancedWithinSameDay =
+        (completedDay === null || completedDay === undefined) &&
+        newState.timeSlot === (timeSlots[1] ?? 'tarde');
+      setCountdown(prev => advancedWithinSameDay ? prev : PERIOD_DURATION);
       setIsTimerPaused(false);
     } else {
       // Reactivar el timer y evitar que quede congelado si el contador estaba en 0
@@ -1254,10 +1267,15 @@ export default function GestionEnSaludApp({
             setIsTimerPaused(true);
             return 0;
           }
-          advanceTimeAndUpdateFocus();
+          advanceTimeAndUpdateFocus(); // fin del dia -> inicia el siguiente dia
           return PERIOD_DURATION;
         }
-        return prev - 1;
+        const next = prev - 1;
+        // Cruce del punto medio: activar PM automaticamente (una sola vez, sin reiniciar el contador).
+        if (prev > HALF_PERIOD && next <= HALF_PERIOD && gameState.timeSlot === morningSlot) {
+          advanceTimeAndUpdateFocus();
+        }
+        return next;
       });
     }, 1000);
     return () => clearInterval(timer);
@@ -2303,6 +2321,7 @@ export default function GestionEnSaludApp({
           onAdvanceTime={handleManualAdvance}
           advanceDisabled={Boolean(currentMeeting?.sequence?.isInevitable)}
           onOpenSidebar={() => setIsSidebarOpen(true)}
+          periodDuration={PERIOD_DURATION}
           showPauseControl={false}
           globalEffectsHighlight={hoveredGlobalEffects}
           recentInternalResolution={recentInternalResolution}

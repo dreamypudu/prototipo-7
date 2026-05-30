@@ -1,7 +1,9 @@
 try:
     from .normalizers.mechanics import create_mechanic_export_schema
+    from .normalizers import labels as labels_module
 except ImportError:
     from normalizers.mechanics import create_mechanic_export_schema
+    from normalizers import labels as labels_module
 
 
 def _constraint_exists_block(constraint_name: str, ddl: str) -> str:
@@ -759,6 +761,12 @@ def _create_indexes(conn):
         conn.execute(statement)
 
 
+def _create_labels_tables(conn):
+    conn.execute(labels_module.CREATE_SQL)
+    conn.execute(labels_module.ALTER_SQL)
+    labels_module.populate(conn)
+
+
 def create_schema(conn):
     _migrate_legacy_columns(conn)
     _create_core_tables(conn)
@@ -770,4 +778,5 @@ def create_schema(conn):
     _seed_fk_placeholders(conn)
     _add_contract_constraints(conn)
     _create_indexes(conn)
+    _create_labels_tables(conn)
     conn.commit()
