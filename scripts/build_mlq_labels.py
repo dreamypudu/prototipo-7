@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 MODULE_DIR = ROOT / "data" / "versions" / "cesfam" / "modules" / "mlq5x_leadership"
 SCENARIOS_DIR = MODULE_DIR / "scenarios"
 LABELS_DIR = MODULE_DIR / "labels"
-CSV_PATH = LABELS_DIR / "mlq_labels.csv"
+CSV_PATH = LABELS_DIR / "medianas.csv"
 JSON_PATH = LABELS_DIR / "mlq_labels.json"
 
 MLQ_VARIABLES = ["IIA", "IIC", "MI", "EI", "CI", "RC", "DPE-A", "DPE-P", "LF"]
@@ -39,34 +39,61 @@ def _strip_comments(text: str) -> str:
     return text
 
 
-def _extract_real_choices() -> set[tuple[str, str, str]]:
-    """Recorre los archivos de escenarios y devuelve el set de (seq, node, opt) reales,
-    excluyendo opciones de pura narracion (NEXT)."""
-    real: set[tuple[str, str, str]] = set()
+SEQ_NUM_PATTERN = re.compile(r"MLQ5X_D\d+_SEQUENCE_(\d+)")
+NODE_NUM_PATTERN = re.compile(r"_N(\d+)_")
+
+
+def _extract_choice_index() -> dict[tuple[int, int], tuple[str, str, set[str]]]:
+    """Mapea (secuencia_num, nodo_num) -> (sequence_id, node_id, opciones_validas).
+
+    Solo incluye nodos con al menos una opcion distinta de NEXT (decisiones reales).
+    """
+    index: dict[tuple[int, int], tuple[str, str, set[str]]] = {}
     for ts_path in sorted(SCENARIOS_DIR.rglob("sequence*.ts")):
         text = _strip_comments(ts_path.read_text(encoding="utf-8", errors="ignore"))
         seq_match = re.search(r"\bsequence_id:\s*['\"]([^'\"]+)['\"]", text)
         if not seq_match:
             continue
         sequence_id = seq_match.group(1)
+        seq_num_match = SEQ_NUM_PATTERN.search(sequence_id)
+        if not seq_num_match:
+            continue
+        seq_num = int(seq_num_match.group(1))
+
         node_matches = list(re.finditer(r"\bnode_id:\s*['\"]([^'\"]+)['\"]", text))
         for i, m in enumerate(node_matches):
             node_id = m.group(1)
             start = m.end()
             end = node_matches[i + 1].start() if i + 1 < len(node_matches) else len(text)
             window = text[start:end]
+            real_options: set[str] = set()
             for opt_match in re.finditer(r"\boption_id:\s*['\"]([^'\"]+)['\"]", window):
-                option_id = opt_match.group(1)
-                if option_id in SKIPPED_OPTION_IDS:
+                opt_id = opt_match.group(1)
+                if opt_id in SKIPPED_OPTION_IDS:
                     continue
-                real.add((sequence_id, node_id, option_id))
-    return real
+                real_options.add(opt_id)
+            if not real_options:
+                continue
+            node_num_match = NODE_NUM_PATTERN.search(node_id)
+            if not node_num_match:
+                continue
+            node_num = int(node_num_match.group(1))
+            key = (seq_num, node_num)
+            if key in index:
+                existing_node_id = index[key][1]
+                raise SystemExit(
+                    f"Conflicto: dos nodos comparten numeracion "
+                    f"(secuencia={seq_num}, nodo={node_num}): "
+                    f"{existing_node_id} y {node_id}"
+                )
+            index[key] = (sequence_id, node_id, real_options)
+    return index
 
 
 def _read_csv() -> list[dict]:
     rows: list[dict] = []
     with CSV_PATH.open("r", encoding="utf-8-sig", newline="") as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, delimiter=";")
         header = reader.fieldnames or []
         missing = [c for c in ID_COLUMNS + MLQ_VARIABLES if c not in header]
         if missing:
@@ -84,7 +111,7 @@ def _read_csv() -> list[dict]:
 
 
 def _parse_score(value: str, line: int, column: str) -> float:
-    raw = (value or "").strip()
+    raw = (value or "").strip().replace(",", ".")
     if raw in ("", "nan", "NaN", "null"):
         return 0.0
     try:
@@ -98,7 +125,7 @@ def main() -> int:
         print(f"ERROR: no existe {CSV_PATH}", file=sys.stderr)
         return 1
 
-    real_choices = _extract_real_choices()
+    code_index = _extract_choice_index()
     rows = _read_csv()
 
     seen_keys: set[tuple[str, str, str]] = set()
@@ -107,25 +134,40 @@ def main() -> int:
 
     for row in rows:
         line = row["__line__"]
-        key = (
-            row["secuencia"].strip(),
-            row["nodo_id"].strip(),
-            row["alternativa_id"].strip(),
-        )
-        if any(not p for p in key):
+        raw_seq = (row.get("secuencia") or "").strip()
+        raw_node = (row.get("nodo_id") or "").strip()
+        option_id = (row.get("alternativa_id") or "").strip().upper()
+        if not raw_seq or not raw_node or not option_id:
             errors.append(f"Linea {line}: secuencia/nodo_id/alternativa_id vacios")
             continue
-        if key in seen_keys:
-            errors.append(f"Linea {line}: fila duplicada para {key}")
-            continue
-        seen_keys.add(key)
-        if key not in real_choices:
+        try:
+            seq_num = int(raw_seq)
+            node_num = int(raw_node)
+        except ValueError:
             errors.append(
-                f"Linea {line}: la tupla "
-                f"(sequence={key[0]}, node={key[1]}, option={key[2]}) "
-                f"no existe en el modulo. Revisa que los IDs coincidan con los archivos de escenario."
+                f"Linea {line}: secuencia/nodo_id deben ser enteros "
+                f"(recibido secuencia={raw_seq!r}, nodo_id={raw_node!r})"
             )
             continue
+
+        if (seq_num, node_num) not in code_index:
+            errors.append(
+                f"Linea {line}: no existe el par (secuencia={seq_num}, nodo={node_num}) en el modulo"
+            )
+            continue
+        sequence_id, node_id, valid_options = code_index[(seq_num, node_num)]
+        if option_id not in valid_options:
+            errors.append(
+                f"Linea {line}: la opcion {option_id!r} no existe para nodo {node_num} "
+                f"de secuencia {seq_num}. Validas: {sorted(valid_options)}"
+            )
+            continue
+
+        full_key = (sequence_id, node_id, option_id)
+        if full_key in seen_keys:
+            errors.append(f"Linea {line}: fila duplicada para {full_key}")
+            continue
+        seen_keys.add(full_key)
 
         scores: dict[str, float] = {}
         for var in MLQ_VARIABLES:
@@ -137,14 +179,18 @@ def main() -> int:
                 scores[var] = int(score) if score == int(score) else score
         out.append(
             {
-                "sequence_id": key[0],
-                "node_id": key[1],
-                "option_id": key[2],
+                "sequence_id": sequence_id,
+                "node_id": node_id,
+                "option_id": option_id,
                 "scores": scores,
             }
         )
 
-    missing = sorted(real_choices - seen_keys)
+    expected_keys: set[tuple[str, str, str]] = set()
+    for (seq_id, node_id, valid_options) in code_index.values():
+        for opt in valid_options:
+            expected_keys.add((seq_id, node_id, opt))
+    missing = sorted(expected_keys - seen_keys)
     for sequence_id, node_id, option_id in missing:
         errors.append(
             f"Falta etiqueta para "
