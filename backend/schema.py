@@ -762,17 +762,35 @@ def _create_indexes(conn):
 
 
 def _create_labels_tables(conn):
-    # mlq_labels paso a ser per-sesion (antes era catalogo estatico con module_id).
-    # Migracion idempotente: si existe la estructura vieja, la dropea y recrea.
+    # Migracion idempotente y robusta: comparamos la PK ACTUAL de mlq_labels con
+    # la que esperamos (session_id, sequence_id, node_id, option_id). Si no
+    # coincide --o si la tabla quedo en un estado mixto entre shapes viejos
+    # (module_id, variable) y el wide-format actual-- dropeamos y dejamos que
+    # la siguiente CREATE TABLE la genere desde cero.
     conn.execute(
         """
         DO $$
+        DECLARE
+            expected_pk TEXT := 'session_id,sequence_id,node_id,option_id';
+            current_pk TEXT;
         BEGIN
             IF EXISTS (
-                SELECT 1 FROM information_schema.columns
-                WHERE table_name = 'mlq_labels' AND column_name = 'module_id'
+                SELECT 1 FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = 'mlq_labels'
             ) THEN
-                DROP TABLE mlq_labels;
+                SELECT string_agg(a.attname, ',' ORDER BY array_position(con.conkey, a.attnum))
+                INTO current_pk
+                FROM pg_constraint con
+                JOIN pg_class rel ON rel.oid = con.conrelid
+                JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+                JOIN pg_attribute a ON a.attrelid = rel.oid AND a.attnum = ANY(con.conkey)
+                WHERE rel.relname = 'mlq_labels'
+                  AND nsp.nspname = 'public'
+                  AND con.contype = 'p';
+
+                IF current_pk IS DISTINCT FROM expected_pk THEN
+                    DROP TABLE mlq_labels CASCADE;
+                END IF;
             END IF;
         END$$;
         """

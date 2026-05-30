@@ -246,9 +246,16 @@ def main() -> int:
     }
     conn = MockConn()
     n_rows = labels_module.upsert_decision_labels(conn, "test-session-smoke", sample_decision)
-    print(f"    Filas insertadas para 1 decision (alternativa A): {n_rows}")
+    print(f"    Filas insertadas/actualizadas para 1 decision (alternativa A): {n_rows}  (esperado 1, wide-format)")
     for (kind, table), n in sorted(summarize_calls(conn.calls).items()):
         print(f"      {kind:7s} {table:30s} x {n}")
+    # Confirma que el INSERT lleva las 9 columnas MLQ en la tupla de params.
+    insert_call = next((c for c in conn.calls if c[0].lstrip().upper().startswith("INSERT")), None)
+    if insert_call:
+        sql, params = insert_call
+        # params = (session_id, seq, node, opt, iia, iic, mi, ei, ci, rc, dpe_a, dpe_p, lf)
+        score_columns = params[4:]
+        print(f"      Columnas MLQ en la fila: {score_columns}")
 
     # 2) normalize_session
     print("\n>>> normalize_session(synthetic_session)")

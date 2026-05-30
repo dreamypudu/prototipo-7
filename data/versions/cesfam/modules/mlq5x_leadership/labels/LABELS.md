@@ -78,24 +78,45 @@ El motor de captura (`MechanicEngine`, `decisionLog`) lee `option.tags` **igual 
 
 ## Cómo se exporta a la base de datos
 
-La tabla `mlq_labels` es **per-sesión**: contiene **solo las variables de las alternativas que el jugador efectivamente eligió** en los nodos que efectivamente visitó. No es un catálogo estático.
+La tabla `mlq_labels` es **per-sesión, wide-format**: contiene **una fila por cada alternativa que el jugador efectivamente eligió**, con una columna por cada variable del MLQ-5X.
 
 Esquema:
 ```sql
 mlq_labels (
-    session_id    TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    sequence_id   TEXT NOT NULL,
-    node_id       TEXT NOT NULL,
-    option_id     TEXT NOT NULL,
-    variable      TEXT NOT NULL,   -- "RC", "IIA", etc.
-    score         DOUBLE PRECISION NOT NULL,
-    PRIMARY KEY (session_id, sequence_id, node_id, option_id, variable)
+    session_id   TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    sequence_id  TEXT NOT NULL,
+    node_id      TEXT NOT NULL,
+    option_id    TEXT NOT NULL,
+    iia          DOUBLE PRECISION NOT NULL DEFAULT 0,
+    iic          DOUBLE PRECISION NOT NULL DEFAULT 0,
+    mi           DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ei           DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ci           DOUBLE PRECISION NOT NULL DEFAULT 0,
+    rc           DOUBLE PRECISION NOT NULL DEFAULT 0,
+    dpe_a        DOUBLE PRECISION NOT NULL DEFAULT 0,
+    dpe_p        DOUBLE PRECISION NOT NULL DEFAULT 0,
+    lf           DOUBLE PRECISION NOT NULL DEFAULT 0,
+    PRIMARY KEY (session_id, sequence_id, node_id, option_id)
 )
 ```
 
-Una fila **por puntaje × variable × decisión del usuario**. Si una opción tiene tags `{IIA: 4, IIC: 4}`, se insertan 2 filas para esa decisión.
+Si la opción no carga una variable, la celda guarda **0** (no NULL — simplifica las agregaciones SUM/AVG).
 
-Cuándo se escribe: dentro de `normalize_session` ([`backend/normalizers/session.py`](../../../../../../backend/normalizers/session.py)), después de `insert_explicit_decisions`. Para cada decisión del usuario se consulta el JSON catalogo en memoria y se vuelcan las filas correspondientes. Re-normalizar la misma sesión borra primero las filas viejas (`DERIVED_TABLES_DELETE_ORDER`).
+Mapeo de variables MLQ-5X a columnas:
+
+| Variable original | Columna en la tabla |
+|-------------------|---------------------|
+| IIA               | `iia`               |
+| IIC               | `iic`               |
+| MI                | `mi`                |
+| EI                | `ei`                |
+| CI                | `ci`                |
+| RC                | `rc`                |
+| DPE-A             | `dpe_a`             |
+| DPE-P             | `dpe_p`             |
+| LF                | `lf`                |
+
+Cuándo se escribe: dentro de `normalize_session` ([`backend/normalizers/session.py`](../../../../../../backend/normalizers/session.py)), después de `insert_explicit_decisions`. Para cada decisión del usuario se consulta el JSON catalogo en memoria y se vuelca **una fila** con los 9 scores en columnas separadas. Re-normalizar la misma sesión borra primero las filas viejas (`DERIVED_TABLES_DELETE_ORDER`).
 
 Cuándo se actualiza el catálogo: el JSON se carga **una vez por proceso** desde el backend. Si actualizas `medianas.csv` y corres `build_mlq_labels.py`, **reinicia el backend** para que el cache se refresque.
 
@@ -111,37 +132,54 @@ Cuando armes un módulo nuevo (por ej. `mlq5x_ethics`):
 
 ## Análisis post-experimento (referencia)
 
-La tabla solo tiene las elecciones reales del jugador, así que las consultas son directas:
+La tabla es wide-format, así que las consultas son directas — sin pivots ni unpivots:
 
 ```sql
--- Score crudo del jugador por variable (suma de todas sus elecciones del modulo)
+-- Score total del jugador por dimension (suma de todas sus elecciones del modulo)
 SELECT
   session_id,
-  variable,
-  SUM(score) AS score_total
+  SUM(iia)   AS iia_total,
+  SUM(iic)   AS iic_total,
+  SUM(mi)    AS mi_total,
+  SUM(ei)    AS ei_total,
+  SUM(ci)    AS ci_total,
+  SUM(rc)    AS rc_total,
+  SUM(dpe_a) AS dpe_a_total,
+  SUM(dpe_p) AS dpe_p_total,
+  SUM(lf)    AS lf_total,
+  COUNT(*)   AS decisiones
 FROM mlq_labels
-GROUP BY session_id, variable;
+GROUP BY session_id;
 
--- Detalle nodo por nodo de lo que eligio el jugador
-SELECT
-  session_id,
-  sequence_id,
-  node_id,
-  option_id,
-  variable,
-  score
+-- Detalle nodo por nodo de lo que eligio un jugador
+SELECT *
 FROM mlq_labels
 WHERE session_id = '<UUID>'
-ORDER BY sequence_id, node_id, variable;
+ORDER BY sequence_id, node_id;
 
--- Comparar todos los jugadores en una variable (ej. RC)
-SELECT session_id, SUM(score) AS rc_total
+-- Comparar todos los jugadores en una dimension (ej. RC)
+SELECT session_id, SUM(rc) AS rc_total
 FROM mlq_labels
-WHERE variable = 'RC'
 GROUP BY session_id
 ORDER BY rc_total DESC;
+
+-- Perfil transformacional vs transaccional vs evitativo por jugador
+SELECT
+  session_id,
+  SUM(iia + iic + mi + ei + ci) AS transformacional,
+  SUM(rc + dpe_a)               AS transaccional,
+  SUM(dpe_p + lf)               AS evitativo
+FROM mlq_labels
+GROUP BY session_id;
+
+-- Cruzar con datos demograficos del usuario
+SELECT u.user_id, l.session_id, SUM(l.rc) AS rc_total, SUM(l.lf) AS lf_total
+FROM mlq_labels l
+JOIN sessions s ON s.session_id = l.session_id
+JOIN users u    ON u.user_id    = s.user_id
+GROUP BY u.user_id, l.session_id;
 ```
 
 **Máximo posible y normalización** son post-hoc, fuera de la base: se calculan a partir del JSON catalogo (`mlq_labels.json`) en pandas/notebooks. La base guarda los crudos del jugador, nada más.
 
-**Flag `visited` por nodo**: derivable con `EXISTS` o `GROUP BY node_id` sobre `mlq_labels` para una sesión dada. Si no hay fila para un (sequence_id, node_id), el jugador no pasó por ese nodo (o pasó pero eligió `NEXT`).
+**Flag `visited` por nodo**: si existe fila en `mlq_labels` para un `(session_id, sequence_id, node_id)`, el jugador pasó por ese nodo y eligió una alternativa real (no `NEXT`). Si no hay fila, no pasó o solo vio narración.
