@@ -2,8 +2,10 @@ from uuid import UUID
 
 try:
     from ..json_utils import to_jsonb
+    from ..timezone_utils import now_chile_iso
 except ImportError:
     from json_utils import to_jsonb
+    from timezone_utils import now_chile_iso
 
 
 def resolve_anonymous_user_id(session_id, raw_user_id):
@@ -37,8 +39,12 @@ def ensure_user(conn, user_id: str | None):
     if not user_id:
         return
     conn.execute(
-        "INSERT INTO users (user_id) VALUES (%s) ON CONFLICT (user_id) DO NOTHING",
-        (user_id,),
+        """
+        INSERT INTO users (user_id, created_at)
+        VALUES (%s, %s)
+        ON CONFLICT (user_id) DO NOTHING
+        """,
+        (user_id, now_chile_iso()),
     )
 
 
@@ -84,18 +90,23 @@ def ensure_stakeholder(conn, stakeholder_id: str | None, name: str | None = None
     )
 
 
-def ensure_sequence(conn, sequence_id: str | None, version_id: str | None, stakeholder_id: str | None):
+def ensure_sequence(conn, sequence_id: str | None, version_id: str | None, _stakeholder_id_unused: str | None = None):
+    """Asegura que exista una fila en scenario_sequences para la FK.
+
+    El catalogo de narrativa (scenarios_catalog) ya rellena narrative_id,
+    stakeholder_ids y node_ids al boot. Esta funcion es solo fallback por si
+    una sesion referencia un sequence_id que el catalogo no conoce todavia.
+    """
     if not sequence_id:
         return
     conn.execute(
         """
-        INSERT INTO scenario_sequences (sequence_id, version_id, stakeholder_id)
-        VALUES (%s, %s, %s)
+        INSERT INTO scenario_sequences (sequence_id, version_id)
+        VALUES (%s, %s)
         ON CONFLICT (sequence_id) DO UPDATE SET
-            version_id = COALESCE(scenario_sequences.version_id, EXCLUDED.version_id),
-            stakeholder_id = COALESCE(scenario_sequences.stakeholder_id, EXCLUDED.stakeholder_id)
+            version_id = COALESCE(scenario_sequences.version_id, EXCLUDED.version_id)
         """,
-        (sequence_id, version_id, stakeholder_id),
+        (sequence_id, version_id),
     )
 
 
@@ -107,30 +118,32 @@ def ensure_decision_reference(
     option_text: str | None = None,
     sequence_id: str | None = None,
     version_id: str | None = None,
-    npc_id: str | None = None,
-    npc_role: str | None = None,
-    npc_name: str | None = None,
+    npc_id: str | None = None,  # deprecado, ignorado (catalogo lo maneja)
+    npc_role: str | None = None,  # deprecado
+    npc_name: str | None = None,  # deprecado
     day: int | None = None,
     time_slot: str | None = None,
     raw_node: dict | None = None,
     raw_option: dict | None = None,
 ):
+    """Garantiza FK targets para una decision.
+
+    El catalogo (scenarios_catalog) pre-llena scenario_sequences, decision_nodes
+    y decision_options al boot. Esta funcion solo agrega filas stub si una
+    sesion referencia IDs que el catalogo no conoce (raro pero defensivo).
+    """
     if sequence_id:
-        ensure_sequence(conn, sequence_id, version_id, npc_id)
+        ensure_sequence(conn, sequence_id, version_id)
     if not node_id:
         return
     conn.execute(
         """
         INSERT INTO decision_nodes (
-            node_id, sequence_id, node_title, npc_id, npc_role, npc_name, day, time_slot, raw_node
+            node_id, sequence_id, day, time_slot, raw_node
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s)
         ON CONFLICT (node_id) DO UPDATE SET
             sequence_id = COALESCE(decision_nodes.sequence_id, EXCLUDED.sequence_id),
-            node_title = COALESCE(EXCLUDED.node_title, decision_nodes.node_title),
-            npc_id = COALESCE(EXCLUDED.npc_id, decision_nodes.npc_id),
-            npc_role = COALESCE(EXCLUDED.npc_role, decision_nodes.npc_role),
-            npc_name = COALESCE(EXCLUDED.npc_name, decision_nodes.npc_name),
             day = COALESCE(EXCLUDED.day, decision_nodes.day),
             time_slot = COALESCE(EXCLUDED.time_slot, decision_nodes.time_slot),
             raw_node = COALESCE(EXCLUDED.raw_node, decision_nodes.raw_node)
@@ -138,10 +151,6 @@ def ensure_decision_reference(
         (
             node_id,
             sequence_id,
-            node_id,
-            npc_id,
-            npc_role,
-            npc_name,
             day,
             time_slot,
             to_jsonb(raw_node),

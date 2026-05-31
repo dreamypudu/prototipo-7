@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,11 +6,13 @@ try:
     from .json_utils import json_load
     from .normalizers import DETAIL_TABLE_NAMES, normalize_session
     from .schema import create_schema
+    from .timezone_utils import now_chile_iso
 except ImportError:
     from db import get_conn
     from json_utils import json_load
     from normalizers import DETAIL_TABLE_NAMES, normalize_session
     from schema import create_schema
+    from timezone_utils import now_chile_iso
 
 
 def init_db():
@@ -56,7 +56,7 @@ def create_session(session: dict = Body(...)):
     if not session_id:
         raise HTTPException(status_code=400, detail="session_metadata.session_id missing")
 
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = now_chile_iso()
     with get_conn() as conn:
         conn.execute("BEGIN")
         try:

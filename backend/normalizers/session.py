@@ -2,6 +2,7 @@ from copy import deepcopy
 
 try:
     from ..json_utils import as_list, as_record, to_jsonb
+    from ..timezone_utils import to_chile_iso
     from .actions import upsert_canonical_action, upsert_expected_action
     from .common import (
         ensure_mechanic,
@@ -18,6 +19,7 @@ try:
     from .state import insert_final_state, insert_question_log
 except ImportError:
     from json_utils import as_list, as_record, to_jsonb
+    from timezone_utils import to_chile_iso
     from normalizers.actions import upsert_canonical_action, upsert_expected_action
     from normalizers.common import (
         ensure_mechanic,
@@ -83,8 +85,10 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     metadata = as_record(session.get("session_metadata"))
     version_id = metadata.get("simulator_version_id")
     user_id = resolve_anonymous_user_id(session_id, metadata.get("user_id"))
-    start_time = metadata.get("start_time")
-    end_time = metadata.get("end_time")
+    # Convertimos timestamps a hora chilena para que se lean directos en la base.
+    start_time = to_chile_iso(metadata.get("start_time"))
+    end_time = to_chile_iso(metadata.get("end_time"))
+    created_at = to_chile_iso(created_at) or created_at
     sanitized_session = deepcopy(session)
     sanitized_metadata = sanitized_session.setdefault("session_metadata", {})
     sanitized_metadata["session_id"] = session_id

@@ -1,9 +1,11 @@
 try:
     from .normalizers.mechanics import create_mechanic_export_schema
     from .normalizers import labels as labels_module
+    from .normalizers import scenarios_catalog as scenarios_catalog_module
 except ImportError:
     from normalizers.mechanics import create_mechanic_export_schema
     from normalizers import labels as labels_module
+    from normalizers import scenarios_catalog as scenarios_catalog_module
 
 
 def _constraint_exists_block(constraint_name: str, ddl: str) -> str:
@@ -26,6 +28,65 @@ def _drop_constraint(conn, table_name: str, constraint_name: str):
         BEGIN
             IF to_regclass('{table_name}') IS NOT NULL THEN
                 ALTER TABLE {table_name} DROP CONSTRAINT IF EXISTS {constraint_name} CASCADE;
+            END IF;
+        END$$;
+        """
+    )
+
+
+def _migrate_v2_schema(conn):
+    """Migra tablas existentes al nuevo shape v2.
+
+    - users: solo user_id + created_at.
+    - sessions: sin estado/navegador.
+    - scenario_sequences: sin sequence_title/raw_sequence/stakeholder_id; con narrative_id, stakeholder_ids[], node_ids[].
+    - decision_nodes: sin node_title/npc_*; con narrative_id + node_text.
+    - explicit_decisions: cambia PK a (session_id, node_id, option_id) y dropea columnas obsoletas.
+
+    Idempotente. Si la tabla no existe todavia, los ALTER no fallan gracias a IF EXISTS.
+    """
+    drop_constraints = [
+        ("scenario_sequences", "scenario_sequences_stakeholder_id_fkey"),
+        ("decision_nodes", "decision_nodes_npc_id_fkey"),
+        ("explicit_decisions", "explicit_decisions_npc_id_fkey"),
+        ("explicit_decisions", "explicit_decisions_node_option_fkey"),
+        ("expected_actions", "expected_actions_source_option_fkey"),
+        ("canonical_actions", "canonical_actions_source_option_fkey"),
+        ("mechanic_events", "mechanic_events_node_option_fkey"),
+    ]
+    for table, constraint in drop_constraints:
+        conn.execute(f"ALTER TABLE IF EXISTS {table} DROP CONSTRAINT IF EXISTS {constraint}")
+
+    # users: solo user_id + created_at (drop demograficos no usados)
+    for col in ("name", "tipo_usuario", "edad_usuario", "carrera_usuario"):
+        conn.execute(f"ALTER TABLE IF EXISTS users DROP COLUMN IF EXISTS {col}")
+
+    # sessions: drop estado/navegador
+    for col in ("estado", "navegador"):
+        conn.execute(f"ALTER TABLE IF EXISTS sessions DROP COLUMN IF EXISTS {col}")
+
+    # scenario_sequences: drop columnas y FK obsoleta; el resto se crea por _create_core_tables/_add_missing_columns
+    for col in ("stakeholder_id", "sequence_title", "raw_sequence"):
+        conn.execute(f"ALTER TABLE IF EXISTS scenario_sequences DROP COLUMN IF EXISTS {col}")
+
+    # decision_nodes: drop columnas viejas
+    for col in ("node_title", "npc_id", "npc_role", "npc_name"):
+        conn.execute(f"ALTER TABLE IF EXISTS decision_nodes DROP COLUMN IF EXISTS {col}")
+
+    # explicit_decisions: cambia PK. Si la tabla existe con la PK vieja (decision_id),
+    # la dropeamos por completo para que _create_contract_tables la recree.
+    # Las sesiones se re-normalizan al pegar el payload (DELETE + INSERT en cada POST).
+    conn.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'explicit_decisions'
+                  AND column_name = 'decision_id'
+            ) THEN
+                DROP TABLE explicit_decisions CASCADE;
             END IF;
         END$$;
         """
@@ -168,10 +229,7 @@ def _create_core_tables(conn):
         """
         CREATE TABLE IF NOT EXISTS users (
             user_id TEXT PRIMARY KEY,
-            name TEXT,
-            tipo_usuario TEXT,
-            edad_usuario INTEGER,
-            carrera_usuario TEXT
+            created_at TEXT
         )
         """
     )
@@ -180,6 +238,14 @@ def _create_core_tables(conn):
         CREATE TABLE IF NOT EXISTS versions (
             version_id TEXT PRIMARY KEY,
             created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS narratives (
+            narrative_id TEXT PRIMARY KEY,
+            label TEXT
         )
         """
     )
@@ -204,10 +270,10 @@ def _create_core_tables(conn):
         """
         CREATE TABLE IF NOT EXISTS scenario_sequences (
             sequence_id TEXT PRIMARY KEY,
+            narrative_id TEXT REFERENCES narratives(narrative_id),
             version_id TEXT REFERENCES versions(version_id),
-            stakeholder_id TEXT REFERENCES stakeholders(stakeholder_id),
-            sequence_title TEXT,
-            raw_sequence JSONB
+            stakeholder_ids TEXT[] NOT NULL DEFAULT '{}',
+            node_ids TEXT[] NOT NULL DEFAULT '{}'
         )
         """
     )
@@ -216,10 +282,8 @@ def _create_core_tables(conn):
         CREATE TABLE IF NOT EXISTS decision_nodes (
             node_id TEXT PRIMARY KEY,
             sequence_id TEXT REFERENCES scenario_sequences(sequence_id),
-            node_title TEXT,
-            npc_id TEXT REFERENCES stakeholders(stakeholder_id),
-            npc_role TEXT,
-            npc_name TEXT,
+            narrative_id TEXT REFERENCES narratives(narrative_id),
+            node_text TEXT,
             day INTEGER,
             time_slot TEXT,
             raw_node JSONB
@@ -248,9 +312,7 @@ def _create_core_tables(conn):
             start_time TEXT,
             end_time TEXT,
             created_at TEXT NOT NULL,
-            payload JSONB NOT NULL,
-            estado TEXT,
-            navegador TEXT
+            payload JSONB NOT NULL
         )
         """
     )
@@ -260,33 +322,22 @@ def _create_contract_tables(conn):
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS explicit_decisions (
-            decision_id BIGSERIAL PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
             user_id TEXT REFERENCES users(user_id),
             decision_order INTEGER,
             sequence_id TEXT REFERENCES scenario_sequences(sequence_id),
-            case_id TEXT,
             node_id TEXT,
-            node_title TEXT,
-            npc_id TEXT REFERENCES stakeholders(stakeholder_id),
-            npc_role TEXT,
-            npc_name TEXT,
             day INTEGER,
             time_slot TEXT,
             option_id TEXT,
             option_text TEXT,
             is_decision BOOLEAN,
-            tag_type TEXT,
-            tag_value TEXT,
-            tag_score DOUBLE PRECISION,
-            raw_tags JSONB,
             trust_delta DOUBLE PRECISION,
             support_delta DOUBLE PRECISION,
             reputation_delta DOUBLE PRECISION,
-            budget_delta DOUBLE PRECISION,
-            project_progress_delta DOUBLE PRECISION,
             dialogue_response TEXT,
-            raw_consequences JSONB
+            raw_consequences JSONB,
+            PRIMARY KEY (session_id, node_id, option_id)
         )
         """
     )
@@ -446,10 +497,7 @@ def _add_missing_columns(conn):
     statements = [
         """
         ALTER TABLE users
-        ADD COLUMN IF NOT EXISTS name TEXT,
-        ADD COLUMN IF NOT EXISTS tipo_usuario TEXT,
-        ADD COLUMN IF NOT EXISTS edad_usuario INTEGER,
-        ADD COLUMN IF NOT EXISTS carrera_usuario TEXT
+        ADD COLUMN IF NOT EXISTS created_at TEXT
         """,
         """
         ALTER TABLE mechanics
@@ -467,24 +515,20 @@ def _add_missing_columns(conn):
         ADD COLUMN IF NOT EXISTS start_time TEXT,
         ADD COLUMN IF NOT EXISTS end_time TEXT,
         ADD COLUMN IF NOT EXISTS created_at TEXT,
-        ADD COLUMN IF NOT EXISTS payload JSONB,
-        ADD COLUMN IF NOT EXISTS estado TEXT,
-        ADD COLUMN IF NOT EXISTS navegador TEXT
+        ADD COLUMN IF NOT EXISTS payload JSONB
         """,
         """
         ALTER TABLE scenario_sequences
+        ADD COLUMN IF NOT EXISTS narrative_id TEXT,
         ADD COLUMN IF NOT EXISTS version_id TEXT,
-        ADD COLUMN IF NOT EXISTS stakeholder_id TEXT,
-        ADD COLUMN IF NOT EXISTS sequence_title TEXT,
-        ADD COLUMN IF NOT EXISTS raw_sequence JSONB
+        ADD COLUMN IF NOT EXISTS stakeholder_ids TEXT[] NOT NULL DEFAULT '{}',
+        ADD COLUMN IF NOT EXISTS node_ids TEXT[] NOT NULL DEFAULT '{}'
         """,
         """
         ALTER TABLE decision_nodes
         ADD COLUMN IF NOT EXISTS sequence_id TEXT,
-        ADD COLUMN IF NOT EXISTS node_title TEXT,
-        ADD COLUMN IF NOT EXISTS npc_id TEXT,
-        ADD COLUMN IF NOT EXISTS npc_role TEXT,
-        ADD COLUMN IF NOT EXISTS npc_name TEXT,
+        ADD COLUMN IF NOT EXISTS narrative_id TEXT,
+        ADD COLUMN IF NOT EXISTS node_text TEXT,
         ADD COLUMN IF NOT EXISTS day INTEGER,
         ADD COLUMN IF NOT EXISTS time_slot TEXT,
         ADD COLUMN IF NOT EXISTS raw_node JSONB
@@ -494,26 +538,15 @@ def _add_missing_columns(conn):
         ADD COLUMN IF NOT EXISTS user_id TEXT,
         ADD COLUMN IF NOT EXISTS decision_order INTEGER,
         ADD COLUMN IF NOT EXISTS sequence_id TEXT,
-        ADD COLUMN IF NOT EXISTS case_id TEXT,
         ADD COLUMN IF NOT EXISTS node_id TEXT,
-        ADD COLUMN IF NOT EXISTS node_title TEXT,
-        ADD COLUMN IF NOT EXISTS npc_id TEXT,
-        ADD COLUMN IF NOT EXISTS npc_role TEXT,
-        ADD COLUMN IF NOT EXISTS npc_name TEXT,
         ADD COLUMN IF NOT EXISTS day INTEGER,
         ADD COLUMN IF NOT EXISTS time_slot TEXT,
         ADD COLUMN IF NOT EXISTS option_id TEXT,
         ADD COLUMN IF NOT EXISTS option_text TEXT,
         ADD COLUMN IF NOT EXISTS is_decision BOOLEAN,
-        ADD COLUMN IF NOT EXISTS tag_type TEXT,
-        ADD COLUMN IF NOT EXISTS tag_value TEXT,
-        ADD COLUMN IF NOT EXISTS tag_score DOUBLE PRECISION,
-        ADD COLUMN IF NOT EXISTS raw_tags JSONB,
         ADD COLUMN IF NOT EXISTS trust_delta DOUBLE PRECISION,
         ADD COLUMN IF NOT EXISTS support_delta DOUBLE PRECISION,
         ADD COLUMN IF NOT EXISTS reputation_delta DOUBLE PRECISION,
-        ADD COLUMN IF NOT EXISTS budget_delta DOUBLE PRECISION,
-        ADD COLUMN IF NOT EXISTS project_progress_delta DOUBLE PRECISION,
         ADD COLUMN IF NOT EXISTS dialogue_response TEXT,
         ADD COLUMN IF NOT EXISTS raw_consequences JSONB
         """,
@@ -633,13 +666,11 @@ def _seed_fk_placeholders(conn):
     conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM expected_actions WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
     conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM canonical_actions WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
     conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM mechanic_events WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
-    conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT npc_id FROM explicit_decisions WHERE npc_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
+    # Stakeholders se siembran desde tablas que aun referencian npc_id; el catalogo de narrativa los carga al boot.
     conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT npc_id FROM expected_actions WHERE npc_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
     conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT npc_id FROM question_log WHERE npc_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
-    conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT npc_id FROM decision_nodes WHERE npc_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
-    conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT stakeholder_id FROM scenario_sequences WHERE stakeholder_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
+    # Secuencias y nodos referenciados por sesiones (stub si el catalogo aun no los cargo).
     conn.execute("INSERT INTO scenario_sequences (sequence_id) SELECT DISTINCT sequence_id FROM explicit_decisions WHERE sequence_id IS NOT NULL ON CONFLICT (sequence_id) DO NOTHING")
-    conn.execute("INSERT INTO scenario_sequences (sequence_id) SELECT DISTINCT sequence_id FROM decision_nodes WHERE sequence_id IS NOT NULL ON CONFLICT (sequence_id) DO NOTHING")
     conn.execute("INSERT INTO decision_nodes (node_id) SELECT DISTINCT node_id FROM explicit_decisions WHERE node_id IS NOT NULL ON CONFLICT (node_id) DO NOTHING")
     conn.execute("INSERT INTO decision_nodes (node_id) SELECT DISTINCT source_node_id FROM expected_actions WHERE source_node_id IS NOT NULL ON CONFLICT (node_id) DO NOTHING")
     conn.execute("INSERT INTO decision_nodes (node_id) SELECT DISTINCT source_node_id FROM canonical_actions WHERE source_node_id IS NOT NULL ON CONFLICT (node_id) DO NOTHING")
@@ -710,13 +741,12 @@ def _add_contract_constraints(conn):
         ("sessions_version_id_fkey", "ALTER TABLE sessions ADD CONSTRAINT sessions_version_id_fkey FOREIGN KEY (version_id) REFERENCES versions(version_id)"),
         ("mechanics_version_id_fkey", "ALTER TABLE mechanics ADD CONSTRAINT mechanics_version_id_fkey FOREIGN KEY (version_id) REFERENCES versions(version_id)"),
         ("scenario_sequences_version_id_fkey", "ALTER TABLE scenario_sequences ADD CONSTRAINT scenario_sequences_version_id_fkey FOREIGN KEY (version_id) REFERENCES versions(version_id)"),
-        ("scenario_sequences_stakeholder_id_fkey", "ALTER TABLE scenario_sequences ADD CONSTRAINT scenario_sequences_stakeholder_id_fkey FOREIGN KEY (stakeholder_id) REFERENCES stakeholders(stakeholder_id)"),
+        ("scenario_sequences_narrative_id_fkey", "ALTER TABLE scenario_sequences ADD CONSTRAINT scenario_sequences_narrative_id_fkey FOREIGN KEY (narrative_id) REFERENCES narratives(narrative_id)"),
         ("decision_nodes_sequence_id_fkey", "ALTER TABLE decision_nodes ADD CONSTRAINT decision_nodes_sequence_id_fkey FOREIGN KEY (sequence_id) REFERENCES scenario_sequences(sequence_id)"),
-        ("decision_nodes_npc_id_fkey", "ALTER TABLE decision_nodes ADD CONSTRAINT decision_nodes_npc_id_fkey FOREIGN KEY (npc_id) REFERENCES stakeholders(stakeholder_id)"),
+        ("decision_nodes_narrative_id_fkey", "ALTER TABLE decision_nodes ADD CONSTRAINT decision_nodes_narrative_id_fkey FOREIGN KEY (narrative_id) REFERENCES narratives(narrative_id)"),
         ("explicit_decisions_session_id_fkey", "ALTER TABLE explicit_decisions ADD CONSTRAINT explicit_decisions_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
         ("explicit_decisions_user_id_fkey", "ALTER TABLE explicit_decisions ADD CONSTRAINT explicit_decisions_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)"),
         ("explicit_decisions_sequence_id_fkey", "ALTER TABLE explicit_decisions ADD CONSTRAINT explicit_decisions_sequence_id_fkey FOREIGN KEY (sequence_id) REFERENCES scenario_sequences(sequence_id)"),
-        ("explicit_decisions_npc_id_fkey", "ALTER TABLE explicit_decisions ADD CONSTRAINT explicit_decisions_npc_id_fkey FOREIGN KEY (npc_id) REFERENCES stakeholders(stakeholder_id)"),
         ("explicit_decisions_node_option_fkey", "ALTER TABLE explicit_decisions ADD CONSTRAINT explicit_decisions_node_option_fkey FOREIGN KEY (node_id, option_id) REFERENCES decision_options(node_id, option_id)"),
         ("expected_actions_session_id_fkey", "ALTER TABLE expected_actions ADD CONSTRAINT expected_actions_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
         ("expected_actions_npc_id_fkey", "ALTER TABLE expected_actions ADD CONSTRAINT expected_actions_npc_id_fkey FOREIGN KEY (npc_id) REFERENCES stakeholders(stakeholder_id)"),
@@ -816,6 +846,7 @@ def _create_labels_tables(conn):
 
 def create_schema(conn):
     _migrate_legacy_columns(conn)
+    _migrate_v2_schema(conn)
     _create_core_tables(conn)
     _create_contract_tables(conn)
     _create_support_tables(conn)
@@ -826,4 +857,7 @@ def create_schema(conn):
     _add_contract_constraints(conn)
     _create_indexes(conn)
     _create_labels_tables(conn)
+    # Catalogo estatico de narrativa: narratives, scenario_sequences, decision_nodes,
+    # decision_options y stakeholders citados en el contenido. Idempotente.
+    scenarios_catalog_module.populate(conn)
     conn.commit()

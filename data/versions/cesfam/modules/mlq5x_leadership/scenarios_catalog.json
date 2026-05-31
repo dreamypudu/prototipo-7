@@ -1,0 +1,1362 @@
+{
+  "narratives": [
+    {
+      "narrative_id": "mlq5x_leadership",
+      "label": "Liderazgo MLQ-5X (CESFAM)"
+    }
+  ],
+  "sequences": [
+    {
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "andres-guzman",
+        "daniel-rios",
+        "marcela-soto",
+        "sofia-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_D1S1_ARRIVAL",
+        "MLQ5X_D1S1_SOFIA_WELCOME",
+        "MLQ5X_D1S1_SOFIA_SECTORS",
+        "MLQ5X_D1S1_SOFIA_PLANNING",
+        "MLQ5X_D1S1_SOFIA_TASK",
+        "MLQ5X_D1S1_ROOM_TONE",
+        "MLQ5X_D1S1_N1_GUZMAN",
+        "MLQ5X_D1S1_N1_SOTO",
+        "MLQ5X_D1S1_N1_RIOS_CHOICE",
+        "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+        "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+        "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+        "MLQ5X_D1S1_N5_SOFIA_PRIORITY"
+      ],
+      "day": 3,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_D1_SEQUENCE_3",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "andres-guzman"
+      ],
+      "node_ids": [
+        "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA"
+      ],
+      "day": 3,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "daniel-rios",
+        "francisca-solis",
+        "marcela-soto"
+      ],
+      "node_ids": [
+        "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+        "MLQ5X_D1S4_N8_RIOS_SANCION",
+        "MLQ5X_D1S4_SOTO_ENTERS",
+        "MLQ5X_D1S4_N9_SOTO_REPORTE"
+      ],
+      "day": 3,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D1_SEQUENCE_5",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "marcela-soto"
+      ],
+      "node_ids": [
+        "MLQ5X_D1S5_N10_SOTO_PROTOCOLS"
+      ],
+      "day": 3,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "marcela-soto",
+        "sofia-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_D2S8_WATER_CUT_CONTEXT",
+        "MLQ5X_D2S8_N11_SOFIA_WATER_CUT",
+        "MLQ5X_D2S8_N11_SOTO_DECISION"
+      ],
+      "day": 4,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_D2_SEQUENCE_9",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "marcela-soto"
+      ],
+      "node_ids": [
+        "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP"
+      ],
+      "day": 4,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "daniel-rios"
+      ],
+      "node_ids": [
+        "MLQ5X_D2S10_FORMAL_MEETING_CONTEXT",
+        "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+        "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+        "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK"
+      ],
+      "day": 4,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "andres-guzman"
+      ],
+      "node_ids": [
+        "MLQ5X_D2S11_N16_GUZMAN_VISION",
+        "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS"
+      ],
+      "day": 4,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "sofia-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_D3S14_N18_SOFIA_BOX_CONFLICT_INTRO",
+        "MLQ5X_D3S14_N18_SOFIA_BOX5_CONFLICT",
+        "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+        "MLQ5X_D3S14_N19_SOFIA_ULTRASOUND_CONTEXT",
+        "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE"
+      ],
+      "day": 5,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "andres-guzman",
+        "daniel-rios",
+        "marcela-soto"
+      ],
+      "node_ids": [
+        "MLQ5X_D3S15_CHIEFS_ENTER",
+        "MLQ5X_D3S15_N20_GUZMAN_ULTRASOUND",
+        "MLQ5X_D3S15_N20_SOTO_ULTRASOUND",
+        "MLQ5X_D3S15_N20_RIOS_ULTRASOUND",
+        "MLQ5X_D3S15_N20_GUZMAN_KEEP_NORMAL",
+        "MLQ5X_D3S15_N20_RIOS_ROTATING_SHIFTS",
+        "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION"
+      ],
+      "day": 5,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "andres-guzman"
+      ],
+      "node_ids": [
+        "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+        "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1"
+      ],
+      "day": 5,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D3_SEQUENCE_18",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "javier-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_D3S18_JAVIER_ENTERS",
+        "MLQ5X_D3S18_N23_JAVIER_WORKLOAD"
+      ],
+      "day": 5,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "andres-guzman"
+      ],
+      "node_ids": [
+        "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE"
+      ],
+      "day": 6,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_D4_SEQUENCE_20",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "daniel-rios"
+      ],
+      "node_ids": [
+        "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST"
+      ],
+      "day": 6,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_D5_SEQUENCE_21",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "sofia-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR"
+      ],
+      "day": 6,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_D5_SEQUENCE_22",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "marcela-soto"
+      ],
+      "node_ids": [
+        "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT"
+      ],
+      "day": 6,
+      "time_slot": "tarde"
+    },
+    {
+      "sequence_id": "MLQ5X_D5_SEQUENCE_23",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "daniel-rios"
+      ],
+      "node_ids": [
+        "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL"
+      ],
+      "day": 6,
+      "time_slot": "tarde"
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "MLQ5X_D1S1_ARRIVAL",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(Son las 7:55 AM. Llegas al CESFAM con una carpeta del SEREMI bajo el brazo. El edificio huele a café y antiséptico; pacientes esperan en los pasillos desde antes de las 8.)",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_WELCOME",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Buenos días, director. Bienvenido. Soy Sofía Castro, su asistente administrativa. Vengo con información importante para dejarlo orientado en su primer día.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_SECTORS",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Hoy el Centro de Salud trabaja en tres sectores: Sector Azul, Sector Rojo y Sector Amarillo. Cada uno tiene su propia jefatura, su equipo clínico y su forma de defender prioridades.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_PLANNING",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Este viernes tiene que quedar lista la planificación que se va a usar el lunes. Siempre chocamos con pocos boxes, horas clínicas y administrativas, capacitaciones y salidas a terreno compitiendo por el mismo espacio.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_TASK",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Su trabajo es revisar propuestas, detectar topes y decidir que costo está dispuesto a repartir. Si algo queda mal armado hoy, el lunes lo pagaremos en atención, reclamos o conflicto interno. Los tres jefes de sector lo esperan en la sala de reuniones.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_ROOM_TONE",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(El ambiente de la sala es relajado, pero serio. Las tres jefaturas traen carpetas abiertas y miradas atentas.)",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_GUZMAN",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, traigo la propuesta del Sector Azul. Reservamos bloques críticos para sostener calidad técnica y un espacio protegido para docencia. Si eso se cae, se cae algo más que una agenda.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_SOTO",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Un momento. En el Sector Rojo ya no tenemos margen para improvisar. Si alguien bloquea el box crítico o vuelve a mover personal sin acuerdo, el lunes parte con problemas serios para mi sector.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Mientras ustedes discuten criterios, en el Sector Amarillo estamos llegando con gente que no aguanta otra reagendación. Si el lunes no aparece una salida real, me revienta la sala de espera.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Como dije, la docencia igual es importante. Tengo un proyecto docente con una universidad que ya lleva dos años y que el director anterior apoyo a medias. Necesita respaldo real de dirección.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "¿Cómo va a manejar el tema de los protocolos? Porque aquí Soto los aplica al pie de la letra aunque eso signifique dejar a un paciente esperando.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Me parece importante mencionar que el Sector Rojo tiene 100% de cumplimiento. Podemos empezar por ahi si quiere datos reales.",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_1",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "¿Director, ¿con que jefe de sector prefiere reunirse primero en su oficina?",
+      "day": 3,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_3",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Que bueno que este aquí, director. Me parece importante que considere los programas docentes que actualmente posee el CESFAM. Soto y Ríos no están de acuerdo con esto porque consume horas del personal, pero significan grandes ingresos para el CESFAM.",
+      "day": 3,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Le presento a Francisca Solís, nuestra enfermera. Antes que lo escuche como rumor de otro lado, quería informarle que ayer Francisca derivó a un paciente de 80 años con dolor toracico porque el médico de turno no llegó. No espero autorizacion. ¿Eso es un problema para usted?",
+      "day": 3,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "¿Va a aplicar algún tipo de sanción?",
+      "day": 3,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D1S4_SOTO_ENTERS",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(Aparece Marcela Soto con una carpeta.)",
+      "day": 3,
+      "time_slot": "tarde",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_4",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, necesito informarle formalmente que Francisca Solís atendió sin médico presente ayer. Esto es una infracción al protocolo de atención de urgencias. Aquí traigo el reporte.",
+      "day": 3,
+      "time_slot": "tarde",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+      "sequence_id": "MLQ5X_D1_SEQUENCE_5",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Gracias por venir, director. Quiero recalcar la importancia de cumplir los protocolos del CESFAM, ya que principalmente Ríos en su sector no lo ha estado haciendo últimamente. El director anterior nunca tomó cartas en el asunto, por lo que el Sector Amarillo ya se acostumbró a saltarse procesos. ¿Cómo planea enfrentarse a eso?",
+      "day": 3,
+      "time_slot": "tarde",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D2S8_WATER_CUT_CONTEXT",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(Sofía Castro y Marcela Soto te esperan con cara de quien tiene malas noticias.)",
+      "day": 4,
+      "time_slot": "mañana",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D2S8_N11_SOFIA_WATER_CUT",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, hay un corte de agua programado que nadie notificó a dirección. El Sector Rojo no puede atender esta mañana: los tres consultorios que usan agua corriente están fuera. Son 40 pacientes agendados.",
+      "day": 4,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_8",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Puedo coordinar con el Sector Amarillo para absorber unos veinte pacientes si me dan el visto bueno.",
+      "day": 4,
+      "time_slot": "mañana",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_9",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "A pesar de los inconvenientes, logramos atender casi a la totalidad de los pacientes. Fue agotador, pero pudimos sobrellevar la situación.",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D2S10_FORMAL_MEETING_CONTEXT",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(En la tarde es la primera reunión formal de jefes de sector. Guzmán llega cinco minutos tarde. Soto se percata. El ambiente se tensa.)",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(Todos te miran para que digas algo.)",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "En el Sector Amarillo llevamos mucho tiempo haciendo varios turnos encadenados, porque no hay más personal. Esto sin descanso compensatorio. No aguantaremos mucho tiempo más así.",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_10",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "He escuchado que companeros tienen intenciones de renunciar si el tema de los turnos no cambia. No es amenaza, tal como dije; solo es lo que he escuchado.",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "¿Director, quería hacerle una pregunta: tiene una visión para este CESFAM? El anterior nunca tuvo una. Solo apagaba incendios.",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+      "sequence_id": "MLQ5X_D2_SEQUENCE_11",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Ademas, esta mañana me escribio la coordinadora de prácticas de la universidad preguntando si se mantendran los cupos de práctica clínica. Me solicito una respuesta para antes del viernes.",
+      "day": 4,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX_CONFLICT_INTRO",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, hay unos conflictos con los box de la próxima semana a los que debe dar respuesta.",
+      "day": 5,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX5_CONFLICT",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Primero: el Sector Azul tiene un mes esperando respuesta a una solicitud de box para un bloque docente. Es para viernes AM en el Box 5, pero Eduardo Naranjo sigue agendado en ese mismo box para el Sector Rojo.",
+      "day": 5,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Segundo: miércoles PM en el Box 6. Marcela Soto lo deja tomado para el Sector Rojo, pero Francisca Solís lo había solicitado para el Sector Amarillo. Debe resolver estos conflictos para hoy.",
+      "day": 5,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N19_SOFIA_ULTRASOUND_CONTEXT",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Ademas, tengo que comunicarle un problema. Los miércoles AM hay procedimientos cruzados, de manera que los tres sectores comparten el unico ecografo disponible.",
+      "day": 5,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_14",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Esto siempre se ha hecho así y nunca se ha buscado una solución, ya que nadie lo ha cuestionado. ¿Cómo quiere abordarlo?",
+      "day": 5,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D3S15_CHIEFS_ENTER",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(Entran los tres jefes de sector.)",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": null
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_GUZMAN_ULTRASOUND",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "¿Esta reunión es por el uso del ecografo?",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_SOTO_ULTRASOUND",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Si. La verdad, a pesar de que sea el unico disponible, nunca he tenido ningún inconveniente mayor.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_RIOS_ULTRASOUND",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Es cierto. Considerando las limitaciones del CESFAM, creo que podemos seguir bien como estamos.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_GUZMAN_KEEP_NORMAL",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Opino que todo siga normal. Esto no ha causado ningún impacto clínico.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_RIOS_ROTATING_SHIFTS",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Estoy de acuerdo. Cambiando de tema, quería aprovechar la oportunidad para proponer un sistema de turnos rotativos semanales en el Sector Amarillo. Lo probe informalmente el mes pasado y funciono.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_15",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "De acuerdo con el reglamento, los turnos deben seguir un esquema fijo aprobado por dirección. Esto viola el reglamento.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Que bueno que vino, director. Hay algo que le quería comentar. Dos de los internos que tengo en el Sector Azul no están registrados formalmente. Son de intercambio. El acuerdo fue verbal con el exdirector. Si viene una auditoría eso puede ser un problema.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_16",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Para sostener cupos de práctica clínica necesito dos cosas: avanzar en el convenio universitario y reservar Box 1 los martes AM para supervisión docente. Sin ese bloque, la actividad docente queda dependiendo de improvisaciones semanales.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D3S18_JAVIER_ENTERS",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_18",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "(En la tarde Javier Castro entra a tu oficina. Hay una breve pausa.)",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+      "sequence_id": "MLQ5X_D3_SEQUENCE_18",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Llevo mucho tiempo trabajando largas jornadas, director. Nadie lo ha visto nunca como un problema. Yo... ya no puedo dar lo mejor de mi así. Lo siento.",
+      "day": 5,
+      "time_slot": "tarde",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+      "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, buenos días. Estoy aquí por un motivo, y es que usted me aseguro que el Box 1 del martes en el bloque AM quedaría para la supervisión con los internos, por lo que confirme los horarios con la universidad y reorganice mis consultas de esa mañana. Hoy el Box 1 aparece asignado a Soto sin que nadie me avisará ni me explicara el cambio antes de que el documento quedara firmado. Claramente exijo una explicación, no puede modificar la asignación de boxes tan deliberadamente siendo que algunos ya tenemos todo organizado. ¿Qué le digo ahora a la universidad?",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+      "sequence_id": "MLQ5X_D4_SEQUENCE_20",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Gracias por venir, director. Tengo una solicitud en particular. Necesito que me de flexibilidad en las mananas. Si me la da, yo le garantizo que el equipo del Amarillo cubre los turnos de noche. Lo pongo por escrito si quiere.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+      "sequence_id": "MLQ5X_D5_SEQUENCE_21",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "El viernes hubo un pequeno error en el registro de un procedimiento del Sector Amarillo. Es menor, pero existe.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "sofia-castro"
+    },
+    {
+      "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+      "sequence_id": "MLQ5X_D5_SEQUENCE_22",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, el Sector Azul no reporto una situación de riesgo menor la semana pasada. Solicito que se registre formalmente y se notifique al Dr. Guzmán.",
+      "day": 6,
+      "time_slot": "tarde",
+      "stakeholder_id": "marcela-soto"
+    },
+    {
+      "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+      "sequence_id": "MLQ5X_D5_SEQUENCE_23",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Jefe, le traigo un borrador del protocolo de urgencias TENS-sin-médico dada la situación que mencione el miércoles sobre como actuar, paso a paso, cuando no haya médico presente.",
+      "day": 6,
+      "time_slot": "tarde",
+      "stakeholder_id": "daniel-rios"
+    }
+  ],
+  "options": [
+    {
+      "node_id": "MLQ5X_D1S1_ARRIVAL",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_WELCOME",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_SECTORS",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_PLANNING",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_SOFIA_TASK",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_ROOM_TONE",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_GUZMAN",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_SOTO",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+      "option_id": "A",
+      "option_text": "Buen día. Para comenzar, quiero recalcar que para que el CESFAM vaya por buen camino debemos mantener una atención centrada en las personas, transparencia y trabajo en equipo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+      "option_id": "B",
+      "option_text": "Gracias por la bienvenida. Tengo muchas ganas de aprender y en los próximos días iré conociendolo todo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N1_RIOS_CHOICE",
+      "option_id": "C",
+      "option_text": "Buenos días a todos. Sofía Castro me comentó los objetivos que tiene el CESFAM. Hay trabajo que hacer.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+      "option_id": "A",
+      "option_text": "La docencia es parte de la misión del CESFAM. Consideraré el proyecto para entender el impacto en la carga del equipo antes de decidir.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+      "option_id": "B",
+      "option_text": "Lo revisaré, pero acabo de asumir el puesto. Tengo muchas prioridades que atender primero.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N2_GUZMAN_DOCENCIA",
+      "option_id": "C",
+      "option_text": "Cualquier actividad extra necesita justificarse en carga asistencial antes de aceptarla. No podemos comprometer la atención al público.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+      "option_id": "A",
+      "option_text": "Los protocolos son lo mínimo, no el techo. Cuando no benefician al paciente hay que revisarlos formalmente, no ignorarlos.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+      "option_id": "B",
+      "option_text": "Es un tema que iré conociendo. No quiero opinar al respecto sin tener más contexto.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N3_RIOS_PROTOCOLS",
+      "option_id": "C",
+      "option_text": "Los protocolos existen por alguna razón. Espero que se respeten en todos los sectores.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+      "option_id": "A",
+      "option_text": "Los indicadores son importantes, pero antes de sacar conclusiones me interesa conocer bien el funcionamiento del CESFAM.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+      "option_id": "B",
+      "option_text": "Eso es excelente. Por favor prepara un resumen del Sector Rojo para la tarde.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N4_SOTO_INDICATORS",
+      "option_id": "C",
+      "option_text": "Es algo que espero podamos lograr con todos los sectores.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+      "option_id": "A",
+      "option_text": "Me reunire primero con Guzmán del Sector Azul. No quiero tener problemas con temas docentes por el beneficio que tienen para el CESFAM.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+      "option_id": "B",
+      "option_text": "Avisele a Soto del Sector Rojo que iré a su oficina primero. Revisaremos lo asociado a los protocolos para que todo vaya en regla en el CESFAM.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
+      "option_id": "C",
+      "option_text": "Primero iré a la oficina de Ríos del Sector Amarillo. Quiero revisar todo lo asociado a los pacientes antes de tomar cualquier decisión.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+      "option_id": "A",
+      "option_text": "No se preocupe, Guzmán. Siempre tendré en consideracion el compromiso docente a la hora de tomar decisiones.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+      "option_id": "B",
+      "option_text": "No puedo garantizar eso, Guzmán. Los pacientes son lo primero.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S3_N6_GUZMAN_DOCENCIA",
+      "option_id": "C",
+      "option_text": "El compromiso docente es importante, pero no puedo comprometer la atención a los pacientes en beneficio de la docencia.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+      "option_id": "A",
+      "option_text": "La decisión clínica fue correcta. La idea es que podamos trabajar en un protocolo formal para proteger a todos cuando ocurra algo similar.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+      "option_id": "B",
+      "option_text": "La verdad depende de cada caso. No puedo opinar sin más información sobre los efectos de esa derivación.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N7_RIOS_DERIVACION",
+      "option_id": "C",
+      "option_text": "Es importante que en el futuro espere autorizacion antes de actuar. Si la derivación es incorrecta, puede perjudicar seriamente al CESFAM.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+      "option_id": "A",
+      "option_text": "Su acción clínica fue correcta aunque el proceso administrativo no lo fue. Por ahora no aplicaré ninguna sanción.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+      "option_id": "B",
+      "option_text": "Iniciare un proceso y por ahora no hay sanción, pero es importante que siga los protocolos.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N8_RIOS_SANCION",
+      "option_id": "C",
+      "option_text": "La situación quedara en su historial. Es importante que en adelante aplique los protocolos para que no haya consecuencias formales.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_SOTO_ENTERS",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+      "option_id": "A",
+      "option_text": "Gracias por el reporte. Ya tengo contexto del caso y habrá un protocolo formal de actuacion lo antes posible.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+      "option_id": "B",
+      "option_text": "Envieme el informe por escrito; durante la semana lo veré.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S4_N9_SOTO_REPORTE",
+      "option_id": "C",
+      "option_text": "Tiene razón, efectivamente es una infracción. De ahora en adelante me asegurare de que el protocolo se aplique siempre, sin excepcion.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+      "option_id": "A",
+      "option_text": "No puedo cambiarlo de un día para otro. Lo del Sector Amarillo viene de mucho antes que yo asumiera, por lo que no lo puedo corregir ahora.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+      "option_id": "B",
+      "option_text": "Quiero terminar ese problema de raiz; el Sector Amarillo no puede seguir actuando de esa manera.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D1S5_N10_SOTO_PROTOCOLS",
+      "option_id": "C",
+      "option_text": "Intentaré solucionarlo por el bien del CESFAM, pero no le prometo cambios inmediatos.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S8_WATER_CUT_CONTEXT",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D2S8_N11_SOFIA_WATER_CUT",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+      "option_id": "A",
+      "option_text": "No podemos dejar a los pacientes sin atención. Soto, coordine con Ríos para reorganizar todo sin suspender nada.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+      "option_id": "B",
+      "option_text": "El Sector Rojo deberá suspender sus atenciones. Soto, como jefa informe a los pacientes.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S8_N11_SOTO_DECISION",
+      "option_id": "C",
+      "option_text": "Este es un problema de infraestructura que escapa de nuestras manos. Hay que llamar al municipio.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+      "option_id": "A",
+      "option_text": "Atendieron a casi todos los pacientes pese al corte de agua; eso no pasa en cualquier CESFAM. Es merito de ustedes como equipo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+      "option_id": "B",
+      "option_text": "Buen trabajo a todo el equipo. Ahora no hay que bajar los brazos para las actividades de la tarde.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S9_N12_SOTO_WATER_CUT_FOLLOWUP",
+      "option_id": "C",
+      "option_text": "Fue una gran jornada la de la mañana, pero aun hay trabajo que hacer.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_FORMAL_MEETING_CONTEXT",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+      "option_id": "A",
+      "option_text": "Me gustaria darles la oportunidad de hablar: alguna necesidad o inconveniente que hayan tenido hasta ahora.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+      "option_id": "B",
+      "option_text": "Este día ha sido complicado, sin embargo quiero felicitarlos por la buena labor realizada hasta ahora.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N13_LATE_ARRIVAL_RESPONSE",
+      "option_id": "C",
+      "option_text": "Guzmán, es importante que llegues a la hora para las próximas reuniones; tiempo no nos sobra.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+      "option_id": "A",
+      "option_text": "Reconozco la urgencia, eso impacta en la calidad de atención. Me comprometo a dar una respuesta concreta lo antes posible.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+      "option_id": "B",
+      "option_text": "Lo tendré en cuenta para la propuesta de horario del viernes.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N14_RIOS_EXTENDED_SHIFTS",
+      "option_id": "C",
+      "option_text": "Eso depende del presupuesto disponible, no puedo verlo sin el visto del área correspondiente.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+      "option_id": "A",
+      "option_text": "Comprendo que sea una situación no sostenible. Veré si puedo revisar los turnos para la próxima semana, independiente del presupuesto.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+      "option_id": "B",
+      "option_text": "Como jefe del Sector Amarillo, gestiona los horarios correspondientes. Podemos revisarlos en conjunto si tienes una propuesta.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S10_N15_RIOS_RESIGNATION_RISK",
+      "option_id": "C",
+      "option_text": "Las renuncias son una decisión personal de cada funcionario. Contra eso no puedo hacer mucho, sobre todo si tener más personal no depende de mi.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+      "option_id": "A",
+      "option_text": "Tengo una visión en construccion, pero necesito a todos como equipo para darle forma real.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+      "option_id": "B",
+      "option_text": "Aun estoy conociendo al equipo; necesito unas semanas para formularla.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N16_GUZMAN_VISION",
+      "option_id": "C",
+      "option_text": "Mi visión es hacer bien lo que hay que hacer y los indicadores son la guia.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+      "option_id": "A",
+      "option_text": "Guzmán, por favor confirme el interés del CESFAM y la mantención de los cupos. Estas prácticas son una enorme oportunidad.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+      "option_id": "B",
+      "option_text": "Me encargare de gestionar la labor docente ya que los box son escasos; le avisaré en cuanto tenga respuesta.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D2S11_N17_GUZMAN_PRACTICE_CUPS",
+      "option_id": "C",
+      "option_text": "Todavia estoy en proceso de revisión interna y verificando box disponibles; no puedo darle una respuesta aun.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX_CONFLICT_INTRO",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX5_CONFLICT",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+      "option_id": "A",
+      "option_text": "Muchas gracias por la información. Estoy consciente de que debo revisar y dejar todo eso listo hoy. Entregare una respuesta apropiada.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+      "option_id": "B",
+      "option_text": "Lo tendré en cuenta. Apenas resuelva todo lo pendiente para hoy y tenga algo de tiempo lo revisaré.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N18_SOFIA_BOX6_DECISION",
+      "option_id": "C",
+      "option_text": "Gracias por la información, pero es para hoy en la tarde. Tengo tiempo para revisarlo aun.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N19_SOFIA_ULTRASOUND_CONTEXT",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+      "option_id": "A",
+      "option_text": "Convoca a los jefes de sector para averiguar si hay alguna razón técnica para que el ecografo este en ese horario o si es tradición; si no, se puede redistribuir su uso.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+      "option_id": "B",
+      "option_text": "Pero si ha funcionado así, no es necesario que se corrija su uso hasta que haya un conflicto o problema real. Dejemos todo como esta.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S14_N19_ULTRASOUND_SHARED_USE",
+      "option_id": "C",
+      "option_text": "Por ahora pasemoslo por alto, no creo que sea un problema grave.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S15_CHIEFS_ENTER",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_GUZMAN_ULTRASOUND",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_SOTO_ULTRASOUND",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_RIOS_ULTRASOUND",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_GUZMAN_KEEP_NORMAL",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_RIOS_ROTATING_SHIFTS",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+      "option_id": "A",
+      "option_text": "Ambas perspectivas tienen peso. Es importante leer el reglamento antes de decidir; sin embargo, si la propuesta de Ríos funciona, debe tenerse en cuenta.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+      "option_id": "B",
+      "option_text": "Lamentablemente si viola el reglamento no puede aplicarse hasta que se modifique formalmente.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S15_N20_SOTO_ROTATING_SHIFTS_DECISION",
+      "option_id": "C",
+      "option_text": "El reglamento puede revisarse, sobre todo si hay evidencia de que algo funciona mejor.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+      "option_id": "A",
+      "option_text": "Un acuerdo verbal no protege a los internos ni al CESFAM. Puedo ayudarle a formalizarlo, pero hay que hacerlo lo antes posible.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+      "option_id": "B",
+      "option_text": "Lo regularizaremos cuando haya tiempo, que esta semana hay muchas cosas.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N21_GUZMAN_UNREGISTERED_INTERNS",
+      "option_id": "C",
+      "option_text": "Lamentablemente los internos deben retirarse hasta que todo este formalizado. Puede haber sanciones graves para el CESFAM si ocurre algo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+      "option_id": "A",
+      "option_text": "Aprobare la reserva de Box 1 para los martes. Ademas, le propongo que lidere el proceso del convenio por su vinculo directo con la universidad.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+      "option_id": "B",
+      "option_text": "Aprobare la reserva de Box 1, sin embargo el convenio se vera a futuro. Aun ha pasado poco tiempo para analizarlo a fondo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S16_N22_GUZMAN_CONVENIO_BOX1",
+      "option_id": "C",
+      "option_text": "Lamentablemente el convenio depende del SEREMI y no esta en mis manos gestionarlo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S18_JAVIER_ENTERS",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+      "option_id": "A",
+      "option_text": "Consideraré especificamente tu carga horaria para la propuesta de la próxima semana. Esto afecta tanto a ti personalmente como tu rendimiento en el CESFAM.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+      "option_id": "B",
+      "option_text": "Lo tendré en cuenta para la propuesta de hoy. No puedes seguir manteniendo estos niveles de carga horaria.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D3S18_N23_JAVIER_WORKLOAD",
+      "option_id": "C",
+      "option_text": "Lamentablemente todos están con carga. Veré que se puede hacer a futuro, ya que muchos están en tu situación y no hay presupuesto para más personal.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+      "option_id": "A",
+      "option_text": "Tienes toda la razón en estar molesto y asumo la responsabilidad por este error en la comunicación. Nuestro objetivo es que tanto la docencia como la atención clínica funcionen con excelencia. Suspende la docencia esta semana y desde la próxima tienes vía libre.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+      "option_id": "B",
+      "option_text": "Dejame el tema sobre la mesa y cuando tenga menos carga veré que puedo hacer con esos horarios. Por ahora, vas a tener que arreglartelas con los boxes que queden libres.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
+      "option_id": "C",
+      "option_text": "La reasignación se hizo porque la auditoría interna del Sector Rojo es crítica para sus estandares y el protocolo exige priorizar dichas auditorias sobre lo docente. Si el martes logras acomodar a los internos, me comprometo a que el Box 1 quede para ti.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+      "option_id": "A",
+      "option_text": "Aceptare tu peticion condicionado al cumplimiento de indicadores del Sector Amarillo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+      "option_id": "B",
+      "option_text": "Lo consideraré pero necesito verlo operativamente antes de comprometerme. Ademas, el Sector Amarillo tiene problemas con las cargas horarias, por lo que su jefe no debería estar ausente.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST",
+      "option_id": "C",
+      "option_text": "Lamentablemente la flexibilidad de horarios no esta contemplada en el reglamento. No puedo brindarte esa solicitud.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+      "option_id": "A",
+      "option_text": "Le avisaré directamente a Ríos para que lo corrija. Al ser menor, debería tomarle muy poco tiempo.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+      "option_id": "B",
+      "option_text": "Sofía, avisale a Ríos para que lo corrija.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
+      "option_id": "C",
+      "option_text": "Está bien, es menor así que no pasa nada.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+      "option_id": "A",
+      "option_text": "La situación fue omision y no ocultacion. Hoy estoy con muchas cosas, notificare a Guzmán la próxima semana para que regularice el reporte.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+      "option_id": "B",
+      "option_text": "Lo revisaré con Guzmán el lunes de la próxima semana. No te preocupes, solo fue una omision, no es grave.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S22_N27_SOTO_MINOR_RISK_REPORT",
+      "option_id": "C",
+      "option_text": "La situación fue una omision. No te preocupes. Ya paso y no ocurrira nada mayor.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+      "option_id": "A",
+      "option_text": "Muchas gracias, Ríos. Lo haré llegar a mis superiores para que lo revisen y opinen si vale o no la pena agregarlo. Si más CESFAM han pasado por esto, seguro no habrá problema.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+      "option_id": "B",
+      "option_text": "Que bien por tu iniciativa, gracias. Mis superiores lo revisarán y te informaré cualquier situación o si es necesario una modificacion.",
+      "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_D5S23_N28_RIOS_TENS_PROTOCOL",
+      "option_id": "C",
+      "option_text": "Se lo entregare a Soto para que lo revise antes de enviarlo a los superiores para que lo aprueben.",
+      "is_decision": true
+    }
+  ]
+}
