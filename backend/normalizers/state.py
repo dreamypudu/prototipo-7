@@ -52,9 +52,9 @@ def insert_final_state(conn, session_id: str, user_id: str, version_id: str | No
         INSERT INTO final_states (
             session_id, user_id, version_id, final_day, final_budget,
             final_reputation, final_project_progress, completed_sequences_count,
-            completed_scenarios_count, raw_final_state
+            completed_scenarios_count, player_notes, raw_final_state
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (session_id) DO UPDATE SET
             user_id = EXCLUDED.user_id,
             version_id = EXCLUDED.version_id,
@@ -64,6 +64,7 @@ def insert_final_state(conn, session_id: str, user_id: str, version_id: str | No
             final_project_progress = EXCLUDED.final_project_progress,
             completed_sequences_count = EXCLUDED.completed_sequences_count,
             completed_scenarios_count = EXCLUDED.completed_scenarios_count,
+            player_notes = EXCLUDED.player_notes,
             raw_final_state = EXCLUDED.raw_final_state
         """,
         (
@@ -76,6 +77,7 @@ def insert_final_state(conn, session_id: str, user_id: str, version_id: str | No
             float_or_none(global_state.get("projectProgress")),
             len(completed_sequence_ids),
             len(completed_node_ids),
+            final_state.get("playerNotes"),
             to_jsonb(final_state),
         ),
     )

@@ -499,6 +499,7 @@ def _create_contract_tables(conn):
             final_project_progress DOUBLE PRECISION,
             completed_sequences_count INTEGER,
             completed_scenarios_count INTEGER,
+            player_notes TEXT,
             raw_final_state JSONB
         )
         """
@@ -511,6 +512,10 @@ def _create_support_tables(conn):
 
 def _add_missing_columns(conn):
     statements = [
+        """
+        ALTER TABLE final_states
+        ADD COLUMN IF NOT EXISTS player_notes TEXT
+        """,
         """
         ALTER TABLE users
         ADD COLUMN IF NOT EXISTS created_at TEXT
