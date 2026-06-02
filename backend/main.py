@@ -167,6 +167,7 @@ def get_session_normalized(session_id: str):
             "mechanic_events",
             "comparisons",
             "process_logs",
+            "option_process_stats",
             "question_log",
             "final_states",
         ]:
