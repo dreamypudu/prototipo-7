@@ -46,7 +46,21 @@ def _upsert_narrative(conn, narrative: dict) -> None:
     )
 
 
+def _upsert_version(conn, version_id: str | None) -> None:
+    if not version_id:
+        return
+    conn.execute(
+        """
+        INSERT INTO versions (version_id, created_at)
+        VALUES (%s, now()::text)
+        ON CONFLICT (version_id) DO NOTHING
+        """,
+        (version_id,),
+    )
+
+
 def _upsert_sequence(conn, sequence: dict) -> None:
+    _upsert_version(conn, sequence.get("version_id"))
     conn.execute(
         """
         INSERT INTO scenario_sequences (
