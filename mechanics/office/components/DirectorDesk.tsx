@@ -24,6 +24,7 @@ const OFFICE_ASSETS = {
 
 const PHONE_ASSET = '/data/versions/cesfam/assets/telefono.png';
 const TABLET_ASSET = '/data/versions/cesfam/assets/tablet.png';
+const DOOR_ASSET = '/data/versions/cesfam/assets/puerta.png';
 
 interface DirectorDeskProps {
     gameState: GameState;
@@ -41,6 +42,7 @@ interface AlphaHotspotProps {
     labelClassName: string;
     className: string;
     onActivate: () => void;
+    enableHoverEffect?: boolean;
 }
 
 const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
@@ -50,7 +52,8 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
     label,
     labelClassName,
     className,
-    onActivate
+    onActivate,
+    enableHoverEffect = true
 }) => {
     const boxRef = useRef<HTMLDivElement | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
@@ -86,9 +89,11 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
                 src={src}
                 alt={alt}
                 className={`w-full h-full object-contain drop-shadow-xl transition-all duration-200 ease-out ${
-                    over
+                    over && enableHoverEffect
                         ? 'scale-[1.018] cursor-pointer drop-shadow-[0_0_10px_rgba(255,255,255,0.22)]'
-                        : 'cursor-default'
+                        : over
+                            ? 'cursor-pointer'
+                            : 'cursor-default'
                 }`}
                 draggable={false}
             />
@@ -241,19 +246,16 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
             {activeView === 'office' && (
                 <div className="absolute z-10" style={imageStyle}>
                     {/* 1. DOOR - EXIT TO MAP */}
-                    <div
-                        className="absolute top-[20%] right-[5%] w-[17%] h-[60%] cursor-pointer group z-40 border-2 border-white/20 hover:border-blue-400 rounded-lg"
-                        onClick={() => onNavigate('map')}
+                    <AlphaHotspot
+                        src={DOOR_ASSET}
+                        alt="Puerta de salida"
                         title="Salir al Mapa"
-                    >
-                        {OFFICE_ASSETS.ELEMENT_DOOR && <img src={OFFICE_ASSETS.ELEMENT_DOOR} className="w-full h-full object-contain" alt="Door" />}
-
-                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="bg-black/80 text-white text-xs px-2 py-1 rounded">
-                                Salir al CESFAM
-                            </span>
-                        </div>
-                    </div>
+                        label="Salir al CESFAM"
+                        labelClassName="text-white"
+                        className="top-[0%] right-[0.5%] w-[27%] h-[90%] z-40"
+                        enableHoverEffect={false}
+                        onActivate={() => onNavigate('map')}
+                    />
 
                     {/* 2. WINDOW - TIME DISPLAY */}
                     <div className="absolute top-[0%] left-[0%] w-[20%] h-[10%] pointer-events-none z-0 flex items-end justify-center pb-4 border-2 border-transparent hover:border-white/10">
