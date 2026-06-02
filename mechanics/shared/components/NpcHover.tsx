@@ -19,6 +19,12 @@ interface NpcHoverProps {
   portal?: boolean;
   /** Burbuja compacta (menos ancho, retrato y texto mas chicos). Util en el mapa. */
   compact?: boolean;
+  /**
+   * Modo controlado (solo burbuja inline, no portal): si se entrega, la visibilidad del
+   * tooltip la decide el padre (true = visible) en vez del :hover del span. Util para hitboxes
+   * irregulares (p. ej. silueta por alfa de un sprite). Si es undefined, se usa el hover normal.
+   */
+  open?: boolean;
 }
 
 const BUBBLE_DECOR = 'rounded-xl bg-gray-900/95 border border-gray-700 shadow-xl';
@@ -34,7 +40,9 @@ const NpcHover: React.FC<NpcHoverProps> = ({
   triggerClassName = 'cursor-help font-semibold text-amber-200',
   portal = false,
   compact = false,
+  open,
 }) => {
+  const isControlled = open !== undefined;
   const translateY =
     typeof portraitOffsetY === 'number' ? `${portraitOffsetY}px` : portraitOffsetY;
   const triggerRef = useRef<HTMLSpanElement | null>(null);
@@ -90,12 +98,16 @@ const NpcHover: React.FC<NpcHoverProps> = ({
   const vAnchor = placement === 'auto' ? 'top-1/4' : 'top-1/2';
   const sizeClass = compact ? 'w-56 px-3 py-2.5' : 'w-72 px-4 py-3';
   const bubbleDecor = `${sizeClass} ${BUBBLE_DECOR}`;
+  // En modo controlado la visibilidad la decide `open`; si no, se usa el :hover del grupo.
+  const visibility = isControlled
+    ? `${open ? 'opacity-100' : 'opacity-0'} pointer-events-none transition duration-150 z-50`
+    : BUBBLE_HOVER;
   const bubbleClass =
     resolvedPlacement === 'right'
-      ? `absolute left-full ${vAnchor} ${rightOffset} -translate-y-1/2 ${bubbleDecor} ${BUBBLE_HOVER}`
+      ? `absolute left-full ${vAnchor} ${rightOffset} -translate-y-1/2 ${bubbleDecor} ${visibility}`
       : resolvedPlacement === 'left'
-        ? `absolute right-full ${vAnchor} ${leftOffset} -translate-y-1/2 ${bubbleDecor} ${BUBBLE_HOVER}`
-        : `absolute bottom-full left-1/2 mb-2 -translate-x-1/2 ${bubbleDecor} ${BUBBLE_HOVER}`;
+        ? `absolute right-full ${vAnchor} ${leftOffset} -translate-y-1/2 ${bubbleDecor} ${visibility}`
+        : `absolute bottom-full left-1/2 mb-2 -translate-x-1/2 ${bubbleDecor} ${visibility}`;
 
   const portraitSize = compact ? 'w-14 h-14' : 'w-24 h-24';
   const bubbleInner = (

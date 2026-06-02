@@ -3,6 +3,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { GameState } from '../../../types';
 import { useMechanicContext } from '../../MechanicContext';
 import PhoneMechanic from '../../modules/PhoneMechanic';
+import { isClientPointOpaque, primeImageAlpha } from '../../../services/imageAlpha';
 
 // =================================================================================================
 // 🎨 ZONA DE CONFIGURACIÓN DE IMÁGENES (PEGAR TUS URLS AQUÍ)
@@ -21,6 +22,9 @@ const OFFICE_ASSETS = {
 };
 // =================================================================================================
 
+const PHONE_ASSET = '/data/versions/cesfam/assets/telefono.png';
+const TABLET_ASSET = '/data/versions/cesfam/assets/tablet.png';
+
 interface DirectorDeskProps {
     gameState: GameState;
     onNavigate: (tab: string) => void;
@@ -28,6 +32,74 @@ interface DirectorDeskProps {
 }
 
 // --- SUB-COMPONENTS DEFINED OUTSIDE TO PREVENT RE-RENDERS ---
+
+interface AlphaHotspotProps {
+    src: string;
+    alt: string;
+    title: string;
+    label: string;
+    labelClassName: string;
+    className: string;
+    onActivate: () => void;
+}
+
+const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
+    src,
+    alt,
+    title,
+    label,
+    labelClassName,
+    className,
+    onActivate
+}) => {
+    const imgRef = useRef<HTMLImageElement | null>(null);
+    const [over, setOver] = useState(false);
+
+    React.useEffect(() => {
+        primeImageAlpha(src);
+    }, [src]);
+
+    const isOpaqueAt = (event: React.MouseEvent) =>
+        isClientPointOpaque(imgRef.current, src, event.clientX, event.clientY);
+
+    const handleMove = (event: React.MouseEvent) => {
+        setOver(isOpaqueAt(event));
+    };
+
+    const handleClick = (event: React.MouseEvent) => {
+        if (!isOpaqueAt(event)) return;
+        onActivate();
+    };
+
+    return (
+        <div
+            className={`absolute z-10 ${className}`}
+            title={over ? title : undefined}
+            onMouseMove={handleMove}
+            onMouseLeave={() => setOver(false)}
+            onClick={handleClick}
+        >
+            <img
+                ref={imgRef}
+                src={src}
+                alt={alt}
+                className={`w-full h-full object-contain drop-shadow-xl transition-transform duration-200 ${
+                    over ? 'scale-105 cursor-pointer' : 'cursor-default'
+                }`}
+                draggable={false}
+            />
+            <div
+                className={`absolute inset-0 flex items-center justify-center transition-opacity pointer-events-none ${
+                    over ? 'opacity-100' : 'opacity-0'
+                }`}
+            >
+                <span className={`bg-black/80 text-xs px-2 py-1 rounded ${labelClassName}`}>
+                    {label}
+                </span>
+            </div>
+        </div>
+    );
+};
 
 interface ComputerMenuProps {
     onNavigate: (tab: string) => void;
@@ -202,34 +274,26 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
                     </div>
 
                     {/* 4. NOTEBOOK - NOTES */}
-                    <div
-                        className="absolute bottom-[10%] right-[25%] w-[12%] h-[15%] cursor-pointer group z-10 transform rotate-3 border-2 border-white/20 hover:border-yellow-400 rounded-sm"
-                        onClick={() => setActiveView('notebook')}
+                    <AlphaHotspot
+                        src={TABLET_ASSET}
+                        alt="Tablet de notas"
                         title="Notas Personales"
-                    >
-                         {OFFICE_ASSETS.ELEMENT_NOTEBOOK && <img src={OFFICE_ASSETS.ELEMENT_NOTEBOOK} className="w-full h-full object-contain" alt="Notebook" />}
-
-                         <div className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                             <span className="bg-black/80 text-yellow-200 text-xs px-2 py-1 rounded">
-                                Notas
-                            </span>
-                         </div>
-                    </div>
+                        label="Notas"
+                        labelClassName="text-yellow-200"
+                        className="bottom-[-23%] left-[60.5%] w-[26%] h-[80%] -rotate-4"
+                        onActivate={() => setActiveView('notebook')}
+                    />
 
                     {/* 5. PHONE - CALLS */}
-                    <div
-                        className="absolute bottom-[15%] left-[20%] w-[8%] h-[12%] cursor-pointer group z-10 border-2 border-white/20 hover:border-green-400 rounded-full"
-                        onClick={() => setActiveView('phone')}
-                        title="Teléfono"
-                    >
-                         {OFFICE_ASSETS.ELEMENT_PHONE && <img src={OFFICE_ASSETS.ELEMENT_PHONE} className="w-full h-full object-contain" alt="Phone" />}
-
-                         <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                             <span className="bg-black/80 text-green-300 text-xs px-2 py-1 rounded">
-                                Llamar
-                            </span>
-                         </div>
-                    </div>
+                    <AlphaHotspot
+                        src={PHONE_ASSET}
+                        alt="Telefono"
+                        title="Telefono"
+                        label="Llamar"
+                        labelClassName="text-green-300"
+                        className="bottom-[-33%] left-[-26.5%] w-[100%] h-[110%] -rotate-4"
+                        onActivate={() => setActiveView('phone')}
+                    />
                 </div>
             )}
 

@@ -2,6 +2,42 @@ import React from 'react';
 import { Stakeholder, TimeSlotType } from '../../../types';
 import { useTypewriter } from '../../../hooks/useTypewriter';
 import NpcHover from '../../shared/components/NpcHover';
+import { primeImageAlpha, isClientPointOpaque } from '../../../services/imageAlpha';
+
+// Sprite de NPC en la escena de diálogo con hitbox por silueta: el tooltip y el cursor
+// solo reaccionan sobre los píxeles opacos del PNG (no sobre el rectángulo transparente).
+const SilhouetteSprite: React.FC<{ stakeholder: Stakeholder; isActive: boolean }> = ({ stakeholder, isActive }) => {
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
+  const [over, setOver] = React.useState(false);
+  const src = stakeholder.portraitUrl ?? '';
+
+  React.useEffect(() => {
+    primeImageAlpha(src);
+  }, [src]);
+
+  const handleMove = (event: React.MouseEvent) => {
+    setOver(isClientPointOpaque(imgRef.current, src, event.clientX, event.clientY));
+  };
+
+  return (
+    <div
+      className={`transition-all duration-500 ease-in-out transform flex flex-col justify-end
+                ${isActive ? 'scale-105 z-20 filter-none opacity-100' : 'scale-90 z-10 grayscale-[35%] opacity-85'}`}
+      style={{ maxHeight: '70vh', maxWidth: '28vw' }}
+    >
+      <NpcHover stakeholder={stakeholder} placement="auto" open={over} triggerClassName="pointer-events-auto">
+        <img
+          ref={imgRef}
+          src={stakeholder.portraitUrl}
+          alt={stakeholder.name}
+          onMouseMove={handleMove}
+          onMouseLeave={() => setOver(false)}
+          className={`max-h-[60vh] w-auto object-contain drop-shadow-2xl transition-transform duration-200 ${over ? 'scale-[1.03] cursor-help' : 'cursor-default'}`}
+        />
+      </NpcHover>
+    </div>
+  );
+};
 
 interface DialogueAreaProps {
   stakeholder?: Stakeholder | null;          // NPC que esta hablando; null para narracion
@@ -14,12 +50,13 @@ interface DialogueAreaProps {
   onTypingStateChange?: (isTyping: boolean) => void;
 }
 
+// Fondos locales (assets). Solo se usan tres escenarios: oficina CESFAM, pasillo de hospital y box.
 const backgroundImages: Record<TimeSlotType | 'hospital' | 'box', string> = {
-  'mañana': 'https://i.pinimg.com/736x/35/a9/f3/35a9f3bb8237d372fb960e95354aba20.jpg', // bright/day
-  tarde: 'https://i.pinimg.com/736x/02/aa/5d/02aa5dae9b46b77ad4f8a387ab24ce3c.jpg',   // brighter golden/sunset
-  noche: 'https://i.pinimg.com/736x/02/aa/5d/02aa5dae9b46b77ad4f8a387ab24ce3c.jpg',    // fallback for night
-  hospital: '/data/versions/cesfam/assets/pasillo-hospital.png',                                         // fallback for hospital
-  box: 'https://i.imgur.com/cvbTEHv.jpeg'                                               // neutral box background
+  'mañana': '/data/versions/cesfam/assets/oficina-cesfam.PNG',
+  tarde: '/data/versions/cesfam/assets/oficina-cesfam.PNG',
+  noche: '/data/versions/cesfam/assets/oficina-cesfam.PNG',
+  hospital: '/data/versions/cesfam/assets/pasillo-hospital.png',
+  box: '/data/versions/cesfam/assets/box-cesfam.jpeg',
 };
 
 const DialogueArea: React.FC<DialogueAreaProps> = ({
@@ -217,26 +254,13 @@ const DialogueArea: React.FC<DialogueAreaProps> = ({
 
       {/* Character Sprites Container */}
       <div className="absolute bottom-0 left-0 w-full h-full flex justify-center items-end px-2 md:px-6 gap-3 md:gap-6 pb-10 md:pb-8 pointer-events-none">
-        {activeParticipants.map((p) => {
-          const isActive = Boolean(stakeholder && p.id === stakeholder.id);
-          return (
-            <div
-              key={p.id}
-              className={`transition-all duration-500 ease-in-out transform flex flex-col justify-end
-                        ${isActive ? 'scale-105 z-20 filter-none opacity-100' : 'scale-90 z-10 grayscale-[35%] opacity-85'}
-                    `}
-              style={{ maxHeight: '70vh', maxWidth: '28vw' }}
-            >
-              <NpcHover stakeholder={p} placement="auto" triggerClassName="pointer-events-auto cursor-help">
-                <img
-                  src={p.portraitUrl}
-                  alt={p.name}
-                  className="max-h-[60vh] w-auto object-contain drop-shadow-2xl"
-                />
-              </NpcHover>
-            </div>
-          );
-        })}
+        {activeParticipants.map((p) => (
+          <SilhouetteSprite
+            key={p.id}
+            stakeholder={p}
+            isActive={Boolean(stakeholder && p.id === stakeholder.id)}
+          />
+        ))}
       </div>
 
       {/* Dialogue Box */}
