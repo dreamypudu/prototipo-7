@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DailyEffectSummary, DecisionLogEntry, EffectMagnitude, GameState, GlobalEffectsUI, InternalEffectsPreview, TimeSlotType } from '../types';
 import { getGameDate } from '../constants';
@@ -23,6 +23,11 @@ interface HeaderProps {
   advanceHint?: string | null;
   onStartLeadership?: () => void;
 }
+
+const HEADER_COMPASS_LOGO_URL = '/assets/common/logos/logo-animado-compass.svg';
+const HEADER_COMPASS_STATIC_LOGO_URL = '/assets/common/logos/logo-compass.svg';
+const HEADER_LOGO_ANIMATION_MS = 4200;
+const HEADER_LOGO_PAUSE_MS = 10000;
 
 const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; advanceHint?: string | null; advanceDisabled?: boolean; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true, advanceHint, advanceDisabled = false }) => {
     const progress = Math.max(0, Math.min(100, ((periodDuration - countdown) / periodDuration) * 100));
@@ -427,25 +432,49 @@ const ResolutionStat: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, advanceDisabled = false, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl, advanceHint, onStartLeadership }) => {
+const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, advanceDisabled = false, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, subtitle, advanceHint, onStartLeadership }) => {
   const reputationHighlight = globalEffectsHighlight?.reputation;
-  const displayTitle = title || 'Compass';
   const displaySubtitle = subtitle || 'Simulador de decisiones';
   const [showLeadershipConfirm, setShowLeadershipConfirm] = useState(false);
+  const [logoRefreshKey, setLogoRefreshKey] = useState(0);
+  const [isLogoAnimating, setIsLogoAnimating] = useState(true);
+
+  useEffect(() => {
+    let pauseTimer: number | undefined;
+
+    const animationTimer = window.setTimeout(() => {
+      setIsLogoAnimating(false);
+      pauseTimer = window.setTimeout(() => {
+        setLogoRefreshKey((prev) => prev + 1);
+        setIsLogoAnimating(true);
+      }, HEADER_LOGO_PAUSE_MS);
+    }, HEADER_LOGO_ANIMATION_MS);
+
+    return () => {
+      window.clearTimeout(animationTimer);
+      if (pauseTimer !== undefined) {
+        window.clearTimeout(pauseTimer);
+      }
+    };
+  }, [logoRefreshKey]);
+
+  const logoSrc = useMemo(() => {
+    if (!isLogoAnimating) {
+      return HEADER_COMPASS_STATIC_LOGO_URL;
+    }
+    return `${HEADER_COMPASS_LOGO_URL}?loop=${logoRefreshKey}`;
+  }, [isLogoAnimating, logoRefreshKey]);
   return (
     <header className="panel p-4">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center shadow-sm overflow-hidden">
-                {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
-                ) : (
-                  <span className="text-base">🎯</span>
-                )}
-            </div>
-            <div>
-                <h1 className="text-lg font-semibold text-white/80 tracking-tight">{displayTitle}</h1>
-                <p className="text-xs text-gray-300 leading-tight">{displaySubtitle}</p>
+            <div className="flex min-w-[9rem] flex-col items-center justify-center">
+                <img
+                  src={logoSrc}
+                  alt="COMPASS"
+                  className="h-7 w-40 object-contain object-center md:h-8 md:w-48"
+                />
+                <p className="w-full text-center text-xs text-gray-300 leading-tight">{displaySubtitle}</p>
             </div>
             <button
                 onClick={onOpenSidebar}
