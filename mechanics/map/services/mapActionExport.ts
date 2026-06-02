@@ -10,7 +10,6 @@ interface MapVisitExportInput {
   committedDay: number;
   committedTimeSlot: TimeSlotType;
   availableProactiveMeeting: boolean;
-  visitDurationMs: number;
 }
 
 export const buildMapVisitValueFinal = ({
@@ -23,7 +22,6 @@ export const buildMapVisitValueFinal = ({
   committedDay,
   committedTimeSlot,
   availableProactiveMeeting,
-  visitDurationMs,
 }: MapVisitExportInput) => ({
   target_type: 'npc',
   target_id: stakeholder.id,
@@ -49,7 +47,5 @@ export const buildMapVisitValueFinal = ({
     location_sector: room?.sector ?? null,
     available_proactive_meeting: availableProactiveMeeting,
     arrived_at_ms: arrivedAtMs,
-    visit_duration_ms: visitDurationMs,
-    movement_duration_ms: visitDurationMs,
   },
 });

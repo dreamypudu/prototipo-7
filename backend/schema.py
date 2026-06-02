@@ -346,6 +346,7 @@ def _create_contract_tables(conn):
         CREATE TABLE IF NOT EXISTS expected_actions (
             expected_action_id TEXT PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             source_node_id TEXT,
             source_option_id TEXT,
             npc_id TEXT REFERENCES stakeholders(stakeholder_id),
@@ -371,6 +372,7 @@ def _create_contract_tables(conn):
         CREATE TABLE IF NOT EXISTS canonical_actions (
             canonical_action_id TEXT PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             mechanic_id TEXT REFERENCES mechanics(mechanic_id),
             action_type TEXT,
             target_ref TEXT,
@@ -398,6 +400,7 @@ def _create_contract_tables(conn):
         CREATE TABLE IF NOT EXISTS mechanic_events (
             event_id TEXT PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             mechanic_id TEXT REFERENCES mechanics(mechanic_id),
             event_type TEXT,
             timestamp_ms BIGINT,
@@ -415,6 +418,7 @@ def _create_contract_tables(conn):
         CREATE TABLE IF NOT EXISTS comparisons (
             comparison_id TEXT PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             expected_action_id TEXT,
             canonical_action_id TEXT,
             outcome BOOLEAN,
@@ -432,6 +436,7 @@ def _create_contract_tables(conn):
         CREATE TABLE IF NOT EXISTS process_logs (
             process_log_id BIGSERIAL PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             node_id TEXT,
             option_id TEXT,
             event_type TEXT,
@@ -461,6 +466,7 @@ def _create_contract_tables(conn):
         """
         CREATE TABLE IF NOT EXISTS option_process_stats (
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             node_id TEXT NOT NULL,
             option_id TEXT NOT NULL,
             hover_count INTEGER NOT NULL DEFAULT 0,
@@ -475,6 +481,7 @@ def _create_contract_tables(conn):
         CREATE TABLE IF NOT EXISTS question_log (
             question_log_id BIGSERIAL PRIMARY KEY,
             session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
             npc_id TEXT REFERENCES stakeholders(stakeholder_id),
             question_id TEXT,
             was_locked BOOLEAN,
@@ -515,6 +522,29 @@ def _add_missing_columns(conn):
         """
         ALTER TABLE final_states
         ADD COLUMN IF NOT EXISTS player_notes TEXT
+        """,
+        # Denormalizacion de user_id en todas las tablas de detalle, para poder
+        # filtrar por usuario sin JOIN a sessions. Se rellena en el normalizer.
+        """
+        ALTER TABLE expected_actions ADD COLUMN IF NOT EXISTS user_id TEXT
+        """,
+        """
+        ALTER TABLE canonical_actions ADD COLUMN IF NOT EXISTS user_id TEXT
+        """,
+        """
+        ALTER TABLE mechanic_events ADD COLUMN IF NOT EXISTS user_id TEXT
+        """,
+        """
+        ALTER TABLE comparisons ADD COLUMN IF NOT EXISTS user_id TEXT
+        """,
+        """
+        ALTER TABLE process_logs ADD COLUMN IF NOT EXISTS user_id TEXT
+        """,
+        """
+        ALTER TABLE option_process_stats ADD COLUMN IF NOT EXISTS user_id TEXT
+        """,
+        """
+        ALTER TABLE question_log ADD COLUMN IF NOT EXISTS user_id TEXT
         """,
         """
         ALTER TABLE users
@@ -807,6 +837,16 @@ def _create_indexes(conn):
         "CREATE INDEX IF NOT EXISTS idx_comparisons_session ON comparisons(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_process_session ON process_logs(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_question_log_session ON question_log(session_id)",
+        # Indices por user_id (denormalizado) para filtrar/extraer por usuario.
+        "CREATE INDEX IF NOT EXISTS idx_exp_decisions_user ON explicit_decisions(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_expected_user ON expected_actions(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_canonical_user ON canonical_actions(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_events_user ON mechanic_events(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_comparisons_user ON comparisons(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_process_user ON process_logs(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_option_stats_user ON option_process_stats(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_question_log_user ON question_log(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_final_states_user ON final_states(user_id)",
     ]
     for statement in indexes:
         conn.execute(statement)
@@ -848,6 +888,7 @@ def _create_labels_tables(conn):
     )
     conn.execute(labels_module.CREATE_SQL)
     conn.execute(labels_module.ALTER_SQL)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_mlq_labels_user ON mlq_labels(user_id)")
     conn.execute(
         """
         DO $$

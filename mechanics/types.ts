@@ -25,6 +25,7 @@ export type MechanicDispatchAction =
   | { type: 'update_schedule'; schedule: ScheduleAssignment[] }
   | { type: 'execute_week' }
   | { type: 'mark_email_read'; emailId: string }
+  | { type: 'record_email_open'; emailId: string; openedCount: number }
   | { type: 'mark_document_read'; docId: string }
   | { type: 'update_notes'; notes: string }
   | { type: 'map_interact'; staff: StaffMember }

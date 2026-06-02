@@ -23,7 +23,6 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
         const shouldLog = onInteract(staff);
         if (!shouldLog) return;
 
-        const movementDurationMs = 6000;
         const arrivedAtMs = Date.now();
         const previousMapAction = [...gameState.canonicalActions]
             .reverse()
@@ -48,8 +47,7 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
             location_name: room?.name ?? null,
             day: gameState.day,
             time_slot: gameState.timeSlot,
-            arrived_at_ms: arrivedAtMs,
-            visit_duration_ms: movementDurationMs
+            arrived_at_ms: arrivedAtMs
         });
 
         const stakeholder = gameState.stakeholders.find(s => s.id === staff.id);
@@ -69,7 +67,6 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
                 committedDay: gameState.day,
                 committedTimeSlot: gameState.timeSlot,
                 availableProactiveMeeting: availableProactiveStakeholderIds.includes(stakeholder.id),
-                visitDurationMs: movementDurationMs,
             })
         );
         currentRoomRef.current = roomId;
@@ -83,7 +80,7 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
                     <p className="text-gray-400 max-w-xl">
                         Visualización en tiempo real de la ubicación del personal.
                         <br />
-                        <span className="text-yellow-400 font-bold">⚠ Costo de Movimiento: 6 segundos.</span> Haga clic en un funcionario para ir a verlo.
+                        Haga clic en un funcionario para ir a verlo.
                     </p>
                 </div>
                 <div className="rounded-lg border border-cyan-500/30 bg-cyan-950/40 px-3 py-2 text-right">

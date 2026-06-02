@@ -466,7 +466,6 @@ export default function GestionEnSaludApp({
   }, [isLogDragging, logDragOffset]);
 
   useEffect(() => {
-    if (activeTab !== 'data_export') return;
     syncLogs();
   }, [activeTab, syncLogs]);
 
@@ -1356,15 +1355,7 @@ export default function GestionEnSaludApp({
   };
 
   const handleMapInteract = (staff: StaffMember): boolean => {
-      const MOVEMENT_COST = 6;
-      let timeAdvanced = false;
-      setCountdown(prev => {
-          const newVal = prev - MOVEMENT_COST;
-          if (newVal <= 0) { timeAdvanced = true; return 0; }
-          return newVal;
-      });
-      if (timeAdvanced) { advanceTimeAndUpdateFocus(); return false; }
-
+      // Moverse en el mapa ya no descuenta tiempo: no hay costo de movimiento.
       const blockingSequence = getPendingBlockingQueue(gameState)[0];
       if (blockingSequence) {
           setWarningPopupMessage(
@@ -1937,6 +1928,15 @@ export default function GestionEnSaludApp({
   const handleMarkEmailAsRead = (emailId: string) => {
     setGameState(prev => ({ ...prev, inbox: prev.inbox.map(e => e.email_id === emailId ? { ...e, isRead: true } : e) }));
   };
+  const handleRecordEmailOpen = (emailId: string, openedCount: number) => {
+    setGameState(prev => ({
+      ...prev,
+      emailOpenCounts: {
+        ...(prev.emailOpenCounts ?? {}),
+        [emailId]: Math.max(openedCount, prev.emailOpenCounts?.[emailId] ?? 0),
+      },
+    }));
+  };
   const handleMarkDocumentAsRead = (docId: string) => {
     setGameState(prev => prev.readDocuments.includes(docId) ? prev : { ...prev, readDocuments: [...prev.readDocuments, docId] });
   };
@@ -2067,6 +2067,9 @@ export default function GestionEnSaludApp({
         return;
       case 'mark_email_read':
         handleMarkEmailAsRead(action.emailId);
+        return;
+      case 'record_email_open':
+        handleRecordEmailOpen(action.emailId, action.openedCount);
         return;
       case 'mark_document_read':
         handleMarkDocumentAsRead(action.docId);

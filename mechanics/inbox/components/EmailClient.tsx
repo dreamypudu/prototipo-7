@@ -11,7 +11,7 @@ interface EmailClientProps {
 
 const EmailClient: React.FC<EmailClientProps> = ({ inbox, templates, onMarkAsRead }) => {
     const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
-    const { engine, gameState } = useMechanicContext();
+    const { engine, gameState, dispatch } = useMechanicContext();
     const openedCountsRef = useRef<Record<string, number>>({});
     const activeViewRef = useRef<{
         email: InboxEmail;
@@ -60,8 +60,14 @@ const EmailClient: React.FC<EmailClientProps> = ({ inbox, templates, onMarkAsRea
         const previousOpenEvents = gameState.mechanicEvents.filter(
             event => event.mechanic_id === 'inbox' && event.event_type === 'open_email' && event.payload?.email_id === email.email_id
         ).length;
-        const openedCount = Math.max(openedCountsRef.current[email.email_id] ?? 0, previousOpenEvents) + 1;
+        const persistedOpenCount = gameState.emailOpenCounts?.[email.email_id] ?? 0;
+        const openedCount = Math.max(
+            openedCountsRef.current[email.email_id] ?? 0,
+            previousOpenEvents,
+            persistedOpenCount
+        ) + 1;
         openedCountsRef.current[email.email_id] = openedCount;
+        dispatch({ type: 'record_email_open', emailId: email.email_id, openedCount });
         const reopened = openedCount > 1 || email.isRead;
 
         activeViewRef.current = {

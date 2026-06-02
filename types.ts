@@ -353,6 +353,7 @@ export interface GameState {
   questionLog: QuestionLogEntry[];
   processLog: ProcessLogEntry[];
   inbox: InboxEmail[];
+  emailOpenCounts?: Record<string, number>;
   unlockedContent?: ContentUnlocks;
   pendingEmailEvents?: { event_id: string; day: number; slot: TimeSlotType }[];
   stakeholder_preferences: { [stakeholderId: string]: string };

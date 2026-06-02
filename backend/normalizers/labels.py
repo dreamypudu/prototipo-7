@@ -52,6 +52,7 @@ COLUMN_NAMES: list[str] = [column for _, column in MLQ_COLUMNS]
 CREATE_SQL = f"""
 CREATE TABLE IF NOT EXISTS mlq_labels (
     session_id TEXT NOT NULL,
+    user_id TEXT,
     sequence_id TEXT NOT NULL,
     node_id TEXT NOT NULL,
     option_id TEXT NOT NULL,
@@ -62,6 +63,7 @@ CREATE TABLE IF NOT EXISTS mlq_labels (
 
 ALTER_SQL = f"""
 ALTER TABLE mlq_labels
+ADD COLUMN IF NOT EXISTS user_id TEXT,
 {", ".join(f"ADD COLUMN IF NOT EXISTS {col} DOUBLE PRECISION NOT NULL DEFAULT 0" for col in COLUMN_NAMES)}
 """
 

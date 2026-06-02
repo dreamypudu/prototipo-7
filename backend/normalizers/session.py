@@ -55,6 +55,31 @@ def _delete_session_derivatives(conn, session_id: str):
         conn.execute(f"DELETE FROM {table_name} WHERE session_id = %s", (session_id,))
 
 
+# Tablas de detalle con user_id denormalizado. Tras reinsertar todo de la sesion,
+# estampamos el user_id de una sola pasada (es constante por sesion), evitando
+# enhebrar el parametro por cada funcion de insercion.
+USER_ID_STAMPED_TABLES = [
+    "explicit_decisions",
+    "expected_actions",
+    "canonical_actions",
+    "mechanic_events",
+    "comparisons",
+    "process_logs",
+    "option_process_stats",
+    "question_log",
+    "mlq_labels",
+    "final_states",
+]
+
+
+def _stamp_user_id(conn, session_id: str, user_id: str):
+    for table_name in USER_ID_STAMPED_TABLES:
+        conn.execute(
+            f"UPDATE {table_name} SET user_id = %s WHERE session_id = %s",
+            (user_id, session_id),
+        )
+
+
 def _upsert_session_row(
     conn,
     *,
@@ -157,6 +182,8 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     insert_option_process_stats(conn, session_id, process_log)
     insert_question_log(conn, session_id, question_log)
     insert_final_state(conn, session_id, user_id, version_id, final_state, explicit_decisions)
+    # Denormalizamos user_id en todas las tablas de detalle (filtrado por usuario sin JOIN).
+    _stamp_user_id(conn, session_id, user_id)
 
     return {
         "explicit_decisions": len(explicit_decisions),
