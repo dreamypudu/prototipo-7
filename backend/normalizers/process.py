@@ -46,6 +46,48 @@ def _process_hover_summary(log: dict):
     }
 
 
+def insert_option_process_stats(conn, session_id: str, process_log: list):
+    """Una fila por (sesion, nodo, opcion): nº de hovers y tiempo total sobre esa opcion.
+
+    Deriva del mismo resumen que process_logs, pero ya agregado (sin duplicar por evento).
+    Los nodos de decision se visitan una vez; si un nodo se repitiera, gana la ultima visita.
+    """
+    for log in process_log:
+        node_id = first_present(log.get("node_id"), log.get("nodeId"))
+        final_choice = first_present(log.get("final_choice"), log.get("finalChoice"))
+        if not node_id:
+            continue
+        summary = _process_hover_summary(log)
+        hover_totals = summary["hover_totals"]
+        hover_counts = summary["hover_counts"]
+        option_ids = set(hover_totals) | set(hover_counts)
+        if final_choice:
+            option_ids.add(final_choice)
+        for option_id in option_ids:
+            if not option_id:
+                continue
+            conn.execute(
+                """
+                INSERT INTO option_process_stats (
+                    session_id, node_id, option_id, hover_count, hover_total_ms, is_selected
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (session_id, node_id, option_id) DO UPDATE SET
+                    hover_count = EXCLUDED.hover_count,
+                    hover_total_ms = EXCLUDED.hover_total_ms,
+                    is_selected = EXCLUDED.is_selected
+                """,
+                (
+                    session_id,
+                    node_id,
+                    option_id,
+                    int_or_none(hover_counts.get(option_id)) or 0,
+                    float_or_none(hover_totals.get(option_id)) or 0.0,
+                    bool(final_choice is not None and option_id == final_choice),
+                ),
+            )
+
+
 def insert_process_logs(conn, session_id: str, version_id: str | None, process_log: list):
     for log in process_log:
         node_id = first_present(log.get("node_id"), log.get("nodeId"))

@@ -15,7 +15,7 @@ try:
     from .decisions import insert_explicit_decisions
     from .events import insert_mechanic_events
     from .labels import insert_decision_labels_batch
-    from .process import insert_process_logs
+    from .process import insert_option_process_stats, insert_process_logs
     from .state import insert_final_state, insert_question_log
 except ImportError:
     from json_utils import as_list, as_record, to_jsonb
@@ -32,7 +32,7 @@ except ImportError:
     from normalizers.decisions import insert_explicit_decisions
     from normalizers.events import insert_mechanic_events
     from normalizers.labels import insert_decision_labels_batch
-    from normalizers.process import insert_process_logs
+    from normalizers.process import insert_option_process_stats, insert_process_logs
     from normalizers.state import insert_final_state, insert_question_log
 
 
@@ -43,6 +43,7 @@ DERIVED_TABLES_DELETE_ORDER = [
     "expected_actions",
     "mlq_labels",
     "explicit_decisions",
+    "option_process_stats",
     "process_logs",
     "question_log",
     "final_states",
@@ -153,6 +154,7 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     insert_mechanic_events(conn, session_id, version_id, mechanic_events)
     insert_comparisons(conn, session_id, comparisons, expected_ids, canonical_ids)
     insert_process_logs(conn, session_id, version_id, process_log)
+    insert_option_process_stats(conn, session_id, process_log)
     insert_question_log(conn, session_id, question_log)
     insert_final_state(conn, session_id, user_id, version_id, final_state, explicit_decisions)
 
@@ -163,6 +165,11 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
         "mechanic_events": len(mechanic_events),
         "comparisons": len(comparisons),
         "process_log": len(process_log),
+        "option_process_stats": sum(
+            1
+            for log in process_log
+            if (log.get("node_id") or log.get("nodeId"))
+        ),
         "question_log": len(question_log),
         "final_state": 1 if final_state else 0,
     }

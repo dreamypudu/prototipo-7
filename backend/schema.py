@@ -454,6 +454,22 @@ def _create_contract_tables(conn):
         )
         """
     )
+    # Resumen por opcion (una fila por sesion-nodo-opcion): cuantas veces se paso el
+    # mouse por encima de cada alternativa y el tiempo total acumulado sobre ella.
+    # Deriva de los mismos eventos de process_logs, pero ya agregado y sin duplicar.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS option_process_stats (
+            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            node_id TEXT NOT NULL,
+            option_id TEXT NOT NULL,
+            hover_count INTEGER NOT NULL DEFAULT 0,
+            hover_total_ms DOUBLE PRECISION NOT NULL DEFAULT 0,
+            is_selected BOOLEAN NOT NULL DEFAULT FALSE,
+            PRIMARY KEY (session_id, node_id, option_id)
+        )
+        """
+    )
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS question_log (
