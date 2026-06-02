@@ -95,6 +95,8 @@ const LOGO_BY_VERSION: Partial<Record<SimulatorVersion, string>> = {
   SERCOTEC: '/assets/common/logos/icono-compass.svg',
   MUNICIPAL: '/assets/common/logos/icono-compass.svg'
 };
+const OFFICE_BACKDROP_IMAGE = 'https://i.imgur.com/Hq7snGJ.png';
+const OFFICE_BACKDROP_TABS = new Set(['emails', 'documents', 'schedule', 'phone', 'notes']);
 
 const SUBTITLE_BY_VERSION: Record<SimulatorVersion, string> = {
   CESFAM: 'Gestión en Salud',
@@ -2228,6 +2230,29 @@ export default function GestionEnSaludApp({
     return null;
   };
 
+  const renderMainMechanic = () => {
+    const mechanicContent = renderMechanicTab();
+    const shouldUseOfficeBackdrop =
+      selectedVersion === 'CESFAM' &&
+      OFFICE_BACKDROP_TABS.has(activeTab) &&
+      gameStatus === 'playing';
+
+    if (!shouldUseOfficeBackdrop) return mechanicContent;
+
+    return (
+      <div className="relative h-[calc(100vh-220px)] min-h-[520px] overflow-hidden rounded-xl border border-gray-800 bg-gray-950 shadow-inner">
+        <div
+          className="absolute inset-0 scale-[1.03] bg-cover bg-center blur-sm brightness-[0.42]"
+          style={{ backgroundImage: `url('${OFFICE_BACKDROP_IMAGE}')` }}
+        />
+        <div className="absolute inset-0 bg-slate-950/35" />
+        <div className="relative z-10 h-full overflow-auto p-4">
+          {mechanicContent}
+        </div>
+      </div>
+    );
+  };
+
   if (appStep === 'splash') return (
     <SplashScreen
       onStartGame={handleStartGame}
@@ -2442,7 +2467,7 @@ export default function GestionEnSaludApp({
         </div>
 
         <main className="relative flex-grow">
-          {renderMechanicTab()}
+          {renderMainMechanic()}
           {toastMessage && (
             <div className="pointer-events-none absolute right-4 top-4 z-30 max-w-sm w-[21rem] animate-memo-toast">
               <div className="overflow-hidden rounded-2xl border border-cyan-200/40 bg-slate-950/90 shadow-[0_18px_42px_rgba(0,0,0,0.38)] backdrop-blur-md">
