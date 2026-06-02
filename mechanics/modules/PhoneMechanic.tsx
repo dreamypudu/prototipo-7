@@ -19,6 +19,9 @@ interface PhoneMechanicProps {
 
 const GREETING = 'Dígame, director. ¿En qué puedo ayudarle?';
 
+const secretaryPhonePortraitClass =
+  'absolute left-1/2 top-1/2 h-auto w-[300%] max-w-none -translate-x-1/2 -translate-y-[20%]';
+
 const PhoneMechanic: React.FC<PhoneMechanicProps> = ({ onClose }) => {
   const { gameState, engine, dispatch, contentPack } = useMechanicContext();
   const [inCall, setInCall] = useState(false);
@@ -113,8 +116,8 @@ const PhoneMechanic: React.FC<PhoneMechanicProps> = ({ onClose }) => {
 
         {inCall && secretary ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-4 text-center">
-            <div className="h-28 w-28 overflow-hidden rounded-full border-2 border-cyan-400/70 shadow-lg">
-              <img src={secretary.portraitUrl} alt={secretary.name} className="h-full w-full object-cover" />
+            <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-cyan-400/70 shadow-lg">
+              <img src={secretary.portraitUrl} alt={secretary.name} className={secretaryPhonePortraitClass} />
             </div>
             <div>
               <p className="text-xl font-bold text-white">{secretary.name}</p>
@@ -129,7 +132,9 @@ const PhoneMechanic: React.FC<PhoneMechanicProps> = ({ onClose }) => {
                 onClick={startCall}
                 className="flex items-center gap-3 rounded-xl border border-gray-700 bg-gray-800 p-3 text-left transition-all hover:border-cyan-400 hover:bg-cyan-900/30"
               >
-                <img src={secretary.portraitUrl} className="h-12 w-12 rounded-full border border-gray-500 object-cover" />
+                <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-gray-500">
+                  <img src={secretary.portraitUrl} alt={secretary.name} className={secretaryPhonePortraitClass} />
+                </span>
                 <div>
                   <p className="text-sm font-bold text-gray-100">{secretary.name}</p>
                   <p className="text-xs text-gray-500">{secretary.role}</p>
