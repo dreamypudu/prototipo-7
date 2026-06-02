@@ -15,6 +15,8 @@ import * as day05Sequence16 from './scenarios/day05/sequence16';
 import * as day05Sequence18 from './scenarios/day05/sequence18';
 import * as day06Sequence19 from './scenarios/day06/sequence19';
 import * as day06Sequence20 from './scenarios/day06/sequence20';
+import * as day06JavierBienestarOk from './scenarios/day06/sequenceJavierBienestarOk';
+import * as day06JavierBienestarCrisis from './scenarios/day06/sequenceJavierBienestarCrisis';
 import * as day07Sequence21 from './scenarios/day07/sequence21';
 import * as day07Sequence22 from './scenarios/day07/sequence22';
 import * as day07Sequence23 from './scenarios/day07/sequence23';
@@ -34,6 +36,8 @@ const scenarioModules = [
   day05Sequence18,
   day06Sequence19,
   day06Sequence20,
+  day06JavierBienestarOk,
+  day06JavierBienestarCrisis,
   day07Sequence21,
   day07Sequence22,
   day07Sequence23,

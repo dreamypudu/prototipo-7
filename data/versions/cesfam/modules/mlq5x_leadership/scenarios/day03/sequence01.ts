@@ -354,7 +354,7 @@ export const nodes: ScenarioNode[] = [
     node_id: 'MLQ5X_D1S1_N5_SOFIA_PRIORITY',
     stakeholderId: 'sofia-castro',
     stakeholderRole: 'Asistente Administrativa',
-    dialogue: '¿Director, ¿con que jefe de sector prefiere reunirse primero en su oficina?',
+    dialogue: '¿Director, con que jefe de sector prefiere reunirse primero en su oficina?',
     options: [
       {
         option_id: 'A',

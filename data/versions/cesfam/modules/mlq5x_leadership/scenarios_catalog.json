@@ -211,6 +211,8 @@
         "andres-guzman"
       ],
       "node_ids": [
+        "MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO1",
+        "MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO2",
         "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE"
       ],
       "day": 6,
@@ -225,6 +227,39 @@
       ],
       "node_ids": [
         "MLQ5X_D4S20_N25_RIOS_FLEXIBILITY_REQUEST"
+      ],
+      "day": 6,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "javier-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_JAVIER_BIENESTAR_CRISIS_N1",
+        "MLQ5X_JAVIER_BIENESTAR_CRISIS_N2",
+        "MLQ5X_JAVIER_BIENESTAR_CRISIS_N3",
+        "MLQ5X_JAVIER_BIENESTAR_CRISIS_N4",
+        "MLQ5X_JAVIER_BIENESTAR_CRISIS_N5"
+      ],
+      "day": 6,
+      "time_slot": "mañana"
+    },
+    {
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_OK_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "version_id": "CESFAM",
+      "stakeholder_ids": [
+        "javier-castro"
+      ],
+      "node_ids": [
+        "MLQ5X_JAVIER_BIENESTAR_OK_N1",
+        "MLQ5X_JAVIER_BIENESTAR_OK_N2",
+        "MLQ5X_JAVIER_BIENESTAR_OK_N3",
+        "MLQ5X_JAVIER_BIENESTAR_OK_N4"
       ],
       "day": 6,
       "time_slot": "mañana"
@@ -382,7 +417,7 @@
       "node_id": "MLQ5X_D1S1_N5_SOFIA_PRIORITY",
       "sequence_id": "MLQ5X_D1_SEQUENCE_1",
       "narrative_id": "mlq5x_leadership",
-      "node_text": "¿Director, ¿con que jefe de sector prefiere reunirse primero en su oficina?",
+      "node_text": "¿Director, con que jefe de sector prefiere reunirse primero en su oficina?",
       "day": 3,
       "time_slot": "mañana",
       "stakeholder_id": "sofia-castro"
@@ -676,10 +711,28 @@
       "stakeholder_id": "javier-castro"
     },
     {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO1",
+      "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, buenos días. Estoy aquí por un motivo, y es que usted me aseguro que el Box 1 del martes en el bloque AM quedaría para la supervisión con los internos, por lo que confirme los horarios con la universidad y reorganice mis consultas de esa mañana.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO2",
+      "sequence_id": "MLQ5X_D4_SEQUENCE_19",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Hoy el Box 1 aparece asignado a Soto sin que nadie me avisará ni me explicara el cambio antes de que el documento quedara firmado.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "andres-guzman"
+    },
+    {
       "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
       "sequence_id": "MLQ5X_D4_SEQUENCE_19",
       "narrative_id": "mlq5x_leadership",
-      "node_text": "Director, buenos días. Estoy aquí por un motivo, y es que usted me aseguro que el Box 1 del martes en el bloque AM quedaría para la supervisión con los internos, por lo que confirme los horarios con la universidad y reorganice mis consultas de esa mañana. Hoy el Box 1 aparece asignado a Soto sin que nadie me avisará ni me explicara el cambio antes de que el documento quedara firmado. Claramente exijo una explicación, no puede modificar la asignación de boxes tan deliberadamente siendo que algunos ya tenemos todo organizado. ¿Qué le digo ahora a la universidad?",
+      "node_text": "Claramente exijo una explicación, no puede modificar la asignación de boxes tan deliberadamente siendo que algunos ya tenemos todo organizado. ¿Qué le digo ahora a la universidad?",
       "day": 6,
       "time_slot": "mañana",
       "stakeholder_id": "andres-guzman"
@@ -692,6 +745,87 @@
       "day": 6,
       "time_slot": "mañana",
       "stakeholder_id": "daniel-rios"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N1",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Director, ya vi la planificación de esta semana y no tomó en cuenta mi petición.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N2",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Se lo dije la semana pasada, ya no doy más. El viernes casi me pongo a llorar porque mientras atendía a un paciente tenía que correr a preparar una vía.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N3",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Mi cuerpo no aguanta este ritmo, no puedo hacer las cosas bien, estoy empezando a tener problemas con mis compañeros y ya ni siquiera duermo pensando en el desastre que me va a tocar al día siguiente.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N4",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Siento que aquí solo importan los números y las metas, pero a nadie le importa que nos estemos reventando.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N5",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "No me pida que aguante más, porque ya no puedo. No me tome más en consideración, porque desde mañana yo no soy más parte de este CESFAM.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N1",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_OK_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Hola, director. Ya vi la planificación de esta semana y quería darle las gracias. De verdad.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N2",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_OK_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "La semana pasada, cuando le dije que ya no daba más, pensé seriamente en presentar mi renuncia. Estaba durmiendo mal, de mal genio y sentía que en cualquier momento se me iba a pasar una dosis de medicamento por el cansancio.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N3",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_OK_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Ahora tendré tiempo para terminar mis tareas clínicas a tiempo, almorzar tranquilo y, lo más importante, irme a casa sabiendo que atendí bien a la gente, sin el miedo de haber cometido un error por andar apurado.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N4",
+      "sequence_id": "MLQ5X_JAVIER_BIENESTAR_OK_SEQ",
+      "narrative_id": "mlq5x_leadership",
+      "node_text": "Gracias por escucharme esa vez, se agradece un montón tener una jefatura que apoya a su equipo.",
+      "day": 6,
+      "time_slot": "mañana",
+      "stakeholder_id": "javier-castro"
     },
     {
       "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",
@@ -1269,6 +1403,18 @@
       "is_decision": true
     },
     {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO1",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO2",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
       "node_id": "MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE",
       "option_id": "A",
       "option_text": "Tienes toda la razón en estar molesto y asumo la responsabilidad por este error en la comunicación. Nuestro objetivo es que tanto la docencia como la atención clínica funcionen con excelencia. Suspende la docencia esta semana y desde la próxima tienes vía libre.",
@@ -1303,6 +1449,60 @@
       "option_id": "C",
       "option_text": "Lamentablemente la flexibilidad de horarios no esta contemplada en el reglamento. No puedo brindarte esa solicitud.",
       "is_decision": true
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N1",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N2",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N3",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N4",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_CRISIS_N5",
+      "option_id": "NEXT",
+      "option_text": "Siguiente",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N1",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N2",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N3",
+      "option_id": "NEXT",
+      "option_text": "Continuar",
+      "is_decision": false
+    },
+    {
+      "node_id": "MLQ5X_JAVIER_BIENESTAR_OK_N4",
+      "option_id": "NEXT",
+      "option_text": "Siguiente",
+      "is_decision": false
     },
     {
       "node_id": "MLQ5X_D5S21_N26_SOFIA_MINOR_RECORD_ERROR",

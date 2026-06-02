@@ -1,5 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { DailyEffectSummary, DecisionLogEntry, EffectMagnitude, GameState, GlobalEffectsUI, InternalEffectsPreview, TimeSlotType } from '../types';
 import { getGameDate } from '../constants';
 
@@ -20,6 +21,7 @@ interface HeaderProps {
   subtitle?: string;
   logoUrl?: string;
   advanceHint?: string | null;
+  onStartLeadership?: () => void;
 }
 
 const TimeDisplay: React.FC<{ day: number; deadline: number; slot: TimeSlotType; countdown: number; isPaused: boolean; onTogglePause: () => void; onAdvance: () => void; periodDuration: number; showPauseControl?: boolean; advanceHint?: string | null; advanceDisabled?: boolean; }> = ({ day, deadline, slot, countdown, isPaused, onTogglePause, onAdvance, periodDuration, showPauseControl = true, advanceHint, advanceDisabled = false }) => {
@@ -425,10 +427,11 @@ const ResolutionStat: React.FC<{
     );
 };
 
-const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, advanceDisabled = false, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl, advanceHint }) => {
+const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, onTogglePause, onAdvanceTime, advanceDisabled = false, onOpenSidebar, showPauseControl = true, periodDuration = 90, globalEffectsHighlight, recentInternalResolution, dailySummary, title, subtitle, logoUrl, advanceHint, onStartLeadership }) => {
   const reputationHighlight = globalEffectsHighlight?.reputation;
   const displayTitle = title || 'Compass';
   const displaySubtitle = subtitle || 'Simulador de decisiones';
+  const [showLeadershipConfirm, setShowLeadershipConfirm] = useState(false);
   return (
     <header className="panel p-4">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
@@ -452,8 +455,18 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
                 <SettingsIcon />
             </button>
         </div>
-        <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
-            <div className="flex flex-wrap items-center gap-3">
+        {onStartLeadership && (
+            <button
+                onClick={() => setShowLeadershipConfirm(true)}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-amber-300/50 bg-amber-300/15 px-3 py-1.5 text-xs font-bold text-amber-100 shadow-[0_0_14px_rgba(250,204,21,0.22)] transition-colors hover:border-amber-200 hover:bg-amber-300/25 hover:text-white"
+                title="Iniciar la simulación completa (módulo de liderazgo)"
+            >
+                <span>🚀</span>
+                <span>Simulación completa</span>
+            </button>
+        )}
+        <div className="flex flex-row items-center gap-3 w-full lg:w-auto">
+            <div className="flex flex-nowrap items-center gap-3">
                 <ResolutionStat summary={dailySummary} history={gameState.dailyResolutions} decisionLog={gameState.decisionLog} stakeholders={gameState.stakeholders} recentInternal={recentInternalResolution} />
                 <GlobalStat label="Reputación" value={gameState.reputation} highlight={reputationHighlight} accentClass="bg-amber-300" barMax={100} />
             </div>
@@ -474,6 +487,35 @@ const Header: React.FC<HeaderProps> = ({ gameState, countdown, isTimerPaused, on
             </div>
         </div>
       </div>
+      {showLeadershipConfirm && onStartLeadership && createPortal(
+        <div className="fixed inset-0 z-[1000] flex h-screen w-screen items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl border border-amber-300/40 bg-slate-900 p-8 text-center shadow-[0_28px_80px_rgba(0,0,0,0.6)]">
+            <button
+              onClick={() => setShowLeadershipConfirm(false)}
+              title="Cancelar y seguir en el tutorial"
+              className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-gray-300 transition-colors hover:bg-red-600 hover:text-white"
+            >
+              ✕
+            </button>
+            <div className="mb-3 text-4xl">🚀</div>
+            <h2 className="mb-2 text-2xl font-bold text-white">¿Seguro de iniciar simulación completa?</h2>
+            <p className="mb-6 text-sm text-gray-300">
+              Saldrás del tutorial y comenzará el módulo de liderazgo con captura de datos del experimento.
+            </p>
+            <button
+              onClick={() => {
+                setShowLeadershipConfirm(false);
+                onStartLeadership();
+              }}
+              className="w-full rounded-lg bg-amber-400 px-6 py-3 font-bold text-slate-950 shadow-lg transition-transform hover:scale-105 hover:bg-amber-300"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
       <style>{`
         @keyframes header-arrow-float-up {
           0%, 100% { transform: translateY(2px); opacity: 0.7; }

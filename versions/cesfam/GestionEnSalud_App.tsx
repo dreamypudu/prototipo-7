@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { ActionEffectsPreview, ConversationMode, DailyResolution, GameState, GlobalEffectsUI, InternalEffectsPreview, Stakeholder, StakeholderQuestion, PlayerAction, TimeSlotType, Commitment, ScenarioNode, ScenarioOption, MeetingSequence, ProcessLogEntry, DecisionLogEntry, Consequences, InboxEmail, PlayerActionLogEntry, Document, ScheduleAssignment, StaffMember, SimulatorVersion, SimulatorConfig, MechanicConfig, GameStatus, QuestionLogEntry, ScenarioFile, RunMode } from '../../types';
 import { SIMULATOR_CONFIGS } from '../configuration';
 import { getVersionContentPack, type VersionContentPack } from '../../data/versions';
+import type { CesfamNarrativeModuleId } from '../../data/versions/cesfam';
 import { startLogging, finalizeLogging } from '../../services/Timelogger';
 import { mechanicEngine } from '../../services/MechanicEngine';
 import { MECHANIC_REGISTRY } from '../../mechanics/registry';
@@ -46,7 +47,6 @@ import {
 } from './services/scheduleTiming';
 import { getBlockingSequenceQueue, getNextBlockingSequence } from '../../services/blockingSequenceQueue';
 import { hasReachableSequence } from '../../services/sequenceAvailability';
-import { buildDefaultWeeklySchedule } from '../../data/versions/cesfam/modules/ethics/defaults';
 
 import Header from '../../components/Header';
 import DayReviewScreen from './components/DayReviewScreen';
@@ -70,6 +70,7 @@ interface GestionEnSaludAppProps {
   contentPack?: VersionContentPack;
   runMode?: RunMode;
   onExitToHome?: () => void;
+  onSwitchCesfamModule?: (moduleId: CesfamNarrativeModuleId) => void;
 }
 
 interface PendingDayReviewState {
@@ -221,6 +222,7 @@ export default function GestionEnSaludApp({
   contentPack: providedContentPack,
   runMode = 'experiment',
   onExitToHome,
+  onSwitchCesfamModule,
 }: GestionEnSaludAppProps): React.ReactElement {
   const initialContentPack = useMemo(
     () => providedContentPack ?? getVersionContentPack(version),
@@ -867,17 +869,10 @@ export default function GestionEnSaludApp({
 
     let newState = { ...currentState, day: nextDay, timeSlot: nextSlot, history: { ...currentState.history, ...historyUpdate } };
 
-    if (
-      selectedVersion === 'CESFAM' &&
-      nextDay > currentState.day &&
-      getCesfamWeekInfo(nextDay).dayIndex === 0
-    ) {
-      newState = {
-        ...newState,
-        weeklySchedule: buildDefaultWeeklySchedule(),
-        eventsLog: [...newState.eventsLog, 'Se reinició la planificación para la nueva semana.'],
-      };
-    }
+    // La planificacion semanal persiste entre semanas: se conserva el ultimo plan que el
+    // usuario guardo (no se reinicia al default). El horario inicial proviene, de forma
+    // modular, del buildInitialGameState de cada modulo. La edicion del lunes sigue
+    // bloqueada por la politica de timing (canEditCesfamSchedule), pero el plan no se borra.
 
     if (nextDay > currentState.day) {
       newEvents.push(`Ha comenzado el día ${nextDay}.`);
@@ -988,12 +983,10 @@ export default function GestionEnSaludApp({
       ...stateAfterMeetingEnd,
       day: CASE1_NEXT_MONDAY_DAY,
       timeSlot: morningSlot,
-      weeklySchedule: buildDefaultWeeklySchedule(),
       history: { ...stateAfterMeetingEnd.history, [gameState.day]: stateAfterMeetingEnd.stakeholders },
       eventsLog: [
         ...stateAfterMeetingEnd.eventsLog,
         'Borrador semanal enviado. Comienza el lunes siguiente.',
-        'Se reinici? la planificación para la nueva semana.',
       ],
     };
     {
@@ -1002,12 +995,10 @@ export default function GestionEnSaludApp({
         ...localResult.nextState,
         day: CASE1_NEXT_MONDAY_DAY,
         timeSlot: morningSlot,
-        weeklySchedule: buildDefaultWeeklySchedule(),
         history: { ...localResult.nextState.history, [gameState.day]: localResult.nextState.stakeholders },
         eventsLog: [
           ...localResult.nextState.eventsLog,
           'Borrador semanal enviado. Comienza el lunes siguiente.',
-          'Se reinici? la planificación para la nueva semana.',
         ],
       };
       if (localResult.resolution) {
@@ -2330,6 +2321,11 @@ export default function GestionEnSaludApp({
           subtitle={getVersionSubtitle(selectedVersion, config?.title)}
           logoUrl={selectedVersion ? LOGO_BY_VERSION[selectedVersion] : undefined}
           advanceHint={advanceScenarioHint}
+          onStartLeadership={
+            gameState.runMode === 'tutorial' && onSwitchCesfamModule
+              ? () => onSwitchCesfamModule('mlq5x_leadership')
+              : undefined
+          }
         />
       </div>
       <div className="fixed bottom-36 right-6 z-40">

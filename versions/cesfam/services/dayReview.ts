@@ -58,12 +58,11 @@ const CESFAM_DAY_LABELS: Record<number, string> = {
 
 const getDayLabel = (day: number) => CESFAM_DAY_LABELS[day] ?? `Día ${day}`;
 
-const findStakeholderByName = (stakeholders: Stakeholder[], name: string) =>
-  stakeholders.find((stakeholder) => stakeholder.name === name) ?? null;
-
 const mapDecision = (entry: DecisionLogEntry, index: number): DayReviewDecisionItem => ({
   id: `decision-${entry.day}-${index}`,
-  stakeholderName: entry.stakeholder,
+  // Si la decision no tiene NPC interlocutor (intervencion del director al grupo / narracion),
+  // no mostramos el placeholder "Narracion" como si fuera un personaje.
+  stakeholderName: entry.npc_id ? entry.stakeholder : 'Tu intervención',
   choiceText: entry.choiceText,
   reputationDelta: Number(entry.consequences.reputationChange ?? 0),
   trustDelta: Number(entry.consequences.trustChange ?? 0),
@@ -144,13 +143,18 @@ export const buildCesfamDayReviewData = (
   const spokenStakeholders: DayReviewSpokenStakeholder[] = [];
   const seenStakeholders = new Set<string>();
 
-  decisions.forEach((entry) => {
+  explicitDecisionEntries.forEach((entry) => {
+    // Nodos de narracion o intervenciones del director al grupo no tienen NPC interlocutor
+    // (npc_id vacio); no deben listarse como "conexiones" ni mostrarse como "Narracion".
+    if (!entry.npc_id) return;
+    const stakeholder = stakeholderById.get(entry.npc_id) ?? null;
     appendSpokenStakeholder(
       spokenStakeholders,
       seenStakeholders,
-      findStakeholderByName(gameState.stakeholders, entry.stakeholderName),
-      entry.stakeholderName,
-      entry.stakeholderName
+      stakeholder,
+      entry.npc_id,
+      entry.npc_name ?? entry.npc_id,
+      entry.npc_role
     );
   });
 

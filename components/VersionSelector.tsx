@@ -247,6 +247,32 @@ const VersionSelector: React.FC<VersionSelectorProps> = ({ onSelect }) => {
                 </div>
               </button>
             ))}
+
+            <div className="mt-5 border-t border-white/10 pt-4">
+              <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                Formularios del experimento
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <a
+                  href="https://forms.gle/c6xj9w1RfdEkwwCE9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-emerald-300/40 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-400/20"
+                >
+                  <span>📝</span>
+                  <span>Formulario de entrada</span>
+                </a>
+                <a
+                  href="https://forms.gle/oVBmpgxV9qzbfgsV9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-sky-300/40 bg-sky-400/10 px-4 py-3 text-sm font-bold text-sky-100 transition hover:border-sky-200/70 hover:bg-sky-400/20"
+                >
+                  <span>📤</span>
+                  <span>Formulario de salida</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}

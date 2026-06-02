@@ -1,4 +1,4 @@
-import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
+import type { ExpectedAction, MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
 import { mlqTags } from '../tags';
 
 const nextOption = (): ScenarioOption => ({
@@ -9,6 +9,24 @@ const nextOption = (): ScenarioOption => ({
   tags: mlqTags(),
   consequences: {},
 });
+
+// Accion esperada de bienestar: la carga clinica (CLINICAL + TERRAIN) de Javier no debe superar
+// el 60% de su jornada. Se evalua en execute_week con clinical_load_limit_rule_v1 y su resultado
+// (true/false) dispara los contingentes del lunes (sequenceJavierBienestar*). Se registra en las
+// tres opciones de N23: la conversacion en si crea la expectativa, sin importar la respuesta.
+const clinicalLoadExpectedAction: Partial<ExpectedAction> = {
+  mechanic_id: 'scheduler',
+  action_type: 'execute_week',
+  target_ref: 'global',
+  constraints: { staff_id: 'javier-castro', max_clinical_pct: 60 },
+  rule_id: 'clinical_load_limit_rule_v1',
+  stakeholder_id: 'javier-castro',
+  ui: {
+    title: 'Equilibrar la carga de TENS Javier Castro.',
+    description:
+      'En la grilla semanal, dejar la jornada de Javier con a lo más 60% de horas clínicas (box y terreno) y el resto administrativas, para sostener su bienestar.',
+  },
+};
 
 export const nodes: ScenarioNode[] = [
   {
@@ -34,6 +52,7 @@ export const nodes: ScenarioNode[] = [
           'Consideraré especificamente tu carga horaria para la propuesta de la próxima semana. Esto afecta tanto a ti personalmente como tu rendimiento en el CESFAM.',
         tags: mlqTags({ "CI": 4 }),
         consequences: {
+          expected_actions: [clinicalLoadExpectedAction],
           bridgeResponse: [
             {
               stakeholder_id: 'javier-castro',
@@ -53,6 +72,7 @@ export const nodes: ScenarioNode[] = [
         text: 'Lo tendré en cuenta para la propuesta de hoy. No puedes seguir manteniendo estos niveles de carga horaria.',
         tags: mlqTags({ "CI": 2 }),
         consequences: {
+          expected_actions: [clinicalLoadExpectedAction],
           bridgeResponse: [
             {
               stakeholder_id: 'javier-castro',
@@ -73,6 +93,7 @@ export const nodes: ScenarioNode[] = [
           'Lamentablemente todos están con carga. Veré que se puede hacer a futuro, ya que muchos están en tu situación y no hay presupuesto para más personal.',
         tags: mlqTags({ "LF": 2 }),
         consequences: {
+          expected_actions: [clinicalLoadExpectedAction],
           bridgeResponse: [
             {
               stakeholder_id: 'javier-castro',

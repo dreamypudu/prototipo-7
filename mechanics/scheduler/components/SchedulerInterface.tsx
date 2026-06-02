@@ -5,6 +5,10 @@ import { useMechanicContext } from '../../MechanicContext';
 import { getPhysicalConflictData } from '../services/scheduleConflicts';
 import { buildSchedulerExecuteWeekValueFinal } from '../services/scheduleCanonicalExport';
 import CesfamMapVisual from '../../shared/components/CesfamMapVisual';
+import { getStaffLoad } from '../../../services/scheduleLoad';
+
+// Umbral de bienestar (ISP): carga clinica directa por sobre este % se considera riesgo de sobrecarga.
+const CLINICAL_LOAD_RISK_THRESHOLD = 60;
 
 interface SchedulerInterfaceProps {
     gameState: GameState;
@@ -38,6 +42,7 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
     const { engine } = useMechanicContext();
     const [selectedSlot, setSelectedSlot] = useState<{ day: DayOfWeek; block: ScheduleBlock } | null>(null);
     const [draftSchedule, setDraftSchedule] = useState<ScheduleAssignment[] | null>(null);
+    const [hoveredStaffId, setHoveredStaffId] = useState<string | null>(null);
 
     const conflictBlockKeys = useMemo(() => {
         const { groups } = getPhysicalConflictData(gameState.weeklySchedule);
@@ -105,9 +110,50 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
                             <p className="mt-2 text-sm font-medium text-amber-300">{editDisabledReason}</p>
                         )}
                     </div>
+
+                    {(() => {
+                        const atRiskCount = gameState.staffRoster.filter((staff) => {
+                            const staffLoad = getStaffLoad(mapSchedule, staff.id);
+                            return staffLoad.totalBlocks > 0 && staffLoad.clinicalPct >= CLINICAL_LOAD_RISK_THRESHOLD;
+                        }).length;
+                        const hoveredStaff = hoveredStaffId
+                            ? gameState.staffRoster.find((staff) => staff.id === hoveredStaffId)
+                            : undefined;
+                        const load = hoveredStaff ? getStaffLoad(mapSchedule, hoveredStaff.id) : null;
+
+                        return (
+                            <div className="w-64 shrink-0 self-center rounded-lg border border-white/15 bg-slate-950/70 p-3">
+                                {hoveredStaff && load ? (
+                                    <>
+                                        <p className="mb-1 truncate text-[11px] font-bold text-white" title={hoveredStaff.name}>{hoveredStaff.name}</p>
+                                        <p className="mb-1.5 text-[9px] uppercase tracking-wider text-slate-400">Balance de jornada</p>
+                                        <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-700">
+                                            <div className="h-full bg-orange-500 transition-all" style={{ width: `${load.clinicalPct}%` }} />
+                                            <div className="h-full bg-blue-500 transition-all" style={{ width: `${load.adminPct}%` }} />
+                                        </div>
+                                        <div className="mt-1 flex justify-between text-[10px] font-semibold">
+                                            <span className="text-orange-300">Clínica {Math.round(load.clinicalPct)}%</span>
+                                            <span className="text-blue-300">Admin {Math.round(load.adminPct)}%</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="mb-1 text-[10px] uppercase tracking-wider text-slate-400">Balance de carga</p>
+                                        <p className={`text-[11px] font-bold ${atRiskCount > 0 ? 'text-red-300' : 'text-emerald-300'}`}>
+                                            {atRiskCount > 0
+                                                ? `${atRiskCount} funcionario${atRiskCount > 1 ? 's' : ''} en riesgo`
+                                                : 'Sin sobrecargas'}
+                                        </p>
+                                        <p className="mt-1 text-[9px] leading-snug text-slate-400">Pasa el mouse sobre un funcionario para ver su jornada (clínica ≤ 60% recomendado).</p>
+                                    </>
+                                )}
+                            </div>
+                        );
+                    })()}
+
                     <button
                         onClick={closeSlot}
-                        className="rounded-full border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-400 hover:text-white"
+                        className="shrink-0 self-center rounded-full border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-400 hover:text-white"
                     >
                         Volver
                     </button>
@@ -124,6 +170,8 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
                         onStaffDrop={handleStaffDrop}
                         animatedConflict
                         npcHover
+                        showLoadBar
+                        onHoverStaffChange={setHoveredStaffId}
                         showNames={false}
                         compactOccupants
                         className="h-full"

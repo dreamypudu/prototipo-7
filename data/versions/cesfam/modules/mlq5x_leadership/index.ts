@@ -30,7 +30,6 @@ export const CESFAM_MLQ5X_CONTENT: VersionContentPack = {
     message:
       'La simulacion termino.\n\nHas completado todas las situaciones de este modulo.\n\nGracias por participar.',
   },
-  hiddenMechanicTabs: ['documents'],
   delegationTasks: {
     'task:protocolo_urgencias': {
       monologue:

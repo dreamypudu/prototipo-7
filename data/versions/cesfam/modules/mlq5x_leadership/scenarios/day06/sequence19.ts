@@ -1,13 +1,38 @@
-import type { MeetingSequence, ScenarioNode } from '../../../../../../../types';
+import type { MeetingSequence, ScenarioNode, ScenarioOption } from '../../../../../../../types';
 import { mlqTags } from '../tags';
 
+const nextOption = (): ScenarioOption => ({
+  option_id: 'NEXT',
+  cardTitle: 'Siguiente',
+  cardEmoji: '➡️',
+  text: 'Continuar',
+  tags: mlqTags(),
+  consequences: {},
+});
+
 export const nodes: ScenarioNode[] = [
+  {
+    node_id: 'MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO1',
+    stakeholderId: 'andres-guzman',
+    stakeholderRole: 'Jefe Sector Azul',
+    dialogue:
+      'Director, buenos días. Estoy aquí por un motivo, y es que usted me aseguro que el Box 1 del martes en el bloque AM quedaría para la supervisión con los internos, por lo que confirme los horarios con la universidad y reorganice mis consultas de esa mañana.',
+    options: [nextOption()],
+  },
+  {
+    node_id: 'MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO2',
+    stakeholderId: 'andres-guzman',
+    stakeholderRole: 'Jefe Sector Azul',
+    dialogue:
+      'Hoy el Box 1 aparece asignado a Soto sin que nadie me avisará ni me explicara el cambio antes de que el documento quedara firmado.',
+    options: [nextOption()],
+  },
   {
     node_id: 'MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE',
     stakeholderId: 'andres-guzman',
     stakeholderRole: 'Jefe Sector Azul',
     dialogue:
-      'Director, buenos días. Estoy aquí por un motivo, y es que usted me aseguro que el Box 1 del martes en el bloque AM quedaría para la supervisión con los internos, por lo que confirme los horarios con la universidad y reorganice mis consultas de esa mañana. Hoy el Box 1 aparece asignado a Soto sin que nadie me avisará ni me explicara el cambio antes de que el documento quedara firmado. Claramente exijo una explicación, no puede modificar la asignación de boxes tan deliberadamente siendo que algunos ya tenemos todo organizado. ¿Qué le digo ahora a la universidad?',
+      'Claramente exijo una explicación, no puede modificar la asignación de boxes tan deliberadamente siendo que algunos ya tenemos todo organizado. ¿Qué le digo ahora a la universidad?',
     options: [
       {
         option_id: 'A',
@@ -74,7 +99,11 @@ export const sequences: MeetingSequence[] = [
     stakeholderRole: 'Jefe Sector Azul',
     initialDialogue: '(Aparece Andrés Guzmán visiblemente molesto.)',
     initialDialogueIsNarration: true,
-    nodes: ['MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE'],
+    nodes: [
+      'MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO1',
+      'MLQ5X_D4S19_N24_GUZMAN_BOX1_INTRO2',
+      'MLQ5X_D4S19_N24_GUZMAN_BOX1_BROKEN_PROMISE',
+    ],
     finalDialogue: 'Guzmán sale de la oficina con la molestia todavia visible.',
     finalDialogueIsNarration: true,
     consumesTime: false,

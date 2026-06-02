@@ -34,12 +34,17 @@ export default function App(): React.ReactElement {
     return <InnovatecApp onExitToHome={returnToSelector} />;
   }
 
+  // El key fuerza un remonte limpio de la simulacion cuando cambia el modulo
+  // (p. ej. al pasar de tutorial a liderazgo desde el header).
   return (
-    <GestionEnSaludApp
-      version={selectedVersion}
-      contentPack={selectedVersion === 'CESFAM' ? getCesfamContentPack(selectedCesfamModuleId) : undefined}
-      runMode={selectedRunMode}
-      onExitToHome={returnToSelector}
-    />
+    <React.Fragment key={`${selectedVersion}-${selectedCesfamModuleId}`}>
+      <GestionEnSaludApp
+        version={selectedVersion}
+        contentPack={selectedVersion === 'CESFAM' ? getCesfamContentPack(selectedCesfamModuleId) : undefined}
+        runMode={selectedRunMode}
+        onExitToHome={returnToSelector}
+        onSwitchCesfamModule={(moduleId) => setSelectedCesfamModuleId(moduleId)}
+      />
+    </React.Fragment>
   );
 }

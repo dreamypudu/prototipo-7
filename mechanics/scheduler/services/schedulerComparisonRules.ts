@@ -296,6 +296,34 @@ export const evaluateExecuteWeekRule = (
     };
   }
 
+  if (expected.rule_id === 'clinical_load_limit_rule_v1') {
+    // Bienestar: la carga clinica (CLINICAL + TERRAIN) de un funcionario no debe superar
+    // un porcentaje de su jornada (max_clinical_pct, default 60). TRUE = carga dentro del limite.
+    const staffId = constraints.staff_id;
+    const maxClinicalPct = Number(constraints.max_clinical_pct ?? 60);
+    const staffBlocks = weekSchedule.filter((assignment) => assignment.staff_id === staffId);
+    if (staffBlocks.length === 0) {
+      // Sin bloques asignados al funcionario: no hay sobrecarga clinica que evaluar.
+      return { outcome: true };
+    }
+    const clinicalBlocks = staffBlocks.filter(
+      (assignment) => assignment.activity === 'CLINICAL' || assignment.activity === 'TERRAIN'
+    ).length;
+    const clinicalPct = (clinicalBlocks / staffBlocks.length) * 100;
+    if (clinicalPct <= maxClinicalPct) return { outcome: true };
+    return {
+      outcome: false,
+      reason: 'clinical_overload',
+      rawDeviation: {
+        reason: 'clinical_overload',
+        constraints,
+        clinical_pct: Math.round(clinicalPct * 10) / 10,
+        max_clinical_pct: maxClinicalPct,
+        staff_blocks: staffBlocks,
+      },
+    };
+  }
+
   const matchingAssignments = weekSchedule.filter((assignment) =>
     matchesScheduleConstraints(assignment, constraints, staffRoster, roomDefinitions)
   );

@@ -70,6 +70,14 @@ const scheduleCommitmentText: Record<string, CommitmentTemplate> = {
       description: `En la grilla semanal, ${staffName} debe permanecer en ${sectorLabel}${timeDetail ? ` en ${timeDetail}` : ''}.`,
     };
   },
+  clinical_load_limit_rule_v1: ({ expected, stakeholders, staffRoster }) => {
+    const staffName = resolveStakeholderName(expected.constraints?.staff_id, stakeholders, staffRoster) ?? 'el funcionario indicado';
+    const maxClinicalPct = expected.constraints?.max_clinical_pct ?? 60;
+    return {
+      title: `Planificacion: limitar la carga clinica de ${staffName} (<= ${maxClinicalPct}%)`,
+      description: `En la grilla semanal, dejar la jornada de ${staffName} con a lo mas ${maxClinicalPct}% de horas clinicas (box y terreno), liberando el resto a tareas administrativas.`,
+    };
+  },
   emergency_room_rule_v1: ({ expected, roomDefinitions }) => {
     const roomName = resolveRoomName(expected.constraints?.room_id, roomDefinitions) ?? 'el box indicado';
     const sectorLabel = resolveSectorLabel(expected.constraints?.target_sector_id) ?? 'el sector indicado';
@@ -97,6 +105,7 @@ export const schedulerRules: Record<string, MechanicComparisonRule> = {
   research_hours_rule_v1: executeWeekRule('research_hours_rule_v1'),
   training_commitment_rule_v1: executeWeekRule('training_commitment_rule_v1'),
   cross_sector_help_rule_v1: executeWeekRule('cross_sector_help_rule_v1'),
+  clinical_load_limit_rule_v1: executeWeekRule('clinical_load_limit_rule_v1'),
   emergency_room_rule_v1: executeWeekRule('emergency_room_rule_v1'),
   scheduler_war_rule_v1: executeWeekRule('scheduler_war_rule_v1'),
 };
