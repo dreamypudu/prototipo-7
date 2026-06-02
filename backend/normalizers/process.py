@@ -22,9 +22,13 @@ def _process_hover_summary(log: dict):
             continue
         timestamp = float_or_none(event.get("timestamp")) or start_time
         if event.get("type") == "hover_enter":
-            hover_counts[option_id] = hover_counts.get(option_id, 0) + 1
-            open_hover[option_id] = timestamp
-            hover_sequence.append(option_id)
+            # Solo cuenta si la opcion no tenia ya un hover abierto. Asi una reentrada sin
+            # 'hover_leave' en medio (popup que roba el cursor, StrictMode en dev, micro-flicker)
+            # NO suma de nuevo: 1 hover = una vez que el usuario entro a la opcion.
+            if option_id not in open_hover:
+                hover_counts[option_id] = hover_counts.get(option_id, 0) + 1
+                open_hover[option_id] = timestamp
+                hover_sequence.append(option_id)
         elif event.get("type") == "hover_leave" and option_id in open_hover:
             hover_totals[option_id] = hover_totals.get(option_id, 0) + max(0, timestamp - open_hover[option_id])
             del open_hover[option_id]

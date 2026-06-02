@@ -6,11 +6,30 @@
 #   3) docker compose logs -f       # ver logs en vivo
 #   4) docker compose down          # apagar
 #
-# Asume que la base PostgreSQL es externa (Supabase o el servidor del edificio
-# con Postgres ya instalado fuera de Docker). Si quieres correrla en otro
-# contenedor, descomenta el servicio `db` mas abajo y apunta DATABASE_URL a el.
+# Levanta frontend + backend + Postgres dentro del mismo proyecto Docker.
+# La base persiste en el volumen nombrado `compass-db-data`.
 
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: compass-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-compass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-compass}
+    volumes:
+      - compass-db-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-compass} -d ${POSTGRES_DB:-compass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - compass-net
+
   backend:
     build:
       context: .
@@ -19,8 +38,11 @@ services:
     container_name: compass-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-compass}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-compass}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://compass.giia.udec.cl}
+    depends_on:
+      db:
+        condition: service_healthy
     expose:
       - "8000"
     networks:
@@ -42,26 +64,8 @@ services:
     networks:
       - compass-net
 
-  # Descomenta esto SOLO si quieres correr Postgres en un contenedor
-  # (en vez de usar Supabase o un Postgres ya instalado en el servidor):
-  #
-  # db:
-  #   image: postgres:16-alpine
-  #   container_name: compass-db
-  #   restart: unless-stopped
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_USER:-compass}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DB:-compass}
-  #   volumes:
-  #     - compass-db-data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-  #   networks:
-  #     - compass-net
-  #
-  # volumes:
-  #   compass-db-data:
+volumes:
+  compass-db-data:
 
 networks:
   compass-net:

@@ -49,6 +49,8 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
   const soundRef = React.useRef<HTMLAudioElement | null>(null);
   const cardRefs = React.useRef<Record<string, HTMLArticleElement | null>>({});
   const closeTimerRef = React.useRef<number | null>(null);
+  // Opcion con un hover_enter abierto (sin su hover_leave). Sirve para contar UN hover por opcion.
+  const loggedHoverRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     const audio = new Audio(CARD_THROW_SOUND_BASE64);
@@ -119,6 +121,22 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
     return () => window.cancelAnimationFrame(frame);
   }, [previewId]);
 
+  // Registra exactamente un hover_enter / hover_leave por opcion considerada.
+  // previewId modela "que opcion mira el usuario" (tarjeta + popup como una unidad),
+  // por lo que pasar de una opcion a otra emite leave(anterior) + enter(nueva), y el popup
+  // superpuesto ya no genera hovers extra.
+  React.useEffect(() => {
+    const prev = loggedHoverRef.current;
+    if (prev && prev !== previewId) {
+      logEvent('hover_leave', { option_id: prev });
+      loggedHoverRef.current = null;
+    }
+    if (previewId && previewId !== prev) {
+      logEvent('hover_enter', { option_id: previewId });
+      loggedHoverRef.current = previewId;
+    }
+  }, [previewId]);
+
   const clearCloseTimer = () => {
     if (!closeTimerRef.current) return;
     window.clearTimeout(closeTimerRef.current);
@@ -145,8 +163,10 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
     updatePreviewPlacement(action.action);
   };
 
+  // Nota: el conteo/tiempo de hover NO se loguea aqui. Se hace en el efecto de abajo,
+  // atado al ciclo de vida del preview (previewId), para contar UN solo hover por opcion
+  // aunque el popup superpuesto le robe el cursor a la tarjeta.
   const handleHoverIn = (action: PlayerAction) => {
-    logEvent('hover_enter', { option_id: action.action });
     const hasGlobal = action.globalEffectsUI && Object.keys(action.globalEffectsUI).length > 0;
     const hasInternal = !!action.internalEffectsPreview;
     onHoverEffects?.(hasGlobal || hasInternal ? {
@@ -155,8 +175,7 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
     } : null);
   };
 
-  const handleHoverOut = (action: PlayerAction) => {
-    logEvent('hover_leave', { option_id: action.action });
+  const handleHoverOut = () => {
     onHoverEffects?.(null);
   };
 
@@ -218,7 +237,7 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
                 openPreview(action);
               }}
               onMouseLeave={() => {
-                handleHoverOut(action);
+                handleHoverOut();
                 schedulePreviewClose(action.action);
               }}
               onFocus={() => {
@@ -226,7 +245,7 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
                 openPreview(action);
               }}
               onBlur={() => {
-                handleHoverOut(action);
+                handleHoverOut();
                 schedulePreviewClose(action.action);
               }}
               onKeyDown={(e) => handleKeyDown(e, action)}
@@ -268,7 +287,7 @@ const DecisionCardDeck: React.FC<DecisionCardDeckProps> = ({
             updatePreviewPlacement(previewAction.action);
           }}
           onMouseLeave={() => {
-            handleHoverOut(previewAction);
+            handleHoverOut();
             schedulePreviewClose(previewAction.action);
           }}
           onKeyDown={(e) => handleKeyDown(e, previewAction)}

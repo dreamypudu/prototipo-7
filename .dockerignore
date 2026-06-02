@@ -9,7 +9,9 @@ dist
 # Entornos locales (sensibles)
 .env
 .env.local
+.env.production
 .env.*.local
+deploy/.env.production
 backend/.env
 backend/.env.local
 
