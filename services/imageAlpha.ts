@@ -88,3 +88,59 @@ export const isClientPointOpaque = (
   const alpha = entry.data[(y * entry.w + x) * 4 + 3];
   return alpha >= threshold;
 };
+
+export const isClientPointOpaqueInElement = (
+  element: HTMLElement | null,
+  img: HTMLImageElement | null,
+  src: string,
+  clientX: number,
+  clientY: number,
+  threshold = 16
+): boolean => {
+  if (!element || !img) return true;
+  const rect = element.getBoundingClientRect();
+  const boxW = element.offsetWidth || rect.width;
+  const boxH = element.offsetHeight || rect.height;
+  if (boxW === 0 || boxH === 0) return true;
+
+  let x = clientX - (rect.left + rect.width / 2);
+  let y = clientY - (rect.top + rect.height / 2);
+
+  const transform = window.getComputedStyle(element).transform;
+  if (transform && transform !== 'none') {
+    try {
+      const inverse = new DOMMatrixReadOnly(transform).inverse();
+      const point = new DOMPoint(x, y).matrixTransform(inverse);
+      x = point.x;
+      y = point.y;
+    } catch {
+      // Keep the untransformed approximation if the browser cannot invert the matrix.
+    }
+  }
+
+  const localX = x + boxW / 2;
+  const localY = y + boxH / 2;
+  if (localX < 0 || localY < 0 || localX >= boxW || localY >= boxH) return false;
+
+  const natW = img.naturalWidth || 1;
+  const natH = img.naturalHeight || 1;
+  const scale = Math.min(boxW / natW, boxH / natH);
+  const dispW = natW * scale;
+  const dispH = natH * scale;
+  const offsetX = (boxW - dispW) / 2;
+  const offsetY = (boxH - dispH) / 2;
+
+  const imageX = localX - offsetX;
+  const imageY = localY - offsetY;
+  if (imageX < 0 || imageY < 0 || imageX >= dispW || imageY >= dispH) return false;
+
+  const entry = cache.get(src);
+  if (!entry || entry === 'pending' || entry === 'failed') return true;
+
+  const u = imageX / dispW;
+  const v = imageY / dispH;
+  const sampleX = Math.min(entry.w - 1, Math.max(0, Math.floor(u * entry.w)));
+  const sampleY = Math.min(entry.h - 1, Math.max(0, Math.floor(v * entry.h)));
+  const alpha = entry.data[(sampleY * entry.w + sampleX) * 4 + 3];
+  return alpha >= threshold;
+};

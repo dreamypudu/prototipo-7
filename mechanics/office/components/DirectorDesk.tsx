@@ -3,7 +3,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { GameState } from '../../../types';
 import { useMechanicContext } from '../../MechanicContext';
 import PhoneMechanic from '../../modules/PhoneMechanic';
-import { isClientPointOpaque, primeImageAlpha } from '../../../services/imageAlpha';
+import { isClientPointOpaqueInElement, primeImageAlpha } from '../../../services/imageAlpha';
 
 // =================================================================================================
 // 🎨 ZONA DE CONFIGURACIÓN DE IMÁGENES (PEGAR TUS URLS AQUÍ)
@@ -52,6 +52,7 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
     className,
     onActivate
 }) => {
+    const boxRef = useRef<HTMLDivElement | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
     const [over, setOver] = useState(false);
 
@@ -60,7 +61,7 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
     }, [src]);
 
     const isOpaqueAt = (event: React.MouseEvent) =>
-        isClientPointOpaque(imgRef.current, src, event.clientX, event.clientY);
+        isClientPointOpaqueInElement(boxRef.current, imgRef.current, src, event.clientX, event.clientY);
 
     const handleMove = (event: React.MouseEvent) => {
         setOver(isOpaqueAt(event));
@@ -73,7 +74,8 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
 
     return (
         <div
-            className={`absolute z-10 ${className}`}
+            ref={boxRef}
+            className={`absolute ${className}`}
             title={over ? title : undefined}
             onMouseMove={handleMove}
             onMouseLeave={() => setOver(false)}
@@ -83,8 +85,10 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
                 ref={imgRef}
                 src={src}
                 alt={alt}
-                className={`w-full h-full object-contain drop-shadow-xl transition-transform duration-200 ${
-                    over ? 'scale-105 cursor-pointer' : 'cursor-default'
+                className={`w-full h-full object-contain drop-shadow-xl transition-all duration-200 ease-out ${
+                    over
+                        ? 'scale-[1.018] cursor-pointer drop-shadow-[0_0_10px_rgba(255,255,255,0.22)]'
+                        : 'cursor-default'
                 }`}
                 draggable={false}
             />
@@ -238,7 +242,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
                 <div className="absolute z-10" style={imageStyle}>
                     {/* 1. DOOR - EXIT TO MAP */}
                     <div
-                        className="absolute top-[20%] right-[5%] w-[17%] h-[60%] cursor-pointer group z-10 border-2 border-white/20 hover:border-blue-400 rounded-lg"
+                        className="absolute top-[20%] right-[5%] w-[17%] h-[60%] cursor-pointer group z-40 border-2 border-white/20 hover:border-blue-400 rounded-lg"
                         onClick={() => onNavigate('map')}
                         title="Salir al Mapa"
                     >
@@ -260,7 +264,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
 
                     {/* 3. PC MONITOR - HUB */}
                     <div
-                        className="absolute bottom-[27%] left-[35%] w-[30%] h-[30%] cursor-pointer group z-10 border-2 border-white/20 hover:border-cyan-400 rounded-lg"
+                        className="absolute bottom-[27%] left-[35%] w-[30%] h-[30%] cursor-pointer group z-40 border-2 border-white/20 hover:border-cyan-400 rounded-lg"
                         onClick={() => setActiveView('pc_menu')}
                         title="Usar Computador"
                     >
@@ -280,7 +284,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
                         title="Notas Personales"
                         label="Notas"
                         labelClassName="text-yellow-200"
-                        className="bottom-[-23%] left-[60.5%] w-[26%] h-[80%] -rotate-4"
+                        className="bottom-[-23%] left-[60.5%] w-[26%] h-[80%] -rotate-4 z-30"
                         onActivate={() => setActiveView('notebook')}
                     />
 
@@ -291,7 +295,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
                         title="Telefono"
                         label="Llamar"
                         labelClassName="text-green-300"
-                        className="bottom-[-33%] left-[-26.5%] w-[100%] h-[110%] -rotate-4"
+                        className="bottom-[-33%] left-[-26.5%] w-[100%] h-[110%] -rotate-4 z-20"
                         onActivate={() => setActiveView('phone')}
                     />
                 </div>
