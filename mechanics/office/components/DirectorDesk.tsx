@@ -43,6 +43,7 @@ interface AlphaHotspotProps {
     className: string;
     onActivate: () => void;
     enableHoverEffect?: boolean;
+    hoverClassName?: string;
 }
 
 const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
@@ -53,7 +54,8 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
     labelClassName,
     className,
     onActivate,
-    enableHoverEffect = true
+    enableHoverEffect = true,
+    hoverClassName
 }) => {
     const boxRef = useRef<HTMLDivElement | null>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
@@ -89,11 +91,13 @@ const AlphaHotspot: React.FC<AlphaHotspotProps> = ({
                 src={src}
                 alt={alt}
                 className={`w-full h-full object-contain drop-shadow-xl transition-all duration-200 ease-out ${
-                    over && enableHoverEffect
-                        ? 'scale-[1.018] cursor-pointer drop-shadow-[0_0_10px_rgba(255,255,255,0.22)]'
-                        : over
-                            ? 'cursor-pointer'
-                            : 'cursor-default'
+                    over
+                        ? hoverClassName ?? (
+                            enableHoverEffect
+                                ? 'scale-[1.018] cursor-pointer drop-shadow-[0_0_10px_rgba(255,255,255,0.22)]'
+                                : 'cursor-pointer'
+                          )
+                        : 'cursor-default'
                 }`}
                 draggable={false}
             />
@@ -254,6 +258,7 @@ const DirectorDesk: React.FC<DirectorDeskProps> = ({ gameState, onNavigate, onUp
                         labelClassName="text-white"
                         className="top-[0%] right-[0.5%] w-[27%] h-[90%] z-40"
                         enableHoverEffect={false}
+                        hoverClassName="cursor-pointer drop-shadow-[0_0_38px_rgba(250,204,21,1)]"
                         onActivate={() => onNavigate('map')}
                     />
 

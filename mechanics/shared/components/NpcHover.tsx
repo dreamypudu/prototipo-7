@@ -34,8 +34,8 @@ const NpcHover: React.FC<NpcHoverProps> = ({
   stakeholder,
   children,
   lineHeight = 1.25,
-  portraitScale = 3,
-  portraitOffsetY = 70,
+  portraitScale,
+  portraitOffsetY,
   placement = 'top',
   triggerClassName = 'cursor-help font-semibold text-amber-200',
   portal = false,
@@ -43,8 +43,10 @@ const NpcHover: React.FC<NpcHoverProps> = ({
   open,
 }) => {
   const isControlled = open !== undefined;
+  const effectivePortraitScale = portraitScale ?? (compact ? 1 : 3);
+  const effectivePortraitOffsetY = portraitOffsetY ?? (compact ? 0 : 70);
   const translateY =
-    typeof portraitOffsetY === 'number' ? `${portraitOffsetY}px` : portraitOffsetY;
+    typeof effectivePortraitOffsetY === 'number' ? `${effectivePortraitOffsetY}px` : effectivePortraitOffsetY;
   const triggerRef = useRef<HTMLSpanElement | null>(null);
   const [autoSide, setAutoSide] = useState<'left' | 'right'>('right');
   const [portalCoords, setPortalCoords] = useState<{ left: number; top: number; transform: string } | null>(null);
@@ -118,7 +120,7 @@ const NpcHover: React.FC<NpcHoverProps> = ({
             src={stakeholder.portraitUrl}
             alt={stakeholder.name}
             className="w-full h-full object-cover"
-            style={{ transform: `translateY(${translateY}) scale(${portraitScale})`, transformOrigin: '50% 50%' }}
+            style={{ transform: `translateY(${translateY}) scale(${effectivePortraitScale})`, transformOrigin: '50% 50%' }}
           />
         </div>
         <div className={`${compact ? 'text-xs' : 'text-sm'} leading-tight text-white`}>

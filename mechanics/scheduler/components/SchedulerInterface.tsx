@@ -7,9 +7,6 @@ import { buildSchedulerExecuteWeekValueFinal } from '../services/scheduleCanonic
 import CesfamMapVisual from '../../shared/components/CesfamMapVisual';
 import { getStaffLoad } from '../../../services/scheduleLoad';
 
-// Umbral de bienestar (ISP): carga clinica directa por sobre este % se considera riesgo de sobrecarga.
-const CLINICAL_LOAD_RISK_THRESHOLD = 60;
-
 interface SchedulerInterfaceProps {
     gameState: GameState;
     onUpdateSchedule: (newSchedule: ScheduleAssignment[]) => void;
@@ -112,10 +109,6 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
                     </div>
 
                     {(() => {
-                        const atRiskCount = gameState.staffRoster.filter((staff) => {
-                            const staffLoad = getStaffLoad(mapSchedule, staff.id);
-                            return staffLoad.totalBlocks > 0 && staffLoad.clinicalPct >= CLINICAL_LOAD_RISK_THRESHOLD;
-                        }).length;
                         const hoveredStaff = hoveredStaffId
                             ? gameState.staffRoster.find((staff) => staff.id === hoveredStaffId)
                             : undefined;
@@ -139,12 +132,8 @@ const SchedulerInterface: React.FC<SchedulerInterfaceProps> = ({
                                 ) : (
                                     <>
                                         <p className="mb-1 text-[10px] uppercase tracking-wider text-slate-400">Balance de carga</p>
-                                        <p className={`text-[11px] font-bold ${atRiskCount > 0 ? 'text-red-300' : 'text-emerald-300'}`}>
-                                            {atRiskCount > 0
-                                                ? `${atRiskCount} funcionario${atRiskCount > 1 ? 's' : ''} en riesgo`
-                                                : 'Sin sobrecargas'}
-                                        </p>
-                                        <p className="mt-1 text-[9px] leading-snug text-slate-400">Pasa el mouse sobre un funcionario para ver su jornada (clínica ≤ 60% recomendado).</p>
+                                        <p className="text-[11px] font-semibold text-slate-300">Pasa el mouse sobre un funcionario.</p>
+                                        <p className="mt-1 text-[9px] leading-snug text-slate-400">Veras la proporcion entre carga clinica y administrativa de su jornada.</p>
                                     </>
                                 )}
                             </div>
