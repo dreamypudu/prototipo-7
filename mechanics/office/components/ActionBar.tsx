@@ -23,6 +23,12 @@ const getRiskColor = (riskLevel: string) => {
   }
 };
 
+const sequenceBoundaryActions = new Set([
+  'start_meeting_sequence',
+  'conclude_meeting',
+  'end_meeting_sequence'
+]);
+
 const ActionCard: React.FC<{
   action: PlayerAction;
   onAction: (action: PlayerAction) => void;
@@ -92,6 +98,9 @@ const getSimpleButtonClasses = (action: PlayerAction, disabled: boolean) => {
   }
   if (action.uiVariant === 'success') {
     return `${base} ${state} bg-gradient-to-r from-emerald-600 to-teal-500 border-emerald-300/30 text-white hover:scale-[1.02] active:scale-100 disabled:bg-gray-600`;
+  }
+  if (sequenceBoundaryActions.has(action.action)) {
+    return `${base} ${state} bg-gradient-to-r from-amber-400 to-yellow-300 border-yellow-100/60 text-slate-950 hover:scale-[1.02] active:scale-100 disabled:bg-gray-600`;
   }
   return `${base} ${state} bg-gradient-to-r from-sky-700 to-cyan-500 border-cyan-300/30 text-white hover:scale-[1.02] active:scale-100 disabled:bg-gray-600`;
 };
