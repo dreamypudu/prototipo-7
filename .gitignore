@@ -5,8 +5,7 @@ node_modules/
 dist/
 
 # Environment
-.env
-.env.local
+.env*
 
 # Python virtualenv
 .venv/
@@ -20,3 +19,6 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# IDEs
+.idea
+.vscode
