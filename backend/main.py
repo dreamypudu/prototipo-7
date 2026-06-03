@@ -168,6 +168,8 @@ def get_session_normalized(session_id: str):
             "comparisons",
             "process_logs",
             "option_process_stats",
+            "map_hover_stats",
+            "map_block_latency",
             "question_log",
             "final_states",
         ]:

@@ -31,6 +31,8 @@ interface CesfamMapVisualProps {
     showLoadBar?: boolean;
     /** Reporta al padre el funcionario sobre el que esta el mouse (o null al salir). */
     onHoverStaffChange?: (staffId: string | null) => void;
+    /** Hover sobre retratos en el mapa interactivo (telemetria de consideracion). enter=id, leave=null. */
+    onStaffHover?: (staffId: string | null) => void;
 }
 
 const NON_CONFLICT_ROOMS = new Set(['TERRENO', 'AREA_COMUN', 'OFICINA_TECNICA']);
@@ -55,6 +57,7 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
     npcHover = false,
     showLoadBar = false,
     onHoverStaffChange,
+    onStaffHover,
 }) => {
     const [draggedStaffId, setDraggedStaffId] = useState<string | null>(null);
     const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -232,8 +235,8 @@ const CesfamMapVisual: React.FC<CesfamMapVisualProps> = ({
                                             onClick={() => onInteract(staff, room.id)}
                                             className={occupantClass}
                                             title={showNames ? `Ir a ver a: ${staff.name}` : staff.name}
-                                            onMouseEnter={showLoadBar ? () => onHoverStaffChange?.(staff.id) : undefined}
-                                            onMouseLeave={showLoadBar ? () => onHoverStaffChange?.(null) : undefined}
+                                            onMouseEnter={() => { if (showLoadBar) onHoverStaffChange?.(staff.id); onStaffHover?.(staff.id); }}
+                                            onMouseLeave={() => { if (showLoadBar) onHoverStaffChange?.(null); onStaffHover?.(null); }}
                                         >
                                             {occupantBody}
                                             {hasAvailableMeeting && (

@@ -511,6 +511,39 @@ def _create_contract_tables(conn):
         )
         """
     )
+    # Hover en el mapa (consideracion): 1 fila por (sesion, dia, bloque, npc) con cuantas
+    # veces se paso el mouse sobre ese funcionario, el tiempo total, y si termino visitandolo.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS map_hover_stats (
+            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
+            day INTEGER NOT NULL,
+            time_slot TEXT NOT NULL,
+            npc_id TEXT NOT NULL,
+            hover_count INTEGER NOT NULL DEFAULT 0,
+            hover_total_ms DOUBLE PRECISION NOT NULL DEFAULT 0,
+            was_visited BOOLEAN NOT NULL DEFAULT FALSE,
+            PRIMARY KEY (session_id, day, time_slot, npc_id)
+        )
+        """
+    )
+    # Latencia por bloque: tiempo desde que se abre el mapa hasta el primer click, y nº de visitas.
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS map_block_latency (
+            session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+            user_id TEXT REFERENCES users(user_id),
+            day INTEGER NOT NULL,
+            time_slot TEXT NOT NULL,
+            block_entered_ms BIGINT,
+            first_click_ms BIGINT,
+            ms_to_first_click BIGINT,
+            visit_count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (session_id, day, time_slot)
+        )
+        """
+    )
 
 
 def _create_support_tables(conn):
@@ -847,6 +880,9 @@ def _create_indexes(conn):
         "CREATE INDEX IF NOT EXISTS idx_option_stats_user ON option_process_stats(user_id)",
         "CREATE INDEX IF NOT EXISTS idx_question_log_user ON question_log(user_id)",
         "CREATE INDEX IF NOT EXISTS idx_final_states_user ON final_states(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_map_details_user ON map_action_details(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_map_hover_user ON map_hover_stats(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_map_block_latency_user ON map_block_latency(user_id)",
     ]
     for statement in indexes:
         conn.execute(statement)

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { GameState, ScheduleBlock, StaffMember } from '../../../types';
 import { CESFAM_PRESENT_MAP_SCHEDULE, CESFAM_ROOMS, DAYS_OF_WEEK } from '../../../constants';
 import { useMechanicContext } from '../../MechanicContext';
@@ -13,6 +13,36 @@ interface CesfamMapProps {
 const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
     const { engine, availableProactiveStakeholderIds } = useMechanicContext();
     const currentRoomRef = useRef<string | null>(null);
+    const hoveredStaffRef = useRef<string | null>(null);
+
+    // Latencia por bloque: marca cuando el director "entra" al mapa en este bloque.
+    // Si reabre el mapa en el mismo bloque se reemite; el backend toma el primero por (dia, bloque).
+    useEffect(() => {
+        engine.emitEvent('map', 'map_block_entered', {
+            day: gameState.day,
+            time_slot: gameState.timeSlot,
+            ts: Date.now(),
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameState.day, gameState.timeSlot]);
+
+    // Telemetria de consideracion: un hover por funcionario (enter desde "no abierto"),
+    // robusto a flicker. enter=id, leave/switch=null. El backend agrega por (dia, bloque, npc).
+    const handleStaffHover = (staffId: string | null) => {
+        const prev = hoveredStaffRef.current;
+        if (prev && prev !== staffId) {
+            engine.emitEvent('map', 'staff_hover_leave', {
+                npc_id: prev, day: gameState.day, time_slot: gameState.timeSlot, ts: Date.now(),
+            });
+            hoveredStaffRef.current = null;
+        }
+        if (staffId && staffId !== prev) {
+            engine.emitEvent('map', 'staff_hover_enter', {
+                npc_id: staffId, day: gameState.day, time_slot: gameState.timeSlot, ts: Date.now(),
+            });
+            hoveredStaffRef.current = staffId;
+        }
+    };
     const currentBlock: ScheduleBlock = gameState.timeSlot === 'mañana' ? 'AM' : 'PM';
     const dayOfWeek = DAYS_OF_WEEK[(gameState.day - 1) % 5];
     const mapSchedule = gameState.day >= 3 && gameState.day <= 5
@@ -20,10 +50,20 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
         : gameState.weeklySchedule;
 
     const handleInteract = (staff: StaffMember, roomId: string) => {
+        const arrivedAtMs = Date.now();
         const shouldLog = onInteract(staff);
         if (!shouldLog) return;
 
-        const arrivedAtMs = Date.now();
+        if (hoveredStaffRef.current === staff.id) {
+            engine.emitEvent('map', 'staff_hover_leave', {
+                npc_id: staff.id,
+                day: gameState.day,
+                time_slot: gameState.timeSlot,
+                ts: arrivedAtMs,
+            });
+            hoveredStaffRef.current = null;
+        }
+
         const previousMapAction = [...gameState.canonicalActions]
             .reverse()
             .find(action => action.mechanic_id === 'map' && action.action_type === 'visit_stakeholder');
@@ -97,6 +137,7 @@ const CesfamMap: React.FC<CesfamMapProps> = ({ gameState, onInteract }) => {
                 viewBlock={currentBlock}
                 interactive
                 onInteract={handleInteract}
+                onStaffHover={handleStaffHover}
                 availableMeetingStaffIds={availableProactiveStakeholderIds}
             />
 

@@ -16,6 +16,7 @@ try:
     from .events import insert_mechanic_events
     from .labels import insert_decision_labels_batch
     from .process import insert_option_process_stats, insert_process_logs
+    from .map_aggregates import insert_map_block_latency, insert_map_hover_stats, stamp_map_visit_order
     from .state import insert_final_state, insert_question_log
 except ImportError:
     from json_utils import as_list, as_record, to_jsonb
@@ -33,18 +34,22 @@ except ImportError:
     from normalizers.events import insert_mechanic_events
     from normalizers.labels import insert_decision_labels_batch
     from normalizers.process import insert_option_process_stats, insert_process_logs
+    from normalizers.map_aggregates import insert_map_block_latency, insert_map_hover_stats, stamp_map_visit_order
     from normalizers.state import insert_final_state, insert_question_log
 
 
 DERIVED_TABLES_DELETE_ORDER = [
     "comparisons",
     "mechanic_events",
+    "map_action_details",
     "canonical_actions",
     "expected_actions",
     "mlq_labels",
     "explicit_decisions",
     "option_process_stats",
     "process_logs",
+    "map_hover_stats",
+    "map_block_latency",
     "question_log",
     "final_states",
 ]
@@ -68,6 +73,9 @@ USER_ID_STAMPED_TABLES = [
     "option_process_stats",
     "question_log",
     "mlq_labels",
+    "map_action_details",
+    "map_hover_stats",
+    "map_block_latency",
     "final_states",
 ]
 
@@ -182,6 +190,10 @@ def normalize_session(conn, session_id: str, session: dict, created_at: str):
     insert_option_process_stats(conn, session_id, process_log)
     insert_question_log(conn, session_id, question_log)
     insert_final_state(conn, session_id, user_id, version_id, final_state, explicit_decisions)
+    # Agregados psicometricos de la mecanica de mapa (derivados de mechanic_events / visitas).
+    stamp_map_visit_order(conn, session_id)
+    insert_map_hover_stats(conn, session_id, mechanic_events)
+    insert_map_block_latency(conn, session_id, mechanic_events)
     # Denormalizamos user_id en todas las tablas de detalle (filtrado por usuario sin JOIN).
     _stamp_user_id(conn, session_id, user_id)
 
