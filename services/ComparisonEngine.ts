@@ -83,6 +83,9 @@ const createComparison = (
   options: Required<Pick<CompareOptions, 'sessionId' | 'resolvedAtMs'>> & Pick<CompareOptions, 'resolvedDay'>
 ): ComparisonResult => {
   const canonicalActionId = canonicalAction?.canonical_action_id ?? null;
+  const expectedCreatedAtMs = typeof expected.created_at === 'number' ? expected.created_at : null;
+  const commitmentElapsedMs =
+    expectedCreatedAtMs !== null ? Math.max(0, options.resolvedAtMs - expectedCreatedAtMs) : null;
   const reason = evaluation.outcome ? null : evaluation.reason ?? 'other_rule_failed';
   const rawDeviation = evaluation.outcome
     ? null
@@ -93,11 +96,13 @@ const createComparison = (
     session_id: options.sessionId,
     expected_action_id: expected.expected_action_id,
     canonical_action_id: canonicalActionId,
+    mechanic_id: expected.mechanic_id ?? canonicalAction?.mechanic_id ?? null,
     outcome: evaluation.outcome,
     reason,
     rule_id: expected.rule_id,
     resolved_day: options.resolvedDay ?? null,
     resolved_at_ms: options.resolvedAtMs,
+    commitment_elapsed_ms: commitmentElapsedMs,
     raw_deviation: rawDeviation,
     deviation: rawDeviation,
   };

@@ -9,6 +9,8 @@ La regla general es mantener dos formatos:
 - **Formato largo**: una fila por decisión, evento, acción esperada, acción canónica o comparación.
 - **Formato ancho**: una fila por usuario/sesión, con features agregadas calculadas desde el formato largo.
 
+Nota transversal sobre identificadores: `session_id` es el **grano** de todas las tablas largas (un participante puede tener varias sesiones). Además, todas las tablas de detalle incluyen `user_id` **denormalizado** (estampado por el normalizador tras reinsertar la sesión), para poder filtrar y extraer por participante sin un JOIN a la tabla de sesiones.
+
 ## 1. Datos De Decisiones Explícitas
 
 Estos datos son la base para medir lo que el usuario declara mediante sus elecciones. Permiten sumar puntajes por dimensión del MLQ-5X, excluir botones `NEXT`, revisar decisiones críticas y reconstruir qué competencia estaba siendo medida en cada alternativa.
@@ -65,6 +67,22 @@ Estos datos no deben ser el scoring principal al inicio. Sirven como variables e
 | `selected_option_was_most_hovered` | Eligió más vista | boolean | Indica si eligió la opción más revisada. |
 | `hover_switch_count` | Cambios hover | number | Cantidad de cambios entre opciones. |
 | `raw_metadata` | Metadata cruda | json | Respaldo técnico del evento. |
+
+La tabla anterior (`process_logs`) guarda una fila por **evento** de proceso. Para análisis directo conviene además la siguiente tabla agregada.
+
+## 2.1. Resumen De Hover Por Opción: `option_process_stats`
+
+Tabla agregada derivada de los eventos de proceso: **una fila por `session_id + node_id + option_id`**, con el resumen ya calculado por alternativa (sin duplicar por evento). El conteo es robusto: cuenta un hover solo al entrar desde "no abierto", inmune a flicker o re-render.
+
+| Nombre en código | Título corto | Tipo | Uso analítico |
+|---|---|---|---|
+| `session_id` | Sesión | string | Une con la sesión. |
+| `user_id` | Usuario | string | Participante (denormalizado). |
+| `node_id` | Nodo | string | Nodo de decisión. |
+| `option_id` | Opción | string | Alternativa evaluada. |
+| `hover_count` | Veces hover | number | Cuántas veces el cursor entró a esa opción. |
+| `hover_total_ms` | Hover total | number | Tiempo total del cursor sobre esa opción. |
+| `is_selected` | Seleccionada | boolean | `true` si fue la alternativa elegida. |
 
 ## 3. Datos Implícitos: Acciones Esperadas
 
@@ -125,11 +143,13 @@ Estos datos son la base de los indicadores implícitos. Permiten medir si la per
 | `session_id` | Sesión | string | Une la comparación con la sesión. |
 | `expected_action_id` | Acción esperada | string | Compromiso evaluado. |
 | `canonical_action_id` | Acción real | string/null | Acción real asociada, si existe. |
+| `mechanic_id` | Mecánica | string/null | Mecánica evaluada por la comparación. FK hacia `mechanics`. |
 | `outcome` | Cumplió | boolean | `TRUE` si cumplió; `FALSE` si no cumplió. |
 | `reason` | Motivo fallo | string/null | Motivo: `not_done`, `wrong_time`, `wrong_day`, `wrong_npc`, `wrong_resource`, `wrong_activity`, `wrong_room`, `late`, `other_rule_failed`. |
 | `rule_id` | Regla | string | Regla aplicada. |
 | `resolved_day` | Día resolución | number/null | Día simulado en que se resolvió. |
 | `resolved_at_ms` | Tiempo resolución | number/null | Timestamp de resolución. |
+| `commitment_elapsed_ms` | Tiempo compromiso | number/null | Milisegundos entre activación del compromiso (`expected_actions.created_at_ms`) y resolución/cumplimiento/fallo. |
 | `raw_deviation` | Desviación cruda | json | Detalle técnico opcional. |
 
 ## 3.3. Eventos De Mecánicas
@@ -178,6 +198,7 @@ Estos datos resumen el resultado global de la simulación. Sirven como outcomes 
 | `final_project_progress` | Progreso final | number | Progreso final del proyecto/caso. |
 | `completed_sequences_count` | Reuniones completadas | number | Total de secuencias completadas. |
 | `completed_scenarios_count` | Nodos completados | number | Total de nodos completados. |
+| `player_notes` | Notas del jugador | string/null | Texto libre que el participante escribió en la pestaña de Notas durante la sesión. |
 | `raw_final_state` | Estado final crudo | json | Respaldo completo del estado final. |
 
 ## 5. Tabla Intermedia: `user_behaviour_analysis`
@@ -252,7 +273,7 @@ Regla de limpieza: los campos específicos de cada mecánica no deben repetirse 
 
 Ejemplos:
 
-- Mapa: `value_final` puede incluir `origin_room`, `destination_room`, `npc_id`, `location_sector`, `visit_duration_ms`.
+- Mapa: `value_final` puede incluir `origin_room`, `destination_room`, `npc_id`, `npc_role`, `sector_id`, `location_sector`, `available_proactive_meeting`, `arrived_at_ms`.
 - Correos: `value_final` puede incluir `email_id`, `subject`, `from`, `opened_count`, `read_duration_ms`, `reopened`.
 - Documentos: `value_final` puede incluir `document_id`, `title`, `content_length`, `read_duration_ms`, `scroll_depth`.
 - Planificación: `value_final` puede incluir `week_schedule`, `assignment_count`, `conflict_count`, `load_summary`.
@@ -261,17 +282,57 @@ Esto mantiene la base simple: una tabla general de acciones canónicas, columnas
 
 ## 5.2. Tablas Detalle Por Mecánica
 
-Cuando una mecánica genera datos con columnas estables y repetibles, el backend puede extraerlos desde `raw_value_final` y guardarlos en una tabla detalle. Estas tablas no reemplazan `canonical_actions`: dependen de ella por `canonical_action_id`.
+Cuando una mecánica genera datos con columnas estables y repetibles, el backend puede extraerlos desde `raw_value_final` y guardarlos en una tabla detalle. La mayoría de estas tablas dependen de `canonical_actions` por `canonical_action_id`. Las tablas de telemetría agregada del mapa (`map_hover_stats`, `map_block_latency`) son una excepción: derivan de `mechanic_events` (hover y entrada al mapa), no de una acción canónica.
 
 ### `map_action_details`
+
+Click-stream de visitas: **una fila por visita** (acción canónica `visit_stakeholder`). Base para orden de atención, amplitud, equidad por sector y % de visitas proactivas.
 
 | Nombre en código | Título corto | Tipo | Uso analítico |
 |---|---|---|---|
 | `canonical_action_id` | Acción real | string | Une el detalle con `canonical_actions`. |
+| `session_id` | Sesión | string | Une con la sesión. |
+| `user_id` | Usuario | string | Participante (denormalizado). |
 | `origin_room` | Sala origen | string/null | Lugar desde donde partió el desplazamiento. |
-| `destination_room` | Sala destino | string | Lugar/NPC visitado. |
+| `destination_room` | Sala destino | string | Sala/NPC visitado. |
 | `npc_id` | NPC visitado | string | NPC asociado a la visita. |
-| `visit_duration_ms` | Duración visita | number | Duración registrada de la acción de visita o desplazamiento. |
+| `npc_role` | Rol NPC | string/null | Rol del funcionario visitado. |
+| `sector_id` | Sector | string/null | Sector del funcionario o sala (Azul, Rojo, Amarillo). |
+| `day` | Día | number/null | Día simulado de la visita. |
+| `time_slot` | Bloque horario | string/null | Bloque de la visita. |
+| `available_proactive_meeting` | Reunión proactiva disponible | boolean/null | Si había una reunión proactiva disponible con ese NPC al momento de visitarlo. |
+| `arrived_at_ms` | Tiempo llegada | number/null | Timestamp del click/visita. |
+| `visit_order` | Orden visita | number/null | Secuencia de la visita dentro de la sesión, ordenada por `arrived_at_ms`. |
+
+### `map_hover_stats`
+
+Telemetría de consideración en el mapa, derivada de los eventos de hover (no de `canonical_actions`): **una fila por `session_id + day + time_slot + npc_id`**. Mide a quién consideró el director antes de elegir, incluida la consideración sin acción (hovereó pero no visitó). Conteo robusto: un hover por entrada desde "no abierto".
+
+| Nombre en código | Título corto | Tipo | Uso analítico |
+|---|---|---|---|
+| `session_id` | Sesión | string | Une con la sesión. |
+| `user_id` | Usuario | string | Participante (denormalizado). |
+| `day` | Día | number | Día simulado. |
+| `time_slot` | Bloque horario | string | Bloque simulado. |
+| `npc_id` | NPC | string | Funcionario sobre el que se pasó el cursor. |
+| `hover_count` | Veces hover | number | Cuántas veces consideró a ese NPC en el bloque. |
+| `hover_total_ms` | Hover total | number | Tiempo total del cursor sobre ese NPC en el bloque. |
+| `was_visited` | Terminó visitándolo | boolean | `true` si ese NPC terminó siendo visitado en ese bloque. |
+
+### `map_block_latency`
+
+Latencia de decisión por bloque en el mapa, derivada de los eventos del mapa: **una fila por `session_id + day + time_slot`**. Mide deliberación al inicio del bloque.
+
+| Nombre en código | Título corto | Tipo | Uso analítico |
+|---|---|---|---|
+| `session_id` | Sesión | string | Une con la sesión. |
+| `user_id` | Usuario | string | Participante (denormalizado). |
+| `day` | Día | number | Día simulado. |
+| `time_slot` | Bloque horario | string | Bloque simulado. |
+| `block_entered_ms` | Entrada al mapa | number/null | Timestamp en que se abrió el mapa en ese bloque (el primero si se reabrió). |
+| `first_click_ms` | Primer click | number/null | Timestamp del primer click sobre un NPC en el bloque. |
+| `ms_to_first_click` | Latencia primer click | number/null | Tiempo desde que se abrió el mapa hasta el primer click. |
+| `visit_count` | Visitas en el bloque | number | Cantidad de visitas realizadas en ese bloque. |
 
 ### `email_action_details`
 

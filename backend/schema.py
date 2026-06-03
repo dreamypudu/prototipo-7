@@ -421,11 +421,13 @@ def _create_contract_tables(conn):
             user_id TEXT REFERENCES users(user_id),
             expected_action_id TEXT,
             canonical_action_id TEXT,
+            mechanic_id TEXT REFERENCES mechanics(mechanic_id),
             outcome BOOLEAN,
             reason TEXT,
             rule_id TEXT,
             resolved_day INTEGER,
             resolved_at_ms BIGINT,
+            commitment_elapsed_ms BIGINT,
             raw_deviation JSONB,
             deviation JSONB
         )
@@ -687,9 +689,11 @@ def _add_missing_columns(conn):
         """,
         """
         ALTER TABLE comparisons
+        ADD COLUMN IF NOT EXISTS mechanic_id TEXT,
         ADD COLUMN IF NOT EXISTS reason TEXT,
         ADD COLUMN IF NOT EXISTS resolved_day INTEGER,
         ADD COLUMN IF NOT EXISTS resolved_at_ms BIGINT,
+        ADD COLUMN IF NOT EXISTS commitment_elapsed_ms BIGINT,
         ADD COLUMN IF NOT EXISTS raw_deviation JSONB,
         ADD COLUMN IF NOT EXISTS deviation JSONB
         """,
@@ -750,6 +754,7 @@ def _seed_fk_placeholders(conn):
     conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM expected_actions WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
     conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM canonical_actions WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
     conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM mechanic_events WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
+    conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM comparisons WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
     # Stakeholders se siembran desde tablas que aun referencian npc_id; el catalogo de narrativa los carga al boot.
     conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT npc_id FROM expected_actions WHERE npc_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
     conn.execute("INSERT INTO stakeholders (stakeholder_id) SELECT DISTINCT npc_id FROM question_log WHERE npc_id IS NOT NULL ON CONFLICT (stakeholder_id) DO NOTHING")
@@ -788,6 +793,36 @@ def _seed_fk_placeholders(conn):
               SELECT 1 FROM canonical_actions ca
               WHERE ca.canonical_action_id = c.canonical_action_id
           )
+        """
+    )
+    conn.execute(
+        """
+        UPDATE comparisons c
+        SET mechanic_id = COALESCE(c.mechanic_id, ea.mechanic_id)
+        FROM expected_actions ea
+        WHERE ea.expected_action_id = c.expected_action_id
+          AND COALESCE(c.mechanic_id, ea.mechanic_id) IS NOT NULL
+        """
+    )
+    conn.execute(
+        """
+        UPDATE comparisons c
+        SET mechanic_id = COALESCE(c.mechanic_id, ca.mechanic_id)
+        FROM canonical_actions ca
+        WHERE ca.canonical_action_id = c.canonical_action_id
+          AND COALESCE(c.mechanic_id, ca.mechanic_id) IS NOT NULL
+        """
+    )
+    conn.execute("INSERT INTO mechanics (mechanic_id) SELECT DISTINCT mechanic_id FROM comparisons WHERE mechanic_id IS NOT NULL ON CONFLICT (mechanic_id) DO NOTHING")
+    conn.execute(
+        """
+        UPDATE comparisons c
+        SET commitment_elapsed_ms = GREATEST(0, c.resolved_at_ms - ea.created_at_ms)
+        FROM expected_actions ea
+        WHERE ea.expected_action_id = c.expected_action_id
+          AND c.commitment_elapsed_ms IS NULL
+          AND c.resolved_at_ms IS NOT NULL
+          AND ea.created_at_ms IS NOT NULL
         """
     )
     conn.execute(
@@ -845,6 +880,7 @@ def _add_contract_constraints(conn):
         ("comparisons_session_id_fkey", "ALTER TABLE comparisons ADD CONSTRAINT comparisons_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
         ("comparisons_expected_action_id_fkey", "ALTER TABLE comparisons ADD CONSTRAINT comparisons_expected_action_id_fkey FOREIGN KEY (expected_action_id) REFERENCES expected_actions(expected_action_id) ON DELETE CASCADE"),
         ("comparisons_canonical_action_id_fkey", "ALTER TABLE comparisons ADD CONSTRAINT comparisons_canonical_action_id_fkey FOREIGN KEY (canonical_action_id) REFERENCES canonical_actions(canonical_action_id) ON DELETE SET NULL"),
+        ("comparisons_mechanic_id_fkey", "ALTER TABLE comparisons ADD CONSTRAINT comparisons_mechanic_id_fkey FOREIGN KEY (mechanic_id) REFERENCES mechanics(mechanic_id)"),
         ("process_logs_session_id_fkey", "ALTER TABLE process_logs ADD CONSTRAINT process_logs_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
         ("question_log_session_id_fkey", "ALTER TABLE question_log ADD CONSTRAINT question_log_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE"),
         ("question_log_npc_id_fkey", "ALTER TABLE question_log ADD CONSTRAINT question_log_npc_id_fkey FOREIGN KEY (npc_id) REFERENCES stakeholders(stakeholder_id)"),
@@ -868,6 +904,8 @@ def _create_indexes(conn):
         "CREATE INDEX IF NOT EXISTS idx_events_session ON mechanic_events(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_events_node_option ON mechanic_events(node_id, option_id)",
         "CREATE INDEX IF NOT EXISTS idx_comparisons_session ON comparisons(session_id)",
+        "CREATE INDEX IF NOT EXISTS idx_comparisons_mechanic ON comparisons(mechanic_id)",
+        "CREATE INDEX IF NOT EXISTS idx_comparisons_elapsed ON comparisons(commitment_elapsed_ms)",
         "CREATE INDEX IF NOT EXISTS idx_process_session ON process_logs(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_question_log_session ON question_log(session_id)",
         # Indices por user_id (denormalizado) para filtrar/extraer por usuario.

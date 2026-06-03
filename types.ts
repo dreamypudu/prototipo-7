@@ -77,11 +77,13 @@ export interface ComparisonResult {
   session_id: string;
   expected_action_id: string;
   canonical_action_id: string | null;
+  mechanic_id?: string | null;
   outcome: boolean;
   reason?: string | null;
   rule_id: string;
   resolved_day?: number | null;
   resolved_at_ms?: number | null;
+  commitment_elapsed_ms?: number | null;
   raw_deviation?: any;
   deviation?: any;
 }
