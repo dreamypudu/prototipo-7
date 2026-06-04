@@ -237,6 +237,11 @@ export default function GestionEnSaludApp({
   const sessionStartRef = useRef<number | null>(null);
   const sessionEndRef = useRef<number | null>(null);
   const pendingCase1EndingRef = useRef<{ sequenceId: string; emailIds: string[] } | null>(null);
+  // Espejo sincrono de playerNotes. Los avances de dia reconstruyen estado desde un closure de
+  // gameState; si el timer auto-avanza justo despues de tipear, ese closure es viejo y el
+  // setGameState absoluto pisaria las notas. La ref se actualiza en el mismo handler del keystroke
+  // (antes de cualquier tick del timer), asi que siempre tiene las notas mas recientes.
+  const playerNotesRef = useRef<string>(initialState.playerNotes);
   const [appStep, setAppStep] = useState<AppStep>('splash');
   const [config, setConfig] = useState<SimulatorConfig | null>(initialConfig);
   const [selectedVersion] = useState<SimulatorVersion>(version);
@@ -967,7 +972,7 @@ export default function GestionEnSaludApp({
     justCompletedSequenceId: string,
     mondayEmailIds: string[]
   ) => {
-    let stateAfterMeetingEnd = { ...gameState };
+    let stateAfterMeetingEnd = { ...gameState, playerNotes: playerNotesRef.current };
     if (!stateAfterMeetingEnd.completedSequences.includes(justCompletedSequenceId)) {
       stateAfterMeetingEnd.completedSequences = [...stateAfterMeetingEnd.completedSequences, justCompletedSequenceId];
     }
@@ -1121,7 +1126,7 @@ export default function GestionEnSaludApp({
     justCompletedSequenceId?: string,
     options?: { skipTimeAdvance?: boolean; forceResumeTimer?: boolean }
   ) => {
-    let stateAfterMeetingEnd = { ...gameState };
+    let stateAfterMeetingEnd = { ...gameState, playerNotes: playerNotesRef.current };
     if (justCompletedSequenceId && !stateAfterMeetingEnd.completedSequences.includes(justCompletedSequenceId)) {
       stateAfterMeetingEnd.completedSequences = [...stateAfterMeetingEnd.completedSequences, justCompletedSequenceId];
     }
@@ -1317,6 +1322,7 @@ export default function GestionEnSaludApp({
   };
 
   const handleUpdateNotes = (notes: string) => {
+      playerNotesRef.current = notes;
       setGameState(prev => ({...prev, playerNotes: notes }));
   };
 
@@ -1973,6 +1979,7 @@ export default function GestionEnSaludApp({
     setContentPack(initialContentPack);
     setScenarioData(initialContentPack.scenarios);
     pendingCase1EndingRef.current = null;
+    playerNotesRef.current = initialState.playerNotes;
     setGameState(initialState);
     prevStats.current = {
       budget: initialState.budget,
