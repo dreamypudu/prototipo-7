@@ -318,6 +318,48 @@ def _create_core_tables(conn):
     )
 
 
+def _create_platform_auth_tables(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS platform_users (
+            platform_user_id TEXT PRIMARY KEY,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL CHECK (role IN ('user', 'admin')),
+            full_name TEXT NOT NULL,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            created_at TIMESTAMPTZ NOT NULL,
+            updated_at TIMESTAMPTZ NOT NULL,
+            last_login_at TIMESTAMPTZ
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS platform_refresh_tokens (
+            refresh_token_id TEXT PRIMARY KEY,
+            platform_user_id TEXT NOT NULL REFERENCES platform_users(platform_user_id) ON DELETE CASCADE,
+            token_hash TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL,
+            last_used_at TIMESTAMPTZ,
+            expires_at TIMESTAMPTZ NOT NULL,
+            revoked_at TIMESTAMPTZ
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS platform_login_attempts (
+            attempt_id BIGSERIAL PRIMARY KEY,
+            email TEXT NOT NULL,
+            ip_address TEXT NOT NULL,
+            succeeded BOOLEAN NOT NULL,
+            attempted_at TIMESTAMPTZ NOT NULL
+        )
+        """
+    )
+
+
 def _create_contract_tables(conn):
     conn.execute(
         """
@@ -894,6 +936,10 @@ def _add_contract_constraints(conn):
 
 def _create_indexes(conn):
     indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_platform_users_email ON platform_users(email)",
+        "CREATE INDEX IF NOT EXISTS idx_platform_refresh_user ON platform_refresh_tokens(platform_user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_platform_refresh_expires ON platform_refresh_tokens(expires_at)",
+        "CREATE INDEX IF NOT EXISTS idx_platform_login_attempts_window ON platform_login_attempts(email, ip_address, attempted_at)",
         "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)",
         "CREATE INDEX IF NOT EXISTS idx_exp_decisions_session ON explicit_decisions(session_id)",
         "CREATE INDEX IF NOT EXISTS idx_exp_decisions_node_option ON explicit_decisions(node_id, option_id)",
@@ -984,6 +1030,7 @@ def create_schema(conn):
     _migrate_legacy_columns(conn)
     _migrate_v2_schema(conn)
     _create_core_tables(conn)
+    _create_platform_auth_tables(conn)
     _create_contract_tables(conn)
     _create_support_tables(conn)
     _add_missing_columns(conn)

@@ -22,6 +22,7 @@ const EndGameScreen: React.FC<EndGameScreenProps> = ({
   runMode = 'experiment',
 }) => {
   const isWin = status === 'won';
+  const canRestart = runMode === 'tutorial' || saveStatus === 'success';
   const handleCopyExperimentalId = async () => {
     if (!experimentalUserId) return;
     try {
@@ -113,11 +114,16 @@ const EndGameScreen: React.FC<EndGameScreenProps> = ({
         )}
         <button
           onClick={() => window.location.reload()}
+          disabled={!canRestart}
           className={`transform rounded-lg px-8 py-3 font-bold text-white transition-transform hover:scale-105 ${
-            isWin ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'
+            !canRestart
+              ? 'cursor-not-allowed bg-slate-700 text-slate-400 hover:scale-100'
+              : isWin
+                ? 'bg-green-600 hover:bg-green-500'
+                : 'bg-red-600 hover:bg-red-500'
           }`}
         >
-          Jugar de Nuevo
+          {canRestart ? 'Jugar de Nuevo' : 'Guarda la sesion para continuar'}
         </button>
       </div>
       <style>{`

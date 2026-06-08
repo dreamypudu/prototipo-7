@@ -11,15 +11,16 @@ import { MechanicProvider } from '../../mechanics/MechanicContext';
 import { MechanicDispatchAction, OfficeState } from '../../mechanics/types';
 import { buildSessionExport } from '../../services/sessionExport';
 import { useMechanicLogSync } from '../../hooks/useMechanicLogSync';
+import { useAuth } from '../../contexts/AuthContext';
 import { compareExpectedVsActual, mergeComparisonResults, resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
-import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { syncOfficeDecisionComparisons } from '../../mechanics/office/services/officeDecisionComparison';
 import { applyContentUnlocks, isEmailUnlocked } from '../../services/contentUnlocks';
 import { buildConsequenceDialogueLines, type DialogueLine } from '../../services/dialogueReactions';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
 import { resolveScenarioDialogue } from '../../services/contextualDialogue';
+import { apiFetch } from '../../services/apiClient';
 import { API_BASE_URL } from '../../services/apiConfig';
 import {
   clearSessionSnapshot,
@@ -232,6 +233,8 @@ export default function GestionEnSaludApp({
   );
   const initialConfig = SIMULATOR_CONFIGS[version];
   const initialState = useMemo(() => createInitialGameState(initialContentPack), [initialContentPack]);
+  const { user: platformUser } = useAuth();
+  const isPlatformAdmin = platformUser?.role === 'admin';
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const anonymousUserIdRef = useRef<string>(crypto.randomUUID());
   const sessionStartRef = useRef<number | null>(null);
@@ -282,7 +285,7 @@ export default function GestionEnSaludApp({
   const [isLogDragging, setIsLogDragging] = useState(false);
   const [logDragOffset, setLogDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const [isDeveloperUnlocked, setIsDeveloperUnlocked] = useState<boolean>(() => getInitialDeveloperAccess());
+  const [isDeveloperUnlocked, setIsDeveloperUnlocked] = useState<boolean>(isPlatformAdmin);
   const [finalPersistStatus, setFinalPersistStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [finalPersistError, setFinalPersistError] = useState<string | null>(null);
   const upSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -475,6 +478,10 @@ export default function GestionEnSaludApp({
   }, [activeTab, syncLogs]);
 
   useEffect(() => {
+    setIsDeveloperUnlocked(isPlatformAdmin);
+  }, [isPlatformAdmin]);
+
+  useEffect(() => {
     if (isDeveloperUnlocked || activeTab !== 'data_export') return;
     setActiveTab('interaction');
   }, [activeTab, isDeveloperUnlocked]);
@@ -531,13 +538,11 @@ export default function GestionEnSaludApp({
     setTimeout(() => setToastMessage(null), durationMs);
   }, []);
 
-  const handleDeveloperUnlock = useCallback((password: string) => {
-    const unlocked = tryUnlockDeveloperAccess(password);
-    if (unlocked) {
-      setIsDeveloperUnlocked(true);
-    }
-    return unlocked;
-  }, []);
+  const handleDeveloperUnlock = useCallback((_password: string) => {
+    if (!isPlatformAdmin) return false;
+    setIsDeveloperUnlocked(true);
+    return true;
+  }, [isPlatformAdmin]);
 
   const handleToggleObjectives = useCallback(() => {
     setIsObjectivesOpen((prev) => {
@@ -926,7 +931,7 @@ export default function GestionEnSaludApp({
             roomDefinitions,
           });
 
-          const resp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/sessions`, {
+          const resp = await apiFetch('/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(exportPayload),
@@ -1064,7 +1069,7 @@ export default function GestionEnSaludApp({
 
         console.log(`[Backend] Attempting to connect to ${API_BASE_URL}`);
 
-        const firstResp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/sessions`, {
+        const firstResp = await apiFetch('/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(exportPayload)
@@ -2286,6 +2291,7 @@ export default function GestionEnSaludApp({
          onReturnHome={handleReturnHome}
          stages={stageTabs}
          developerUnlocked={isDeveloperUnlocked}
+         canAccessDeveloper={isPlatformAdmin}
          onUnlockDeveloper={handleDeveloperUnlock}
          onTogglePause={() => setIsTimerPaused((prev) => !prev)}
          isTimerPaused={effectiveTimerPaused}

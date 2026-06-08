@@ -37,6 +37,17 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-compass}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/${POSTGRES_DB:-compass}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://compass.giia.udec.cl}
+      APP_ENV: ${APP_ENV:-production}
+      AUTH_JWT_SECRET_KEY: ${AUTH_JWT_SECRET_KEY:?AUTH_JWT_SECRET_KEY is required}
+      AUTH_ACCESS_TOKEN_MINUTES: ${AUTH_ACCESS_TOKEN_MINUTES:-15}
+      AUTH_REFRESH_TOKEN_HOURS: ${AUTH_REFRESH_TOKEN_HOURS:-12}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
+      AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-strict}
+      AUTH_SEED_EMAIL: ${AUTH_SEED_EMAIL:-}
+      AUTH_SEED_PASSWORD: ${AUTH_SEED_PASSWORD:-}
+      AUTH_SEED_ROLE: ${AUTH_SEED_ROLE:-user}
+      AUTH_SEED_FULL_NAME: ${AUTH_SEED_FULL_NAME:-Cuenta laboratorio}
+      AUTH_SEED_OVERWRITE: ${AUTH_SEED_OVERWRITE:-false}
     depends_on:
       db:
         condition: service_healthy

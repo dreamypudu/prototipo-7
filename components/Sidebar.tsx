@@ -14,6 +14,7 @@ interface SidebarProps {
   stages?: StageTab[];
   onSelectStage?: (stageId: string) => void;
   developerUnlocked: boolean;
+  canAccessDeveloper?: boolean;
   onUnlockDeveloper: (password: string) => boolean;
   onTogglePause?: () => void;
   isTimerPaused?: boolean;
@@ -31,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   stages = [],
   onSelectStage,
   developerUnlocked,
+  canAccessDeveloper = false,
   onUnlockDeveloper,
   onTogglePause,
   isTimerPaused = false,
@@ -163,16 +165,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </li>
               )}
-              <li>
-                <button
-                  onClick={handleDeveloperToggle}
-                  className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-lg text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
-                >
-                  <DeveloperIcon />
-                  <span>Vista de desarrollador</span>
-                </button>
-              </li>
-              {showDeveloperView && (
+              {canAccessDeveloper && (
+                <li>
+                  <button
+                    onClick={handleDeveloperToggle}
+                    className="w-full text-left flex items-center gap-3 p-3 rounded-lg text-lg text-gray-200 hover:bg-white/10 hover:text-white transition-colors border border-transparent hover:border-white/10"
+                  >
+                    <DeveloperIcon />
+                    <span>Vista de desarrollador</span>
+                  </button>
+                </li>
+              )}
+              {canAccessDeveloper && showDeveloperView && (
                 <li className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
                   {!developerUnlocked ? (
                     <form onSubmit={handleDeveloperSubmit} className="space-y-3">

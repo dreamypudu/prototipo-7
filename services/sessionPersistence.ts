@@ -1,5 +1,6 @@
 // Persiste, descarga y recupera snapshots de sesión desde backend/localStorage.
 import type { SessionExport } from './sessionExport';
+import { apiFetch } from './apiClient';
 
 const SESSION_SNAPSHOT_PREFIX = 'compass_session_snapshot_';
 
@@ -34,9 +35,8 @@ export const downloadSessionSnapshot = (sessionExport: SessionExport, filename =
   URL.revokeObjectURL(url);
 };
 
-export const persistSessionExport = async (sessionExport: SessionExport, apiBaseUrl: string) => {
-  const url = `${apiBaseUrl.replace(/\/$/, '')}/sessions`;
-  const response = await fetch(url, {
+export const persistSessionExport = async (sessionExport: SessionExport, _apiBaseUrl: string) => {
+  const response = await apiFetch('/sessions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(sessionExport),

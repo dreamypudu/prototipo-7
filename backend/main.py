@@ -1,13 +1,29 @@
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 try:
+    from .auth import (
+        require_admin,
+        require_user_or_admin,
+        router as auth_router,
+        seed_platform_user,
+        validate_request_origin,
+        validate_auth_config,
+    )
     from .db import get_conn
     from .json_utils import json_load
     from .normalizers import DETAIL_TABLE_NAMES, normalize_session
     from .schema import create_schema
     from .timezone_utils import now_chile_iso
 except ImportError:
+    from auth import (
+        require_admin,
+        require_user_or_admin,
+        router as auth_router,
+        seed_platform_user,
+        validate_request_origin,
+        validate_auth_config,
+    )
     from db import get_conn
     from json_utils import json_load
     from normalizers import DETAIL_TABLE_NAMES, normalize_session
@@ -16,8 +32,11 @@ except ImportError:
 
 
 def init_db():
+    validate_auth_config()
     with get_conn() as conn:
         create_schema(conn)
+        seed_platform_user(conn)
+        conn.commit()
 
 
 def _get_allowed_origins():
@@ -30,6 +49,7 @@ def _get_allowed_origins():
 
 
 app = FastAPI(title="Simulator Backend", version="0.4.0")
+app.include_router(auth_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_get_allowed_origins(),
@@ -50,7 +70,11 @@ def health():
 
 
 @app.post("/sessions")
-def create_session(session: dict = Body(...)):
+def create_session(
+    session: dict = Body(...),
+    _origin: None = Depends(validate_request_origin),
+    _user: dict = Depends(require_user_or_admin),
+):
     metadata = session.get("session_metadata", {})
     session_id = metadata.get("session_id")
     if not session_id:
@@ -70,7 +94,11 @@ def create_session(session: dict = Body(...)):
 
 
 @app.post("/sessions/{session_id}/normalize")
-def normalize_existing_session(session_id: str):
+def normalize_existing_session(
+    session_id: str,
+    _origin: None = Depends(validate_request_origin),
+    _admin: dict = Depends(require_admin),
+):
     with get_conn() as conn:
         row = conn.execute(
             "SELECT payload, created_at FROM sessions WHERE session_id = %s",
@@ -80,32 +108,59 @@ def normalize_existing_session(session_id: str):
             raise HTTPException(status_code=404, detail="session not found")
 
         session = json_load(row["payload"]) or {}
-        conn.execute("BEGIN")
-        counts = normalize_session(conn, session_id, session, row["created_at"])
         conn.commit()
+        with conn.transaction():
+            counts = normalize_session(conn, session_id, session, row["created_at"])
 
     return {"ok": True, "session_id": session_id, "counts": counts}
 
 
 @app.post("/sessions/normalize")
-def normalize_all_sessions():
+def normalize_all_sessions(
+    include_results: bool = False,
+    _origin: None = Depends(validate_request_origin),
+    _admin: dict = Depends(require_admin),
+):
     with get_conn() as conn:
-        rows = conn.execute(
-            "SELECT session_id, payload, created_at FROM sessions"
-        ).fetchall()
-        results = []
-        conn.execute("BEGIN")
-        for row in rows:
-            session = json_load(row["payload"]) or {}
-            counts = normalize_session(conn, row["session_id"], session, row["created_at"])
-            results.append({"session_id": row["session_id"], "counts": counts})
-        conn.commit()
+        session_ids = [
+            row["session_id"]
+            for row in conn.execute(
+                "SELECT session_id FROM sessions ORDER BY created_at"
+            ).fetchall()
+        ]
 
-    return {"ok": True, "processed": len(results), "results": results}
+    results = []
+    failures = []
+    for session_id in session_ids:
+        with get_conn() as conn:
+            row = conn.execute(
+                "SELECT session_id, payload, created_at FROM sessions WHERE session_id = %s",
+                (session_id,),
+            ).fetchone()
+            if not row:
+                failures.append({"session_id": session_id, "error": "session not found"})
+                continue
+            session = json_load(row["payload"]) or {}
+            conn.commit()
+            try:
+                with conn.transaction():
+                    counts = normalize_session(conn, row["session_id"], session, row["created_at"])
+            except Exception as exc:
+                failures.append({"session_id": row["session_id"], "error": str(exc)})
+                continue
+            if include_results:
+                results.append({"session_id": row["session_id"], "counts": counts})
+
+    response = {"ok": not failures, "processed": len(session_ids) - len(failures), "failed": len(failures)}
+    if include_results:
+        response["results"] = results
+    if failures:
+        response["failures"] = failures[:20]
+    return response
 
 
 @app.get("/sessions")
-def list_sessions(limit: int = 100):
+def list_sessions(limit: int = 100, _admin: dict = Depends(require_admin)):
     with get_conn() as conn:
         rows = conn.execute(
             """
@@ -121,7 +176,7 @@ def list_sessions(limit: int = 100):
 
 
 @app.get("/sessions/{session_id}")
-def get_session(session_id: str):
+def get_session(session_id: str, _admin: dict = Depends(require_admin)):
     with get_conn() as conn:
         row = conn.execute(
             "SELECT payload FROM sessions WHERE session_id = %s",
@@ -145,7 +200,7 @@ def _fetch_table(conn, table_name: str, session_id: str):
 
 
 @app.get("/sessions/{session_id}/normalized")
-def get_session_normalized(session_id: str):
+def get_session_normalized(session_id: str, _admin: dict = Depends(require_admin)):
     with get_conn() as conn:
         session_row = conn.execute(
             """
@@ -179,7 +234,7 @@ def get_session_normalized(session_id: str):
 
 
 @app.get("/sessions/latest")
-def get_latest_session():
+def get_latest_session(_admin: dict = Depends(require_admin)):
     with get_conn() as conn:
         row = conn.execute(
             """
@@ -196,14 +251,14 @@ def get_latest_session():
 
 
 @app.get("/sessions/latest/normalized")
-def get_latest_session_normalized():
+def get_latest_session_normalized(_admin: dict = Depends(require_admin)):
     with get_conn() as conn:
         row = conn.execute(
             "SELECT session_id FROM sessions ORDER BY created_at DESC LIMIT 1"
         ).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="session not found")
-    return get_session_normalized(row["session_id"])
+    return get_session_normalized(row["session_id"], _admin)
 
 
 __all__ = ["app", "create_schema", "get_conn", "normalize_session"]

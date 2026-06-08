@@ -48,6 +48,9 @@ En `.env.production`:
 - `POSTGRES_DB`: nombre de la base. Puede quedar como `compass`.
 - `ALLOWED_ORIGINS`: dominio permitido por CORS. Ejemplo: `https://compass.giia.udec.cl`.
 - `VITE_API_URL`: URL que el frontend usa para hablar con backend. Para mismo dominio, dejar `/api`.
+- `AUTH_JWT_SECRET_KEY`: clave aleatoria larga para firmar tokens. Obligatoria en produccion.
+- `AUTH_SEED_EMAIL` / `AUTH_SEED_PASSWORD`: cuenta inicial de plataforma, normalmente con `AUTH_SEED_ROLE=user`.
+- `AUTH_ACCESS_TOKEN_MINUTES` / `AUTH_REFRESH_TOKEN_HOURS`: duracion de access token y ventana maxima de renovacion activa.
 
 El backend construye internamente la conexion:
 

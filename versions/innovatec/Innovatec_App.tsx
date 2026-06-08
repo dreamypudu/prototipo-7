@@ -4,14 +4,15 @@ import { getVersionContentPack } from '../../data/versions';
 import { startLogging, finalizeLogging } from '../../services/Timelogger';
 import { mechanicEngine } from '../../services/MechanicEngine';
 import { buildSessionExport } from '../../services/sessionExport';
+import { useAuth } from '../../contexts/AuthContext';
 import { clampReputation, resolveActionEffectsPreview, resolveGlobalEffects, resolveInternalEffectsPreview } from './services/globalEffects';
-import { getInitialDeveloperAccess, tryUnlockDeveloperAccess } from '../../services/developerAccess';
 import { appendTimeBlockEmails } from '../../mechanics/inbox/services/emailTriggers';
 import { applyContentUnlocks } from '../../services/contentUnlocks';
 import { buildConsequenceDialogueLines, type DialogueLine } from '../../services/dialogueReactions';
 import { resolveDayEffectsLocally, resolutionHasChanges } from '../../services/ComparisonEngine';
 import { applyDailyResolutionToState } from '../../services/dailyResolutionState';
 import { resolveScenarioDialogue } from '../../services/contextualDialogue';
+import { apiFetch } from '../../services/apiClient';
 import { API_BASE_URL } from '../../services/apiConfig';
 import {
   clearSessionSnapshot,
@@ -113,6 +114,8 @@ const getInitialSecretaryActions = (): PlayerAction[] => [
 
 
 export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React.ReactElement {
+  const { user: platformUser } = useAuth();
+  const isPlatformAdmin = platformUser?.role === 'admin';
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const anonymousUserIdRef = useRef<string>(crypto.randomUUID());
   const sessionStartRef = useRef<number | null>(null);
@@ -151,7 +154,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   const [questionsBaseDialogue, setQuestionsBaseDialogue] = useState<string>('');
   const [dailySummary, setDailySummary] = useState<DailyEffectSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isDeveloperUnlocked, setIsDeveloperUnlocked] = useState<boolean>(() => getInitialDeveloperAccess());
+  const [isDeveloperUnlocked, setIsDeveloperUnlocked] = useState<boolean>(isPlatformAdmin);
   const [finalPersistStatus, setFinalPersistStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [finalPersistError, setFinalPersistError] = useState<string | null>(null);
   const roomDefinitions = INNOVATEC_CONTENT.defaults.roomDefinitions ?? [];
@@ -212,6 +215,10 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
   }, [activeTab, syncLogs]);
 
   useEffect(() => {
+    setIsDeveloperUnlocked(isPlatformAdmin);
+  }, [isPlatformAdmin]);
+
+  useEffect(() => {
     if (isDeveloperUnlocked || activeTab !== 'data_export') return;
     setActiveTab('interaction');
   }, [activeTab, isDeveloperUnlocked]);
@@ -267,13 +274,11 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
     setTimeout(() => setToastMessage(null), durationMs);
   }, []);
 
-  const handleDeveloperUnlock = useCallback((password: string) => {
-    const unlocked = tryUnlockDeveloperAccess(password);
-    if (unlocked) {
-      setIsDeveloperUnlocked(true);
-    }
-    return unlocked;
-  }, []);
+  const handleDeveloperUnlock = useCallback((_password: string) => {
+    if (!isPlatformAdmin) return false;
+    setIsDeveloperUnlocked(true);
+    return true;
+  }, [isPlatformAdmin]);
 
   const handleToggleObjectives = useCallback(() => {
     setIsObjectivesOpen((prev) => {
@@ -546,7 +551,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
           endedAt: Date.now(),
           roomDefinitions,
         });
-        await fetch(`${API_BASE_URL.replace(/\/$/, '')}/sessions`, {
+        await apiFetch('/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(exportPayload),
@@ -1515,6 +1520,7 @@ export default function InnovatecApp({ onExitToHome }: InnovatecAppProps): React
           onReturnHome={handleReturnHome}
           stages={stageTabs}
           developerUnlocked={isDeveloperUnlocked}
+          canAccessDeveloper={isPlatformAdmin}
           onUnlockDeveloper={handleDeveloperUnlock}
           onTogglePause={() => setIsTimerPaused((prev) => !prev)}
           isTimerPaused={isTimerPaused}
