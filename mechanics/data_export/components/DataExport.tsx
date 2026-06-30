@@ -57,7 +57,7 @@ const DataExport: React.FC<DataExportProps> = ({
             <div className="mb-6 flex items-center justify-between gap-4 border-b-2 border-blue-500/30 pb-3">
                 <h2 className="text-3xl font-bold text-blue-300">Centro de Exportación de Datos</h2>
                 <button onClick={() => setShowDashboard(true)} className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-500">
-                    Dashboard de resultados (mock)
+                    Informe de resultados
                 </button>
             </div>
             {showDashboard && <ResultsDashboard results={buildMockResults()} onClose={() => setShowDashboard(false)} />}

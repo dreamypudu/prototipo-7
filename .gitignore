@@ -8,8 +8,10 @@ dist/
 .env*
 
 # Codex local tools
+.codex/
 .agents/
 skills-lock.json
+*.skills.lock
 
 # Python virtualenv
 .venv/
