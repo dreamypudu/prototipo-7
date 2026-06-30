@@ -7,10 +7,15 @@ dist/
 # Environment
 .env*
 
+# Codex local tools
+.agents/
+skills-lock.json
+
 # Python virtualenv
 .venv/
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

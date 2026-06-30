@@ -4,6 +4,8 @@ import { DecisionLogEntry, ProcessLogEntry, PlayerActionLogEntry, MechanicEvent,
 import { SessionExport } from '../../../services/sessionExport';
 import { API_BASE_URL } from '../../../services/apiConfig';
 import { persistSessionExport } from '../../../services/sessionPersistence';
+import ResultsDashboard from '../../../components/results/ResultsDashboard';
+import { buildMockResults } from '../../../components/results/sessionResults';
 
 interface DataExportProps {
     decisionLog: DecisionLogEntry[];
@@ -34,6 +36,7 @@ const DataExport: React.FC<DataExportProps> = ({
     const isTutorial = sessionExport.session_metadata.run_mode === 'tutorial';
     const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [sendError, setSendError] = useState<string | null>(null);
+    const [showDashboard, setShowDashboard] = useState(false);
 
     const handleSendSession = async () => {
         if (!hasSessionData || sendStatus === 'sending' || isTutorial) return;
@@ -51,7 +54,13 @@ const DataExport: React.FC<DataExportProps> = ({
 
     return (
         <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 animate-fade-in custom-scrollbar overflow-y-auto max-h-full">
-            <h2 className="text-3xl font-bold mb-6 text-blue-300 border-b-2 border-blue-500/30 pb-3">Centro de Exportación de Datos</h2>
+            <div className="mb-6 flex items-center justify-between gap-4 border-b-2 border-blue-500/30 pb-3">
+                <h2 className="text-3xl font-bold text-blue-300">Centro de Exportación de Datos</h2>
+                <button onClick={() => setShowDashboard(true)} className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-500">
+                    Dashboard de resultados (mock)
+                </button>
+            </div>
+            {showDashboard && <ResultsDashboard results={buildMockResults()} onClose={() => setShowDashboard(false)} />}
             <p className="text-gray-400 mb-8 max-w-3xl">
                 Descargue los datasets generados durante la sesión. Estos archivos contienen la telemetría rica y las acciones canónicas para análisis psicométrico y machine learning.
             </p>

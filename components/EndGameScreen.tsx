@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ResultsDashboard from './results/ResultsDashboard';
+import { buildMockResults } from './results/sessionResults';
 
 interface EndGameScreenProps {
   status: 'won' | 'lost';
@@ -23,6 +25,7 @@ const EndGameScreen: React.FC<EndGameScreenProps> = ({
 }) => {
   const isWin = status === 'won';
   const canRestart = runMode === 'tutorial' || saveStatus === 'success';
+  const [showResults, setShowResults] = useState(false);
   const handleCopyExperimentalId = async () => {
     if (!experimentalUserId) return;
     try {
@@ -79,6 +82,15 @@ const EndGameScreen: React.FC<EndGameScreenProps> = ({
             <p className="text-red-300">✗ No se pudo guardar la sesión: {saveError}</p>
           )}
         </div>
+        <div className="mb-6">
+          <button
+            onClick={() => setShowResults(true)}
+            className="rounded-lg bg-cyan-600 px-6 py-2.5 font-bold text-white transition-transform hover:scale-105 hover:bg-cyan-500"
+          >
+            Ver mi perfil conductual
+          </button>
+        </div>
+        {showResults && <ResultsDashboard results={buildMockResults()} onClose={() => setShowResults(false)} />}
         {(onRetrySave || onDownloadBackup) && (
           <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
             {onRetrySave && (
